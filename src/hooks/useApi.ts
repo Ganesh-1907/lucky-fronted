@@ -72,6 +72,14 @@ export function useServiceBySlug(slug: string) {
   });
 }
 
+export function useServiceById(id: number) {
+  return useQuery({
+    queryKey: ["serviceById", id],
+    queryFn: () => api.get<{ data: any }>(`/services/by-id/${id}`),
+    enabled: !!id,
+  });
+}
+
 // ─── AUTH & USER ────────────────────────────────────────────
 export function useCurrentUser() {
   return useQuery({
@@ -176,6 +184,14 @@ export function useCreateService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: any) => api.post("/services", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["vendor", "services"] }),
+  });
+}
+
+export function useUpdateVendorService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/services/${id}`, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendor", "services"] }),
   });
 }
@@ -450,3 +466,48 @@ export function useCities() {
     staleTime: 30 * 60 * 1000, // 30 mins
   });
 }
+
+// ─── HOMEPAGE ───────────────────────────────────────────────
+export function useUpdateHomepageSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      api.put(`/homepage/sections/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "homepageSections"] }),
+  });
+}
+
+export function useAddHomepageSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) =>
+      api.post(`/homepage/sections`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "homepageSections"] }),
+  });
+}
+
+export function useDeleteHomepageSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      api.delete(`/homepage/sections/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "homepageSections"] }),
+  });
+}
+
+export function useReorderHomepageSections() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: number; sortOrder: number }[]) =>
+      api.put("/homepage/sections/reorder/batch", { items }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "homepageSections"] }),
+  });
+}
+
+export function useAdminHomepageSections() {
+  return useQuery({
+    queryKey: ["admin", "homepageSections"],
+    queryFn: () => api.get<{ data: any[] }>("/homepage/sections"),
+  });
+}
+

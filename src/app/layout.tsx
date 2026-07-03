@@ -37,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="min-h-screen flex flex-col" style={{ fontFamily: "var(--font-inter)" }}>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col" style={{ fontFamily: "var(--font-inter)" }} suppressHydrationWarning>
         <Toaster
           position="top-right"
           toastOptions={{

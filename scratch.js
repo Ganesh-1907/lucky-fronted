@@ -1,144 +1,7 @@
-"use client";
+const fs = require('fs');
+let content = fs.readFileSync('src/app/page.tsx', 'utf8');
 
-import { useState, useEffect, useCallback } from "react";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ArrowRight, Sparkles, Star, TrendingUp, Gift, Cake,
-  PartyPopper, Heart, Building2, Flower2, ChevronRight,
-  Shield, Clock, CheckCircle, Users,
-} from "lucide-react";
-import ServiceCard from "@/components/cards/ServiceCard";
-import { useServices, useCategories, useHomepageSections } from "@/hooks/useApi";
-
-// Sample data for demo (replaced by API data in production)
-const sampleServices = [
-  {
-    id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration",
-    basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128,
-    isTrending: true, isBestSeller: true, isNewArrival: false, isFeatured: true,
-    category: { name: "Balloon Decorations", slug: "balloon-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 2, title: "Romantic Candlelight Dinner Setup", slug: "romantic-candlelight-dinner-setup",
-    basePrice: 5999, discountPrice: 4499, images: [], avgRating: 4.8, reviewCount: 89,
-    isTrending: true, isBestSeller: false, isNewArrival: true, isFeatured: true,
-    category: { name: "Candlelight Dinner", slug: "candlelight-dinner" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 3, title: "Royal Wedding Stage Decoration", slug: "royal-wedding-stage-decoration",
-    basePrice: 49999, discountPrice: 39999, images: [], avgRating: 4.9, reviewCount: 56,
-    isTrending: false, isBestSeller: true, isNewArrival: false, isFeatured: true,
-    category: { name: "Wedding Decorations", slug: "wedding-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 4, title: "Kids Birthday Theme Party Setup", slug: "kids-birthday-theme-party-setup",
-    basePrice: 7999, discountPrice: 5999, images: [], avgRating: 4.6, reviewCount: 72,
-    isTrending: true, isBestSeller: false, isNewArrival: true, isFeatured: false,
-    category: { name: "Birthday Decorations", slug: "birthday-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-];
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  "birthday-decorations": <PartyPopper size={28} />,
-  "wedding-decorations": <Heart size={28} />,
-  "candlelight-dinner": <Sparkles size={28} />,
-  "cakes": <Cake size={28} />,
-  "flowers": <Flower2 size={28} />,
-  "corporate-events": <Building2 size={28} />,
-  "anniversary-celebrations": <Gift size={28} />,
-  "surprise-planning": <Sparkles size={28} />,
-};
-
-const categoryColors = [
-  "from-pink-500 to-rose-500", "from-violet-500 to-purple-500",
-  "from-amber-500 to-orange-500", "from-emerald-500 to-teal-500",
-  "from-pink-400 to-rose-400", "from-blue-500 to-indigo-500",
-  "from-red-500 to-pink-500", "from-purple-500 to-violet-500",
-];
-
-const defaultCategories = [
-  { name: "Birthday Decorations", slug: "birthday-decorations", count: "250+" },
-  { name: "Wedding Decorations", slug: "wedding-decorations", count: "180+" },
-  { name: "Candlelight Dinner", slug: "candlelight-dinner", count: "120+" },
-  { name: "Cakes", slug: "cakes", count: "300+" },
-  { name: "Flowers", slug: "flowers", count: "200+" },
-  { name: "Corporate Events", slug: "corporate-events", count: "90+" },
-  { name: "Anniversary", slug: "anniversary-celebrations", count: "150+" },
-  { name: "Surprise Planning", slug: "surprise-planning", count: "100+" },
-];
-
-const stats = [
-  { icon: <Users size={24} />, value: "50,000+", label: "Happy Customers" },
-  { icon: <Star size={24} />, value: "4.8/5", label: "Average Rating" },
-  { icon: <CheckCircle size={24} />, value: "1,200+", label: "Verified Vendors" },
-  { icon: <Shield size={24} />, value: "100%", label: "Secure Payments" },
-];
-
-export default function HomePage() {
-  const router = useRouter();
-  // Fetch from API — falls back to demo data on error
-  const { data: trendingRes } = useServices({ trending: true, limit: 4 });
-  const { data: bestsellerRes } = useServices({ bestseller: true, limit: 4 });
-  const { data: categoriesRes } = useCategories();
-  const { data: homepageRes } = useHomepageSections();
-
-  const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
-  const bestsellerServices = (bestsellerRes as any)?.data?.length ? (bestsellerRes as any).data : sampleServices;
-  const categories = (categoriesRes as any)?.data?.length
-    ? (categoriesRes as any).data.map((c: any, i: number) => ({
-        ...c,
-        icon: categoryIcons[c.slug] || <Sparkles size={28} />,
-        color: categoryColors[i % categoryColors.length],
-        count: c._count?.services ? `${c._count.services}+` : "New",
-      }))
-    : defaultCategories.map((c, i) => ({
-        ...c,
-        icon: categoryIcons[c.slug] || <Sparkles size={28} />,
-        color: categoryColors[i % categoryColors.length],
-      }));
-
-  // ─── Dynamic Banners ───────────────────────────────────────
-  const defaultHeroSlides = [
-    { src: "/hero-celebration.png", alt: "Beautiful celebration decoration with balloons, flowers and fairy lights", emoji: "🎉", label: "Celebration Setups", sublabel: "1,200+ verified vendors" },
-    { src: "/hero-wedding.png", alt: "Luxurious wedding stage decoration with floral arrangements", emoji: "💒", label: "Wedding Decorations", sublabel: "Make your big day magical" },
-    { src: "/hero-birthday.png", alt: "Colorful birthday party decoration with balloons and cake", emoji: "🎂", label: "Birthday Parties", sublabel: "250+ themes available" },
-    { src: "/hero-candlelight.png", alt: "Romantic candlelight dinner setup with candles and roses", emoji: "🕯️", label: "Candlelight Dinners", sublabel: "Unforgettable romantic evenings" }
-  ];
-
-  const homepageSections = (homepageRes as any)?.data || [];
-  const bannerSection = homepageSections.find((s: any) => s.type === 'banner');
-  
-  // Transform API banners or fallback to default
-  const heroSlides = bannerSection?.data?.length > 0 
-    ? bannerSection.data.map((banner: any) => ({
-        src: banner.image.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
-        alt: banner.title,
-        emoji: "✨", // Default emoji for dynamic banners
-        label: banner.title,
-        sublabel: banner.description || "Special Offer",
-        link: banner.link
-      }))
-    : defaultHeroSlides;
-
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [carouselPaused, setCarouselPaused] = useState(false);
-
-  const nextSlide = useCallback(() => {
-    setActiveSlide((prev) => (prev + 1) % heroSlides.length);
-  }, [heroSlides.length]);
-
-  useEffect(() => {
-    if (carouselPaused) return;
-    const timer = setInterval(nextSlide, 4000);
-    return () => clearInterval(timer);
-  }, [carouselPaused, nextSlide]);
-  
+const newReturn = `
   if (!homepageSections || homepageSections.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -210,7 +73,7 @@ export default function HomePage() {
                           </div>
                           <div className="flex items-center gap-1.5">
                             {heroSlides.map((_: any, i: number) => (
-                              <button key={i} onClick={() => setActiveSlide(i)} className={`rounded-full transition-all duration-300 ${activeSlide === i ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40 hover:bg-white/60"}`} />
+                              <button key={i} onClick={() => setActiveSlide(i)} className={\`rounded-full transition-all duration-300 \${activeSlide === i ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40 hover:bg-white/60"}\`} />
                             ))}
                           </div>
                         </div>
@@ -256,8 +119,8 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {categories.map((cat: any, i: number) => (
-                <Link key={cat.slug} href={`/category/${cat.slug}`} className="group relative overflow-hidden rounded-2xl p-5 bg-white border border-gray-100 card-hover" style={{ animationDelay: `${i * 0.05}s` }}>
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                <Link key={cat.slug} href={\`/category/\${cat.slug}\`} className="group relative overflow-hidden rounded-2xl p-5 bg-white border border-gray-100 card-hover" style={{ animationDelay: \`\${i * 0.05}s\` }}>
+                  <div className={\`w-14 h-14 rounded-2xl bg-gradient-to-br \${cat.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300\`}>
                     {cat.icon}
                   </div>
                   <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover:text-violet-600 transition-colors">{cat.name}</h3>
@@ -272,8 +135,8 @@ export default function HomePage() {
       case 'services':
         const displayServices = section.data?.length ? section.data : (section.name === 'trending' ? trendingServices : bestsellerServices);
         return (
-          <section key={section.id} className={`${section.name === 'best_sellers' ? 'bg-gradient-to-b from-violet-50/50 to-transparent py-16 mb-16' : 'max-w-7xl mx-auto px-4 mb-16'}`}>
-            <div className={`${section.name === 'best_sellers' ? 'max-w-7xl mx-auto px-4' : ''}`}>
+          <section key={section.id} className={\`\${section.name === 'best_sellers' ? 'bg-gradient-to-b from-violet-50/50 to-transparent py-16 mb-16' : 'max-w-7xl mx-auto px-4 mb-16'}\`}>
+            <div className={\`\${section.name === 'best_sellers' ? 'max-w-7xl mx-auto px-4' : ''}\`}>
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -282,7 +145,7 @@ export default function HomePage() {
                   </div>
                   <p className="text-gray-500 text-sm">{section.subtitle}</p>
                 </div>
-                <Link href={`/services?sort=${section.name === 'trending' ? 'popular' : 'rating'}`} className="hidden sm:flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 hover:gap-2 transition-all">
+                <Link href={\`/services?sort=\${section.name === 'trending' ? 'popular' : 'rating'}\`} className="hidden sm:flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700 hover:gap-2 transition-all">
                   View All <ArrowRight size={16} />
                 </Link>
               </div>
@@ -309,7 +172,7 @@ export default function HomePage() {
                 { step: "03", title: "Enjoy Your Event", desc: "Our verified vendors will setup everything at your doorstep", icon: "🎉", color: "from-amber-500 to-orange-500" }
               ].map((item, i) => (
                 <div key={i} className="relative text-center p-8 bg-white rounded-2xl border border-gray-100 card-hover">
-                  <div className={`w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow-lg`}>{item.icon}</div>
+                  <div className={\`w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br \${item.color} flex items-center justify-center text-3xl shadow-lg\`}>{item.icon}</div>
                   <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">Step {item.step}</span>
                   <h3 className="text-lg font-bold text-gray-900 mt-2 mb-2" style={{ fontFamily: "var(--font-outfit)" }}>{item.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
@@ -393,7 +256,7 @@ export default function HomePage() {
             </div>
             <div className="flex flex-wrap justify-center gap-3">
               {displayCities.map((city: string) => (
-                <Link key={city} href={`/services?city=${city.toLowerCase()}`} className="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all">
+                <Link key={city} href={\`/services?city=\${city.toLowerCase()}\`} className="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all">
                   📍 {city}
                 </Link>
               ))}
@@ -411,5 +274,9 @@ export default function HomePage() {
       {homepageSections.map((section: any, idx: number) => renderSection(section, idx))}
     </div>
   );
+`;
 
-}
+const replaceRegex = /return \(\s*<div className="min-h-screen">[\s\S]*?\);\s*}\s*$/;
+const newCode = content.replace(replaceRegex, newReturn + '\n}');
+fs.writeFileSync('src/app/page.tsx', newCode);
+console.log('Done replacement');

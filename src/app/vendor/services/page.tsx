@@ -1,19 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Plus, Search, Edit, Eye, Trash2, MoreVertical, Star,
-  ShoppingBag, TrendingUp, ToggleLeft, ToggleRight
+  ShoppingBag, TrendingUp, ToggleLeft, ToggleRight, Loader2
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-
-const services = [
-  { id: 1, title: "Premium Birthday Balloon Decoration", category: "Balloon Decorations", basePrice: 4999, discountPrice: 3999, status: "APPROVED", isActive: true, avgRating: 4.5, reviewCount: 128, bookingCount: 456, viewCount: 2340, isFeatured: true, isTrending: true, createdAt: "2024-01-20" },
-  { id: 2, title: "Romantic Candlelight Dinner Setup", category: "Candlelight Dinner", basePrice: 5999, discountPrice: 4499, status: "APPROVED", isActive: true, avgRating: 4.8, reviewCount: 89, bookingCount: 234, viewCount: 1560, isFeatured: true, isTrending: true, createdAt: "2024-02-10" },
-  { id: 3, title: "Royal Wedding Stage Decoration", category: "Wedding Decorations", basePrice: 49999, discountPrice: 39999, status: "APPROVED", isActive: true, avgRating: 4.9, reviewCount: 56, bookingCount: 123, viewCount: 890, isFeatured: true, isTrending: false, createdAt: "2024-01-25" },
-  { id: 4, title: "Simple Anniversary Setup", category: "Anniversary", basePrice: 2999, discountPrice: 2499, status: "PENDING", isActive: false, avgRating: 0, reviewCount: 0, bookingCount: 0, viewCount: 0, isFeatured: false, isTrending: false, createdAt: "2024-03-14" },
-];
+import { useVendorServices, useUpdateVendorService } from "@/hooks/useApi";
+import { toast } from "sonner";
+import Image from "next/image";
 
 const statusColors: Record<string, string> = {
   APPROVED: "bg-green-100 text-green-700",
@@ -23,8 +19,40 @@ const statusColors: Record<string, string> = {
 
 export default function VendorServicesPage() {
   const [search, setSearch] = useState("");
+  
+  const { data, isLoading, error } = useVendorServices();
+  const updateService = useUpdateVendorService();
 
-  const filtered = services.filter(s => !search || s.title.toLowerCase().includes(search.toLowerCase()));
+  const services = useMemo(() => {
+    return (data as any)?.data || [];
+  }, [data]);
+
+  const filtered = services.filter((s: any) => !search || s.title.toLowerCase().includes(search.toLowerCase()));
+
+  const toggleStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      await updateService.mutateAsync({ id, data: { isActive: !currentStatus } });
+      toast.success(`Service ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update service status");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="animate-spin text-emerald-600 w-8 h-8" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">
+        Failed to load services. Please try again.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -54,8 +82,17 @@ export default function VendorServicesPage() {
           <div key={service.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               {/* Image Placeholder */}
-              <div className="w-full md:w-24 h-24 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-                <span className="text-3xl">🎈</span>
+              <div className="w-full md:w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 overflow-hidden relative">
+                {service.images && Array.isArray(service.images) && service.images.length > 0 ? (
+                  <Image 
+                    src={service.images[0].startsWith('http') ? service.images[0] : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${service.images[0]}`}
+                    alt={service.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-3xl">🎈</span>
+                )}
               </div>
 
               {/* Info */}
@@ -63,7 +100,7 @@ export default function VendorServicesPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{service.title}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{service.category} · Created {service.createdAt}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{service.category?.name || "Uncategorized"} · Created {new Date(service.createdAt).toLocaleDateString()}</p>
                   </div>
                   <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase shrink-0", statusColors[service.status])}>
                     {service.status}
@@ -98,14 +135,15 @@ export default function VendorServicesPage() {
 
               {/* Actions */}
               <div className="flex md:flex-col items-center gap-2 shrink-0">
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200">
+                <Link href={`/vendor/services/${service.id}/edit`} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200">
                   <Edit size={14} /> Edit
-                </button>
-                <button className={cn(
+                </Link>
+                <button onClick={() => toggleStatus(service.id, service.isActive)} disabled={updateService.isPending} className={cn(
                   "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   service.isActive
                     ? "text-emerald-600 hover:bg-emerald-50 border border-emerald-200"
-                    : "text-gray-500 hover:bg-gray-50 border border-gray-200"
+                    : "text-gray-500 hover:bg-gray-50 border border-gray-200",
+                  updateService.isPending && "opacity-50 cursor-not-allowed"
                 )}>
                   {service.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                   {service.isActive ? "Active" : "Inactive"}

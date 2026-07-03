@@ -1,28 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { GripVertical, Plus, Trash2, Eye, EyeOff, Edit, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { GripVertical, Plus, Trash2, Eye, EyeOff, Edit, Save, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAdminHomepageSections, useUpdateHomepageSection, useReorderHomepageSections, useAddHomepageSection, useDeleteHomepageSection } from "@/hooks/useApi";
+import { toast } from "sonner";
 
 interface Section {
   id: number;
   type: string;
+  name: string;
   title: string;
   isActive: boolean;
   config: Record<string, any>;
 }
 
 const sectionTypes = [
-  { type: "HERO_BANNER", label: "Hero Banner Slider", icon: "🖼️" },
-  { type: "CATEGORIES", label: "Category Grid", icon: "📂" },
-  { type: "SERVICES_TRENDING", label: "Trending Services", icon: "🔥" },
-  { type: "SERVICES_BESTSELLER", label: "Best Sellers", icon: "⭐" },
-  { type: "SERVICES_NEW", label: "New Arrivals", icon: "✨" },
-  { type: "HOW_IT_WORKS", label: "How It Works", icon: "📋" },
-  { type: "TESTIMONIALS", label: "Testimonials", icon: "💬" },
-  { type: "VENDOR_CTA", label: "Vendor CTA Banner", icon: "📢" },
-  { type: "CITIES", label: "Cities Showcase", icon: "🏙️" },
-  { type: "CUSTOM_BANNER", label: "Custom Banner", icon: "🎨" },
+  { type: "banner", name: "hero_banner", label: "Hero Banner Slider", icon: "🖼️" },
+  { type: "categories", name: "categories", label: "Category Grid", icon: "📂" },
+  { type: "services", name: "trending", label: "Trending Services", icon: "🔥" },
+  { type: "services", name: "best_sellers", label: "Best Sellers", icon: "⭐" },
+  { type: "services", name: "new_arrivals", label: "New Arrivals", icon: "✨" },
+  { type: "how_it_works", name: "how_it_works", label: "How It Works", icon: "📋" },
+  { type: "testimonials", name: "testimonials", label: "Testimonials", icon: "💬" },
+  { type: "vendor_cta", name: "vendor_cta", label: "Vendor CTA Banner", icon: "📢" },
+  { type: "cities", name: "cities", label: "Cities Showcase", icon: "🏙️" },
 ];
 
 const initialSections: Section[] = [
@@ -38,9 +40,23 @@ const initialSections: Section[] = [
 ];
 
 export default function AdminHomepagePage() {
-  const [sections, setSections] = useState(initialSections);
+  const [sections, setSections] = useState<Section[]>([]);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const { data, isLoading, error } = useAdminHomepageSections();
+  const updateSection = useUpdateHomepageSection();
+  const reorderSections = useReorderHomepageSections();
+  const addSectionMutation = useAddHomepageSection();
+  const deleteSectionMutation = useDeleteHomepageSection();
+
+  useEffect(() => {
+    console.log("AdminHomepagePage - data:", data, "error:", error);
+    if (data?.data) {
+      setSections([...data.data].sort((a, b) => a.sortOrder - b.sortOrder));
+    }
+  }, [data, error]);
 
   const moveSection = (idx: number, dir: "up" | "down") => {
     const arr = [...sections];
@@ -54,22 +70,79 @@ export default function AdminHomepagePage() {
     setSections(sections.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s));
   };
 
-  const removeSection = (id: number) => {
-    setSections(sections.filter(s => s.id !== id));
+  const updateConfig = (id: number, key: string, value: any) => {
+    setSections(sections.map(s => s.id === id ? { ...s, config: { ...(s.config || {}), [key]: value } } : s));
   };
 
-  const addSection = (type: string) => {
-    const st = sectionTypes.find(s => s.type === type);
-    if (!st) return;
-    setSections([...sections, {
-      id: Date.now(),
-      type,
-      title: st.label,
-      isActive: true,
-      config: {},
-    }]);
-    setShowAddMenu(false);
+  const removeSection = async (id: number) => {
+    try {
+      await handleSave(); // Save any pending local changes first
+      await deleteSectionMutation.mutateAsync(id);
+      toast.success("Section removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove section");
+    }
   };
+
+  const addSection = async (type: string, name: string) => {
+    const st = sectionTypes.find(s => s.type === type && s.name === name);
+    if (!st) return;
+    
+    try {
+      await handleSave(); // Save any pending local changes first
+      let initialConfig: any = {};
+      if (type === 'services') {
+        initialConfig.tag = name === 'best_sellers' ? 'bestseller' : name;
+        initialConfig.limit = 8;
+      }
+
+      await addSectionMutation.mutateAsync({
+        type,
+        name,
+        title: st.label,
+        isActive: true,
+        sortOrder: sections.length + 1,
+        config: initialConfig
+      });
+      toast.success("Section added");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add section");
+    } finally {
+      setShowAddMenu(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Update reordering
+      const orderItems = sections.map((s, i) => ({ id: s.id, sortOrder: i + 1 }));
+      await reorderSections.mutateAsync(orderItems);
+
+      // Update contents
+      await Promise.all(sections.map(s => 
+        updateSection.mutateAsync({
+          id: s.id,
+          data: {
+            title: s.title,
+            isActive: s.isActive,
+            config: s.config
+          }
+        })
+      ));
+      
+      toast.success("Homepage layout saved successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save layout");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-violet-600" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -87,7 +160,7 @@ export default function AdminHomepagePage() {
               <div className="absolute right-0 top-12 w-72 bg-white rounded-2xl border border-gray-100 shadow-xl p-3 z-10 animate-fade-in">
                 <p className="text-xs font-medium text-gray-400 uppercase mb-2 px-2">Section Types</p>
                 {sectionTypes.map(st => (
-                  <button key={st.type} onClick={() => addSection(st.type)}
+                  <button key={st.type + st.name} onClick={() => addSection(st.type, st.name)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-left hover:bg-violet-50 transition-colors">
                     <span className="text-lg">{st.icon}</span>
                     <span className="font-medium text-gray-700">{st.label}</span>
@@ -96,8 +169,8 @@ export default function AdminHomepagePage() {
               </div>
             )}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700">
-            <Save size={16} /> Save Layout
+          <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Layout
           </button>
         </div>
       </div>
@@ -107,10 +180,16 @@ export default function AdminHomepagePage() {
         💡 Reorder sections using the arrows. Toggle visibility with the eye icon. Click a section to expand its settings.
       </div>
 
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">
+          Error loading sections: {(error as any)?.message || "Unknown error"}
+        </div>
+      )}
+
       {/* Sections List */}
       <div className="space-y-2">
         {sections.map((section, idx) => {
-          const st = sectionTypes.find(t => t.type === section.type);
+          const st = sectionTypes.find(t => t.type === section.type && (!t.name || t.name === section.name));
           return (
             <div key={section.id} className={cn(
               "bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all",
@@ -137,11 +216,11 @@ export default function AdminHomepagePage() {
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono shrink-0">#{idx + 1}</span>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  <button onClick={() => toggleActive(section.id)}
+                  <button onClick={(e) => { e.stopPropagation(); toggleActive(section.id); }}
                     className={cn("p-1.5 rounded-lg", section.isActive ? "text-emerald-600 hover:bg-emerald-50" : "text-gray-400 hover:bg-gray-100")}>
                     {section.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
-                  <button onClick={() => removeSection(section.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
+                  <button onClick={(e) => { e.stopPropagation(); removeSection(section.id); }} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -157,10 +236,11 @@ export default function AdminHomepagePage() {
                         onChange={e => setSections(sections.map(s => s.id === section.id ? { ...s, title: e.target.value } : s))}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
                     </div>
-                    {(section.type.startsWith("SERVICES") || section.type === "TESTIMONIALS" || section.type === "CITIES") && (
+                    {(section.type.startsWith("services") || section.type === "testimonials" || section.type === "cities") && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Items Limit</label>
-                        <input type="number" defaultValue={section.config.limit || 8} min={2} max={20}
+                        <input type="number" value={section.config?.limit || 8} min={2} max={20}
+                          onChange={e => updateConfig(section.id, 'limit', Number(e.target.value))}
                           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
                       </div>
                     )}
