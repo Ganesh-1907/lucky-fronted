@@ -133,9 +133,12 @@ export function useToggleWishlist() {
 export function useCreateReview() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { serviceId: number; rating: number; title?: string; comment: string }) =>
+    mutationFn: (data: { bookingId: number; rating: number; title?: string; comment: string }) =>
       api.post("/reviews", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["service"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["service"] });
+    },
   });
 }
 
@@ -234,12 +237,14 @@ export function useToggleUserStatus() {
   });
 }
 
+// Get admin reviews (list all)
 export function useAdminReviews() {
   return useQuery({
     queryKey: ["admin", "reviews"],
     queryFn: () => api.get<{ data: any[] }>("/admin/reviews"),
   });
 }
+
 
 export function useUpdateVendorStatus() {
   const qc = useQueryClient();
@@ -279,7 +284,7 @@ export function useUpdateReviewStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, isApproved }: { id: number; isApproved: boolean }) =>
-      api.patch(`/admin/reviews/${id}`, { isApproved }),
+      api.put(`/admin/reviews/${id}/status`, { isApproved }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "reviews"] }),
   });
 }

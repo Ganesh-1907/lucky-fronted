@@ -7,7 +7,7 @@ import { useAdminReviews, useUpdateReviewStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-const filters = ["All", "PENDING", "APPROVED", "REJECTED"];
+const filters = ["All", "PENDING", "APPROVED"];
 
 export default function AdminReviewsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -122,7 +122,7 @@ export default function AdminReviewsPage() {
             
             return (
               <div key={review.id} className={cn("bg-white rounded-2xl border p-5 hover:shadow-md transition-shadow",
-                review.isFlagged || status === "REJECTED" ? "border-red-200" : "border-gray-100"
+                review.isFlagged ? "border-red-200" : "border-gray-100"
               )}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -146,31 +146,35 @@ export default function AdminReviewsPage() {
                       </span>
                     )}
                     {status === "APPROVED" && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Approved</span>}
-                    {status === "REJECTED" && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Rejected</span>}
                     {status === "PENDING" && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">Pending</span>}
                   </div>
                 </div>
 
                 <div className="mt-3 ml-[52px]">
                   <p className="text-xs text-gray-500 mb-1">
-                    <strong>{review.service?.title || review.service || "Unknown Service"}</strong> by {review.service?.vendor?.businessName || review.vendor || "Unknown Vendor"}
+                    <strong>{(() => {
+                      const s = review.service?.title || (typeof review.service === 'string' ? review.service : null);
+                      return (!s || s === 'undefined') ? 'Unknown Service' : s;
+                    })()}</strong> by {(() => {
+                      const v = review.service?.vendor?.businessName || review.vendor?.businessName || (typeof review.vendor === 'string' ? review.vendor : null);
+                      return (!v || v === 'undefined') ? 'Unknown Vendor' : v;
+                    })()}
                   </p>
                   {review.title && <p className="font-semibold text-sm text-gray-900">{review.title}</p>}
                   <p className="text-sm text-gray-600 mt-1 leading-relaxed">{review.comment || review.content}</p>
                 </div>
 
-                {(status === "PENDING" || status === "REJECTED") && (
-                  <div className="flex gap-2 mt-4 ml-[52px]">
+                <div className="flex gap-2 mt-4 ml-[52px]">
+                  {status === "PENDING" ? (
                     <button onClick={() => setModalState({ type: "APPROVE", reviewId: review.id })} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 text-xs font-semibold transition-colors border border-green-200/50">
                       <CheckCircle size={14} /> Approve Review
                     </button>
-                    {status === "PENDING" && (
-                      <button onClick={() => setModalState({ type: "REJECT", reviewId: review.id })} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold transition-colors border border-red-200/50">
-                        <Ban size={14} /> Reject Review
-                      </button>
-                    )}
-                  </div>
-                )}
+                  ) : (
+                    <button onClick={() => setModalState({ type: "REJECT", reviewId: review.id })} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-semibold transition-colors border border-amber-200/50">
+                      <Ban size={14} /> Hide / Unapprove
+                    </button>
+                  )}
+                </div>
               </div>
             );
           }) : (
@@ -223,11 +227,11 @@ export default function AdminReviewsPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalState({ type: null, reviewId: null })} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 overflow-hidden">
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {modalState.type === "APPROVE" ? "Approve Review" : "Reject Review"}
+                {modalState.type === "APPROVE" ? "Approve Review" : "Hide Review"}
               </h3>
               <p className="text-sm text-gray-500 mb-6">
                 {modalState.type === "APPROVE" ? "Are you sure you want to approve this review? It will become visible on the public service page." : 
-                 "Are you sure you want to reject this review? It will be hidden from the public platform."}
+                 "Are you sure you want to hide this review? It will be hidden from the public platform and put back in the pending queue."}
               </p>
               
               <div className="flex gap-3 justify-end">
@@ -237,7 +241,7 @@ export default function AdminReviewsPage() {
                 <button onClick={handleAction} disabled={actionLoading} className={cn("px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors flex items-center gap-2", 
                   modalState.type === "APPROVE" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700")}>
                   {actionLoading && <Loader size={16} className="animate-spin" />}
-                  {modalState.type === "APPROVE" ? "Approve Review" : "Reject Review"}
+                  {modalState.type === "APPROVE" ? "Approve Review" : "Hide Review"}
                 </button>
               </div>
             </motion.div>
