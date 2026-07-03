@@ -7,9 +7,9 @@ import { useAdminUsers, useToggleUserStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-const roleFilters = ["All", "CUSTOMER", "VENDOR", "ADMIN"];
+const roleFilters = ["All", "CLIENT", "VENDOR", "ADMIN"];
 const roleColors: Record<string, string> = {
-  CUSTOMER: "bg-blue-100 text-blue-700",
+  CLIENT: "bg-blue-100 text-blue-700",
   VENDOR: "bg-emerald-100 text-emerald-700",
   ADMIN: "bg-violet-100 text-violet-700",
 };
@@ -74,7 +74,7 @@ export default function AdminUsersPage() {
                 className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                   roleFilter === r ? "bg-violet-100 text-violet-700" : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 )}>
-                {r === "All" ? "All Roles" : r.charAt(0) + r.slice(1).toLowerCase()}
+                {r === "All" ? "All Roles" : r === "CLIENT" ? "Customer" : r.charAt(0) + r.slice(1).toLowerCase()}
               </button>
             ))}
             <select value={sortKey} onChange={e => {setSortKey(e.target.value); setPage(1);}} className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 focus:outline-none">
@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {paginated.length > 0 ? paginated.map((user: any) => {
-                  const role = user.role || "CUSTOMER";
+                  const role = user.role || "CLIENT";
                   const status = user.isActive ? "ACTIVE" : "SUSPENDED";
                   
                   return (
@@ -136,7 +136,9 @@ export default function AdminUsersPage() {
                         {user.phone || "—"}
                       </td>
                       <td className="p-4">
-                        <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", roleColors[role] || "bg-gray-100 text-gray-700")}>{role}</span>
+                        <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", roleColors[role] || "bg-gray-100 text-gray-700")}>
+                          {role === "CLIENT" ? "CUSTOMER" : role}
+                        </span>
                       </td>
                       <td className="p-4 hidden lg:table-cell text-sm text-gray-600">
                         {new Date(user.createdAt || Date.now()).toLocaleDateString()}
@@ -232,8 +234,8 @@ export default function AdminUsersPage() {
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">{viewUser.name || "Unknown User"}</h3>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", roleColors[viewUser.role || "CUSTOMER"] || "bg-gray-100 text-gray-700")}>
-                        {viewUser.role || "CUSTOMER"}
+                      <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", roleColors[viewUser.role || "CLIENT"] || "bg-gray-100 text-gray-700")}>
+                        {(viewUser.role || "CLIENT") === "CLIENT" ? "CUSTOMER" : (viewUser.role || "CLIENT")}
                       </span>
                       <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
                           viewUser.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
