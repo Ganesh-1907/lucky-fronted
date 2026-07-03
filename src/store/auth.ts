@@ -32,6 +32,7 @@ interface AuthState {
   fetchUser: () => Promise<void>;
   setTokens: (accessToken: string, refreshToken: string) => void;
   initAuth: () => Promise<void>;
+  setUser: (user: User) => void;
 }
 
 // Cross-tab sync: detect logout from another tab via storage events
@@ -163,6 +164,8 @@ export const useAuthStore = create<AuthState>()(
           get().logout();
         }
       },
+      
+      setUser: (user: User) => set({ user }),
 
       setTokens: (accessToken: string, refreshToken: string) => {
         if (typeof window !== "undefined") {

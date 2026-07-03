@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight, Sparkles, Star, TrendingUp, Gift, Cake,
   PartyPopper, Heart, Building2, Flower2, ChevronRight,
   Shield, Clock, CheckCircle, Users,
 } from "lucide-react";
 import ServiceCard from "@/components/cards/ServiceCard";
-import { useServices, useCategories } from "@/hooks/useApi";
+import { useServices, useCategories, useHomepageSections } from "@/hooks/useApi";
 
 // Sample data for demo (replaced by API data in production)
 const sampleServices = [
@@ -80,12 +81,14 @@ const stats = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
   // Fetch from API — falls back to demo data on error
   const { data: trendingRes } = useServices({ trending: true, limit: 4 });
   const { data: bestsellerRes } = useServices({ bestseller: true, limit: 4 });
   const { data: categoriesRes } = useCategories();
+  const { data: homepageRes } = useHomepageSections();
 
-   const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
+  const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
   const bestsellerServices = (bestsellerRes as any)?.data?.length ? (bestsellerRes as any).data : sampleServices;
   const categories = (categoriesRes as any)?.data?.length
     ? (categoriesRes as any).data.map((c: any, i: number) => ({
@@ -100,37 +103,28 @@ export default function HomePage() {
         color: categoryColors[i % categoryColors.length],
       }));
 
-  // ─── Hero carousel ───────────────────────────────────────
-  const heroSlides = [
-    {
-      src: "/hero-celebration.png",
-      alt: "Beautiful celebration decoration with balloons, flowers and fairy lights",
-      emoji: "🎉",
-      label: "Celebration Setups",
-      sublabel: "1,200+ verified vendors",
-    },
-    {
-      src: "/hero-wedding.png",
-      alt: "Luxurious wedding stage decoration with floral arrangements",
-      emoji: "💒",
-      label: "Wedding Decorations",
-      sublabel: "Make your big day magical",
-    },
-    {
-      src: "/hero-birthday.png",
-      alt: "Colorful birthday party decoration with balloons and cake",
-      emoji: "🎂",
-      label: "Birthday Parties",
-      sublabel: "250+ themes available",
-    },
-    {
-      src: "/hero-candlelight.png",
-      alt: "Romantic candlelight dinner setup with candles and roses",
-      emoji: "🕯️",
-      label: "Candlelight Dinners",
-      sublabel: "Unforgettable romantic evenings",
-    },
+  // ─── Dynamic Banners ───────────────────────────────────────
+  const defaultHeroSlides = [
+    { src: "/hero-celebration.png", alt: "Beautiful celebration decoration with balloons, flowers and fairy lights", emoji: "🎉", label: "Celebration Setups", sublabel: "1,200+ verified vendors" },
+    { src: "/hero-wedding.png", alt: "Luxurious wedding stage decoration with floral arrangements", emoji: "💒", label: "Wedding Decorations", sublabel: "Make your big day magical" },
+    { src: "/hero-birthday.png", alt: "Colorful birthday party decoration with balloons and cake", emoji: "🎂", label: "Birthday Parties", sublabel: "250+ themes available" },
+    { src: "/hero-candlelight.png", alt: "Romantic candlelight dinner setup with candles and roses", emoji: "🕯️", label: "Candlelight Dinners", sublabel: "Unforgettable romantic evenings" }
   ];
+
+  const homepageSections = (homepageRes as any)?.data || [];
+  const bannerSection = homepageSections.find((s: any) => s.type === 'banner');
+  
+  // Transform API banners or fallback to default
+  const heroSlides = bannerSection?.data?.length > 0 
+    ? bannerSection.data.map((banner: any) => ({
+        src: banner.image.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
+        alt: banner.title,
+        emoji: "✨", // Default emoji for dynamic banners
+        label: banner.title,
+        sublabel: banner.description || "Special Offer",
+        link: banner.link
+      }))
+    : defaultHeroSlides;
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
@@ -231,14 +225,19 @@ export default function HomePage() {
 
                 {/* Slides */}
                 <div className="relative" style={{ aspectRatio: "4/3" }}>
-                  {heroSlides.map((slide, i) => (
-                    <img
-                      key={slide.src}
-                      src={slide.src}
-                      alt={slide.alt}
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
+                  {heroSlides.map((slide: any, i: number) => (
+                    <div 
+                      key={i} 
+                      className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer"
                       style={{ opacity: activeSlide === i ? 1 : 0 }}
-                    />
+                      onClick={() => slide.link && router.push(slide.link)}
+                    >
+                      <img
+                        src={slide.src}
+                        alt={slide.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   ))}
                 </div>
 
@@ -247,17 +246,17 @@ export default function HomePage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
-                        {heroSlides[activeSlide].emoji}
+                        {heroSlides[activeSlide]?.emoji}
                       </div>
                       <div>
-                        <p className="text-white text-sm font-semibold">{heroSlides[activeSlide].label}</p>
-                        <p className="text-white/70 text-xs">{heroSlides[activeSlide].sublabel}</p>
+                        <p className="text-white text-sm font-semibold">{heroSlides[activeSlide]?.label}</p>
+                        <p className="text-white/70 text-xs">{heroSlides[activeSlide]?.sublabel}</p>
                       </div>
                     </div>
 
                     {/* Dot indicators */}
                     <div className="flex items-center gap-1.5">
-                      {heroSlides.map((_, i) => (
+                      {heroSlides.map((_: any, i: number) => (
                         <button
                           key={i}
                           onClick={() => setActiveSlide(i)}

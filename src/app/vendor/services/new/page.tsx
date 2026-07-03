@@ -9,22 +9,17 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
-const categories = [
-  { id: 1, name: "Birthday Decorations" },
-  { id: 2, name: "Wedding Decorations" },
-  { id: 3, name: "Anniversary Celebrations" },
-  { id: 4, name: "Candlelight Dinner" },
-  { id: 5, name: "Cakes" },
-  { id: 6, name: "Flowers" },
-  { id: 7, name: "Corporate Events" },
-  { id: 8, name: "Surprise Planning" },
-];
+import { useCategories } from "@/hooks/useApi";
 
 const cities = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Jaipur"];
 
 export default function NewServicePage() {
   const router = useRouter();
+  const { data: catData } = useCategories();
+  const categories = catData?.data || [];
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -69,12 +64,38 @@ export default function NewServicePage() {
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success("Service submitted for review!");
+    if (!formData.title || !formData.categoryId || !formData.basePrice) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        ...formData,
+        categoryId: parseInt(formData.categoryId),
+        basePrice: parseFloat(formData.basePrice),
+        discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
+        minAdvancePercent: parseInt(formData.minAdvancePercent),
+        preparationTime: parseInt(formData.preparationTime),
+        serviceDuration: parseInt(formData.serviceDuration),
+        addons: addons.filter(a => a.name && a.price).map(a => ({ ...a, price: parseFloat(a.price) })),
+        faq: faqs.filter(f => f.question && f.answer),
+        images: [] // Assuming images are handled separately or default empty
+      };
+
+      const res = await api.post<{success: boolean}>("/services", payload);
+      if (res.success) {
+        toast.success("Service submitted for review!");
+        router.push("/vendor/services");
+      } else {
+        toast.error("Failed to submit service");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong");
+    } finally {
       setIsSubmitting(false);
-      router.push("/vendor/services");
-    }, 1500);
+    }
   };
 
   return (
@@ -115,7 +136,7 @@ export default function NewServicePage() {
             <select name="categoryId" value={formData.categoryId} onChange={handleChange}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 bg-white">
               <option value="">Select a category</option>
-              {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+              {categories.map((cat: any) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </select>
           </div>
         </div>

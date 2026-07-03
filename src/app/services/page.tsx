@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/cards/ServiceCard";
+import BannerCarousel from "@/components/BannerCarousel";
+import { useServices, useCategories, useBanners } from "@/hooks/useApi";
 
 const allServices = [
   { id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration", basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128, isTrending: true, isBestSeller: true, category: { name: "Balloon Decorations", slug: "balloon-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
@@ -21,10 +23,7 @@ const allServices = [
   { id: 8, title: "Corporate Conference Setup", slug: "corporate-conference-setup", basePrice: 15999, discountPrice: 12999, images: [], avgRating: 4.5, reviewCount: 23, isFeatured: true, category: { name: "Corporate Events", slug: "corporate-events" }, vendor: { businessName: "BizEvents Pro", avgRating: 4.4 } },
 ];
 
-const categories = [
-  "All", "Birthday Decorations", "Wedding Decorations", "Anniversary",
-  "Candlelight Dinner", "Cakes", "Flowers", "Corporate Events"
-];
+// Fetched dynamically from API
 
 const priceRanges = [
   { label: "All Prices", min: 0, max: Infinity },
@@ -45,6 +44,8 @@ const sortOptions = [
 
 export default function ServicesPage() {
   const searchParams = useSearchParams();
+  const { data: catData } = useCategories();
+  const apiCategories = catData?.data ? ["All", ...catData.data.map((c: any) => c.name)] : ["All"];
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPrice, setSelectedPrice] = useState(0);
@@ -52,6 +53,10 @@ export default function ServicesPage() {
   const [selectedRating, setSelectedRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [categories, setCategories] = useState<{ id: number; name: string; slug: string; _count?: any }[]>([]);
+
+  const { data: bannerRes } = useBanners("SIDEBAR");
+  const banners = bannerRes?.data || [];
 
   const filteredServices = allServices.filter(s => {
     if (selectedCategory !== "All" && s.category.name !== selectedCategory) return false;
@@ -158,7 +163,7 @@ export default function ServicesPage() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="font-semibold text-gray-900 mb-3 text-sm">Category</h3>
               <div className="space-y-1">
-                {categories.map(cat => (
+                {apiCategories.map((cat: string) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -231,6 +236,16 @@ export default function ServicesPage() {
             >
               Clear All Filters
             </button>
+
+            {/* Dynamic Sidebar Banners */}
+            {banners.length > 0 && (
+              <div className="hidden md:block">
+                <BannerCarousel 
+                  banners={banners} 
+                  className="w-full h-auto shadow-lg hover:scale-[1.01] transition-transform" 
+                />
+              </div>
+            )}
           </aside>
 
           {/* ==================== RESULTS ==================== */}

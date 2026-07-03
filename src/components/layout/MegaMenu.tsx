@@ -3,143 +3,47 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Sparkles, PartyPopper, Heart, Cake, Flower2, Building2 } from "lucide-react";
+import { useMenu } from "@/hooks/useApi";
 
-interface MenuCategory {
-  label: string;
-  href: string;
-  icon?: React.ReactNode;
-  children?: {
-    column: string;
-    items: { label: string; href: string }[];
-  }[];
-}
+const defaultIcon = <Sparkles size={16} />;
 
-const menuData: MenuCategory[] = [
-  {
-    label: "Decorations",
-    href: "/category/decorations",
-    icon: <PartyPopper size={16} />,
-    children: [
-      {
-        column: "By Type",
-        items: [
-          { label: "Balloon Decorations", href: "/category/balloon-decorations" },
-          { label: "Theme Decorations", href: "/category/theme-decorations" },
-          { label: "Simple Decorations", href: "/category/simple-decorations" },
-          { label: "Premium Decorations", href: "/category/premium-decorations" },
-          { label: "LED/Light Decorations", href: "/category/led-decorations" },
-        ],
-      },
-      {
-        column: "By Occasion",
-        items: [
-          { label: "Birthday Decorations", href: "/category/birthday-decorations" },
-          { label: "Anniversary Decorations", href: "/category/anniversary-celebrations" },
-          { label: "Baby Shower", href: "/category/baby-shower" },
-          { label: "Proposal Setup", href: "/category/surprise-planning" },
-          { label: "House Party", href: "/category/house-party" },
-        ],
-      },
-      {
-        column: "Trending",
-        items: [
-          { label: "Neon Sign Decoration", href: "/services?tags=neon" },
-          { label: "Ring Light Setup", href: "/services?tags=ringlight" },
-          { label: "Photo Wall Setup", href: "/services?tags=photowall" },
-          { label: "Car Boot Decoration", href: "/services?tags=carboot" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Weddings",
-    href: "/category/wedding-decorations",
-    icon: <Heart size={16} />,
-    children: [
-      {
-        column: "Decoration",
-        items: [
-          { label: "Mandap Decoration", href: "/category/mandap-decoration" },
-          { label: "Stage Decoration", href: "/category/stage-decoration" },
-          { label: "Car Decoration", href: "/category/car-decoration" },
-          { label: "Entrance Decoration", href: "/category/entrance-decoration" },
-        ],
-      },
-      {
-        column: "Functions",
-        items: [
-          { label: "Haldi Setup", href: "/category/haldi-mehendi" },
-          { label: "Mehendi Setup", href: "/category/haldi-mehendi" },
-          { label: "Sangeet Setup", href: "/category/sangeet" },
-          { label: "Reception Setup", href: "/category/reception" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Cakes",
-    href: "/category/cakes",
-    icon: <Cake size={16} />,
-    children: [
-      {
-        column: "By Type",
-        items: [
-          { label: "Birthday Cakes", href: "/category/birthday-cakes" },
-          { label: "Wedding Cakes", href: "/category/wedding-cakes" },
-          { label: "Custom Cakes", href: "/category/custom-cakes" },
-          { label: "Photo Cakes", href: "/category/photo-cakes" },
-          { label: "Cupcakes", href: "/category/cupcakes" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Flowers",
-    href: "/category/flowers",
-    icon: <Flower2 size={16} />,
-    children: [
-      {
-        column: "Arrangements",
-        items: [
-          { label: "Bouquets", href: "/category/bouquets" },
-          { label: "Flower Baskets", href: "/category/flower-baskets" },
-          { label: "Flower Decoration", href: "/category/flower-decoration" },
-          { label: "Car Flowers", href: "/category/car-flowers" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Events",
-    href: "/category/events",
-    icon: <Sparkles size={16} />,
-    children: [
-      {
-        column: "Services",
-        items: [
-          { label: "Candlelight Dinner", href: "/category/candlelight-dinner" },
-          { label: "Surprise Planning", href: "/category/surprise-planning" },
-          { label: "Romantic Setup", href: "/category/romantic-setup" },
-          { label: "Party Setup", href: "/category/party-setup" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Corporate",
-    href: "/category/corporate-events",
-    icon: <Building2 size={16} />,
-  },
-];
+const mapIcon = (slug: string) => {
+  if (slug.includes("birthday") || slug.includes("decoration")) return <PartyPopper size={16} />;
+  if (slug.includes("wedding") || slug.includes("anniversary") || slug.includes("romantic")) return <Heart size={16} />;
+  if (slug.includes("cake")) return <Cake size={16} />;
+  if (slug.includes("flower")) return <Flower2 size={16} />;
+  if (slug.includes("corporate")) return <Building2 size={16} />;
+  return defaultIcon;
+};
 
 export default function MegaMenu() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const { data } = useMenu();
+  const menuItems = data?.data || [];
+
+  // Transform backend menu builder items into layout structure
+  const menuData = menuItems.map((item: any) => ({
+    id: item.id,
+    label: item.label,
+    href: item.url || "#",
+    icon: mapIcon(item.url || ""),
+    children: item.children?.length > 0 ? [{
+      column: "Quick Links",
+      items: item.children.map((child: any) => ({
+        id: child.id,
+        label: child.label,
+        href: child.url || "#"
+      }))
+    }] : undefined
+  }));
+
+  if (!menuData.length) return null;
 
   return (
     <nav className="flex items-center gap-0.5 h-11">
-      {menuData.map((item) => (
+      {menuData.slice(0, 6).map((item: any) => (
         <div
-          key={item.label}
+          key={item.id}
           className="relative menu-trigger"
           onMouseEnter={() => setActiveMenu(item.label)}
           onMouseLeave={() => setActiveMenu(null)}
@@ -158,14 +62,14 @@ export default function MegaMenu() {
             <div className="mega-menu absolute left-0 top-full pt-2 z-50" style={{ opacity: 1, visibility: "visible", transform: "translateY(0)" }}>
               <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 min-w-[400px]">
                 <div className="flex gap-8">
-                  {item.children.map((col) => (
+                  {item.children.map((col: any) => (
                     <div key={col.column} className="min-w-[160px]">
                       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                         {col.column}
                       </h3>
                       <ul className="space-y-0.5">
-                        {col.items.map((subItem) => (
-                          <li key={subItem.label}>
+                        {col.items.map((subItem: any) => (
+                          <li key={subItem.id}>
                             <Link
                               href={subItem.href}
                               className="block px-2 py-1.5 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-md transition-colors"

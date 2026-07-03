@@ -8,6 +8,7 @@ import {
   Save, Bell, Shield, CreditCard, Loader2
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useUpdateProfile, useChangePassword } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 
 const tabs = [
@@ -27,6 +28,9 @@ export default function AccountSettingsPage() {
     city: user?.city || "Mumbai",
   });
   const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
+  
+  const updateProfile = useUpdateProfile();
+  const changePassword = useChangePassword();
 
   useEffect(() => {
     if (_hasHydrated && !isAuthenticated) {
@@ -42,17 +46,35 @@ export default function AccountSettingsPage() {
     );
   }
 
-  const handleProfileSave = () => {
-    toast.success("Profile updated successfully!");
+  const handleProfileSave = async () => {
+    try {
+      const res: any = await updateProfile.mutateAsync({
+        name: formData.name,
+        phone: formData.phone,
+        city: formData.city,
+      });
+      useAuthStore.getState().setUser(res.data);
+      toast.success("Profile updated successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update profile");
+    }
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (passwords.newPass !== passwords.confirm) {
       toast.error("Passwords don't match");
       return;
     }
-    toast.success("Password changed successfully!");
-    setPasswords({ current: "", newPass: "", confirm: "" });
+    try {
+      await changePassword.mutateAsync({
+        currentPassword: passwords.current,
+        newPassword: passwords.newPass,
+      });
+      toast.success("Password changed successfully!");
+      setPasswords({ current: "", newPass: "", confirm: "" });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    }
   };
 
   return (
@@ -136,8 +158,13 @@ export default function AccountSettingsPage() {
               </div>
             </div>
 
-            <button onClick={handleProfileSave} className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm">
-              <Save size={16} /> Save Changes
+            <button 
+              onClick={handleProfileSave} 
+              disabled={updateProfile.isPending}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm disabled:opacity-50"
+            >
+              {updateProfile.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+              {updateProfile.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         )}
@@ -172,8 +199,13 @@ export default function AccountSettingsPage() {
                 </div>
               </div>
             </div>
-            <button onClick={handlePasswordChange} className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm">
-              <Shield size={16} /> Update Password
+            <button 
+              onClick={handlePasswordChange} 
+              disabled={changePassword.isPending}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm disabled:opacity-50"
+            >
+              {changePassword.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />} 
+              {changePassword.isPending ? "Updating..." : "Update Password"}
             </button>
           </div>
         )}

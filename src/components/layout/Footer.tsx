@@ -2,6 +2,8 @@ import Link from "next/link";
 import {
   Phone, Mail, MapPin, Globe, MessageSquare, Send, Play,
 } from "lucide-react";
+import { useBanners } from "@/hooks/useApi";
+import BannerCarousel from "@/components/BannerCarousel";
 
 const footerLinks = {
   services: [
@@ -29,8 +31,22 @@ const footerLinks = {
 };
 
 export default function Footer() {
+  const { data: bannerRes } = useBanners("FOOTER");
+  const banners = bannerRes?.data || [];
+
   return (
     <footer className="bg-gray-900 text-gray-300">
+      {/* Dynamic Footer Banners */}
+      {banners.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 pt-10">
+          <BannerCarousel 
+            banners={banners} 
+            className="w-full h-32 md:h-40 shadow-lg border border-gray-800 transition-transform hover:scale-[1.01]" 
+            imageClassName="opacity-90 hover:opacity-100 transition-opacity"
+          />
+        </div>
+      )}
+
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">

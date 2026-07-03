@@ -23,12 +23,20 @@ interface ServiceFilters {
   newArrival?: boolean;
 }
 
-// ─── CATEGORIES ─────────────────────────────────────────────
+// ─── CATEGORIES & MENU ──────────────────────────────────────
 export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: () => api.get<{ data: any[] }>("/categories"),
     staleTime: 5 * 60 * 1000, // 5 mins
+  });
+}
+
+export function useMenu() {
+  return useQuery({
+    queryKey: ["menu"],
+    queryFn: () => api.get<{ data: any[] }>("/menu"),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -39,6 +47,7 @@ export function useCategoryBySlug(slug: string) {
     enabled: !!slug,
   });
 }
+
 
 // ─── SERVICES ───────────────────────────────────────────────
 export function useServices(filters: ServiceFilters = {}) {
@@ -92,7 +101,7 @@ export function useMyBookings(status?: string) {
   const params = status && status !== "ALL" ? `?status=${status}` : "";
   return useQuery({
     queryKey: ["bookings", "mine", status],
-    queryFn: () => api.get<{ data: any[] }>(`/bookings/my${params}`),
+    queryFn: () => api.get<{ data: any[] }>(`/bookings${params}`),
   });
 }
 
@@ -217,6 +226,14 @@ export function useAdminUsers(role?: string) {
   });
 }
 
+export function useToggleUserStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.put(`/admin/users/${id}/toggle`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+}
+
 export function useAdminReviews() {
   return useQuery({
     queryKey: ["admin", "reviews"],
@@ -228,7 +245,15 @@ export function useUpdateVendorStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) =>
-      api.patch(`/admin/vendors/${id}/status`, { status }),
+      api.put(`/admin/vendors/${id}/status`, { status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "vendors"] }),
+  });
+}
+
+export function useDeleteVendor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/vendors/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "vendors"] }),
   });
 }
@@ -236,8 +261,16 @@ export function useUpdateVendorStatus() {
 export function useUpdateServiceStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) =>
-      api.patch(`/admin/services/${id}/status`, { status }),
+    mutationFn: ({ id, status, isFeatured, isTrending, isBestSeller, isNewArrival }: any) =>
+      api.put(`/admin/services/${id}/status`, { status, isFeatured, isTrending, isBestSeller, isNewArrival }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "services"] }),
+  });
+}
+
+export function useDeleteService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/services/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "services"] }),
   });
 }
@@ -251,18 +284,138 @@ export function useUpdateReviewStatus() {
   });
 }
 
-// ─── COUPONS ────────────────────────────────────────────────
-export function useCoupons() {
+export function useDeleteBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/bookings/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "bookings"] }),
+  });
+}
+
+// ─── CATEGORY ADMIN ─────────────────────────────────────────
+export function useAdminCategoriesAll() {
   return useQuery({
-    queryKey: ["coupons"],
-    queryFn: () => api.get<{ data: any[] }>("/coupons"),
+    queryKey: ["admin", "categories"],
+    queryFn: () => api.get<{ data: any[] }>("/categories/all"),
+  });
+}
+
+export function useCreateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => api.post("/categories", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] });
+      qc.invalidateQueries({ queryKey: ["categories"] });
+    }
+  });
+}
+
+export function useUpdateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/categories/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] });
+      qc.invalidateQueries({ queryKey: ["categories"] });
+    }
+  });
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/categories/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] });
+      qc.invalidateQueries({ queryKey: ["categories"] });
+    }
+  });
+}
+
+// ─── MENU ADMIN ─────────────────────────────────────────────
+export function useAdminMenu() {
+  return useQuery({
+    queryKey: ["admin", "menu"],
+    queryFn: () => api.get<{ data: any[] }>("/menu/all"),
+  });
+}
+
+export function useCreateMenuItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => api.post("/menu", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "menu"] });
+      qc.invalidateQueries({ queryKey: ["menu"] });
+    }
+  });
+}
+
+export function useUpdateMenuItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/menu/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "menu"] });
+      qc.invalidateQueries({ queryKey: ["menu"] });
+    }
+  });
+}
+
+export function useDeleteMenuItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/menu/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "menu"] });
+      qc.invalidateQueries({ queryKey: ["menu"] });
+    }
+  });
+}
+
+// ─── COUPONS ────────────────────────────────────────────────
+export function useAdminCoupons() {
+  return useQuery({
+    queryKey: ["admin", "coupons"],
+    queryFn: () => api.get<{ data: any[] }>("/admin/coupons"),
+  });
+}
+
+export function useCreateCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => api.post("/admin/coupons", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
+    }
+  });
+}
+
+export function useUpdateCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/admin/coupons/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
+    }
+  });
+}
+
+export function useDeleteCoupon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/coupons/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "coupons"] });
+    }
   });
 }
 
 export function useApplyCoupon() {
   return useMutation({
-    mutationFn: (data: { code: string; amount: number }) =>
-      api.post("/coupons/apply", data),
+    mutationFn: (data: { code: string; orderAmount: number }) =>
+      api.post("/coupon/validate", data),
   });
 }
 
@@ -271,6 +424,15 @@ export function useHomepageSections() {
   return useQuery({
     queryKey: ["homepage"],
     queryFn: () => api.get<{ data: any }>("/homepage"),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ─── BANNERS ──────────────────────────────────────────────────
+export function useBanners(position: string) {
+  return useQuery({
+    queryKey: ["banners", position],
+    queryFn: () => api.get<{ data: any[] }>(`/banners?position=${position}&status=ACTIVE&sort=order`),
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, Calendar, Clock, MapPin, CheckCircle,
-  Plus, Minus, CreditCard, Shield, ArrowRight, Star, ChevronDown
+  Plus, Minus, CreditCard, Shield, ArrowRight, Star, Tag, X
 } from "lucide-react";
+import { useApplyCoupon } from "@/hooks/useApi";
 import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -19,46 +22,70 @@ const timeSlots = [
   "06:00 PM", "07:00 PM", "08:00 PM",
 ];
 
-// Demo service data — in production this comes from API
-const service = {
-  id: 1,
-  title: "Premium Birthday Balloon Decoration",
-  slug: "premium-birthday-balloon-decoration",
-  basePrice: 4999,
-  discountPrice: 3999,
-  minAdvancePercent: 50,
-  images: [],
-  avgRating: 4.5,
-  reviewCount: 128,
-  vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  category: { name: "Balloon Decorations" },
-};
-
-const addons = [
-  { id: 1, name: "LED String Lights", price: 499, description: "Warm white fairy lights (20ft)" },
-  { id: 2, name: "Photo Banner", price: 299, description: "Custom printed birthday banner" },
-  { id: 3, name: "Flower Bouquet", price: 399, description: "Mixed flower bouquet with ribbon" },
-  { id: 4, name: "Cake Table Setup", price: 599, description: "Decorated cake table with backdrop" },
-  { id: 5, name: "Number Foil Balloon", price: 199, description: "Gold/Silver foil age number" },
-];
-
-const blockedDates = ["2024-03-25", "2024-04-01"];
+const blockedDates: string[] = []; // Fetch from API ideally
 
 function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
+  
+  const serviceId = searchParams.get("serviceId");
+  const preSelectedCity = searchParams.get("city") || "";
+  const preSelectedAddons = searchParams.get("addons")?.split(",").map(Number) || [];
+
+  const [service, setService] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState(1);
   const [currentDate, setCurrentDate] = useState(() => {
     const d = new Date();
-    d.setDate(d.getDate() + 1);
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
+  
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
-  const [address, setAddress] = useState({ name: "", phone: "", line1: "", city: "Mumbai", pincode: "", notes: "" });
+  const [selectedAddons, setSelectedAddons] = useState<number[]>(preSelectedAddons);
+  const [address, setAddress] = useState({ name: "", phone: "", line1: "", city: preSelectedCity, pincode: "", notes: "" });
   const [paymentMethod, setPaymentMethod] = useState<"FULL" | "ADVANCE">("ADVANCE");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const validateCoupon = useApplyCoupon();
+
+  useEffect(() => {
+    if (_hasHydrated && !isAuthenticated) {
+      toast.error("Please login to continue booking");
+      router.push(`/auth/login?redirect=/booking?serviceId=${serviceId}`);
+      return;
+    }
+
+    if (!serviceId) {
+      toast.error("No service selected for booking");
+      router.push("/");
+      return;
+    }
+
+    const fetchServiceForBooking = async () => {
+      try {
+        const res = await api.get<{success: boolean, data: { service: any }}>(`/services/by-id/${serviceId}`);
+        if (res.success) {
+          setService(res.data.service);
+        } else {
+          toast.error("Failed to load service");
+          router.push("/");
+        }
+      } catch (err) {
+        toast.error("Failed to connect");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchServiceForBooking();
+
+  }, [serviceId, router]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -72,28 +99,83 @@ function BookingContent() {
     setSelectedAddons(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const servicePrice = service.discountPrice || service.basePrice;
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading booking details...</div>;
+  }
+
+  if (!service) {
+    return <div className="min-h-screen flex items-center justify-center">Service not found.</div>;
+  }
+
+  const servicePrice = Number(service.discountPrice) || Number(service.basePrice);
   const addonsTotal = selectedAddons.reduce((sum, id) => {
-    const a = addons.find(x => x.id === id);
-    return sum + (a?.price || 0);
+    const a = service.addons?.find((x: any) => x.id === id);
+    return sum + (Number(a?.price) || 0);
   }, 0);
+  
   const subtotal = servicePrice + addonsTotal;
-  const gst = Math.round(subtotal * 0.18);
-  const total = subtotal + gst;
+  const discount = appliedCoupon ? appliedCoupon.discount : 0;
+  const totalAfterDiscount = Math.max(0, subtotal - discount);
+  const gst = Math.round(totalAfterDiscount * 0.18);
+  const total = totalAfterDiscount + gst; // Or just totalAfterDiscount if GST is included. Let's keep it as is.
   const advance = Math.round(total * (service.minAdvancePercent / 100));
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      const res = await validateCoupon.mutateAsync({ code: couponCode, orderAmount: subtotal });
+      setAppliedCoupon((res as any).data);
+      toast.success((res as any).message || "Coupon applied successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid or expired coupon");
+      setAppliedCoupon(null);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+  };
 
   const canProceed = (s: number) => {
     if (s === 1) return !!selectedDate && !!selectedTime;
-    if (s === 2) return true; // addons optional
+    if (s === 2) return true;
     if (s === 3) return address.name && address.phone && address.line1 && address.city && address.pincode;
     return true;
   };
 
-  const handlePayment = () => {
-    toast.success("Redirecting to payment gateway...");
-    setTimeout(() => {
-      router.push(`/booking/confirmation?id=LM${Date.now().toString(36).toUpperCase()}`);
-    }, 1500);
+  const handlePayment = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const payload = {
+        serviceId: service.id,
+        bookingDate: selectedDate,
+        timeSlot: selectedTime,
+        selectedAddons: selectedAddons,
+        city: address.city,
+        address: `${address.line1}`,
+        pincode: address.pincode,
+        notes: address.notes,
+        couponCode: appliedCoupon?.code || undefined,
+        couponDiscount: appliedCoupon ? String(appliedCoupon.discount) : "0",
+      };
+
+      const res = await api.post<{success: boolean, data: { booking: any }}>(`/bookings`, payload);
+      
+      if (res.success) {
+        toast.success("Booking created successfully!");
+        setTimeout(() => {
+          router.push(`/booking/confirmation?id=${res.data.booking.bookingNumber}`);
+        }, 1500);
+      } else {
+        toast.error("Failed to create booking");
+        setIsSubmitting(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+      setIsSubmitting(false);
+    }
   };
 
   const steps = [
@@ -122,12 +204,7 @@ function BookingContent() {
           <div className="flex items-center justify-between max-w-lg mx-auto">
             {steps.map((s, i) => (
               <div key={s.num} className="flex items-center gap-2">
-                <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                  step > s.num ? "bg-green-500 text-white" :
-                  step === s.num ? "gradient-primary text-white" :
-                  "bg-gray-100 text-gray-400"
-                )}>
+                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all", step > s.num ? "bg-green-500 text-white" : step === s.num ? "gradient-primary text-white" : "bg-gray-100 text-gray-400")}>
                   {step > s.num ? <CheckCircle size={16} /> : s.num}
                 </div>
                 <span className={cn("text-xs font-medium hidden sm:block", step >= s.num ? "text-gray-900" : "text-gray-400")}>{s.label}</span>
@@ -168,12 +245,7 @@ function BookingContent() {
 
                       return (
                         <button key={day} disabled={disabled} onClick={() => setSelectedDate(dateStr)}
-                          className={cn(
-                            "aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all",
-                            disabled ? "text-gray-300 cursor-not-allowed" :
-                            isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-200" :
-                            "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
-                          )}>
+                          className={cn("aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all", disabled ? "text-gray-300 cursor-not-allowed" : isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-200" : "text-gray-700 hover:bg-violet-50 hover:text-violet-700")}>
                           {day}
                         </button>
                       );
@@ -188,12 +260,7 @@ function BookingContent() {
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {timeSlots.map(slot => (
                       <button key={slot} onClick={() => setSelectedTime(slot)}
-                        className={cn(
-                          "px-3 py-3 rounded-xl text-sm font-medium border-2 transition-all",
-                          selectedTime === slot
-                            ? "border-violet-500 bg-violet-50 text-violet-700"
-                            : "border-gray-200 text-gray-600 hover:border-violet-200"
-                        )}>
+                        className={cn("px-3 py-3 rounded-xl text-sm font-medium border-2 transition-all", selectedTime === slot ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-violet-200")}>
                         {slot}
                       </button>
                     ))}
@@ -207,30 +274,28 @@ function BookingContent() {
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-1">Enhance Your Experience</h2>
                 <p className="text-sm text-gray-500 mb-4">Optional add-ons to make your celebration extra special</p>
-                <div className="space-y-3">
-                  {addons.map(addon => {
-                    const isSelected = selectedAddons.includes(addon.id);
-                    return (
-                      <button key={addon.id} onClick={() => toggleAddon(addon.id)}
-                        className={cn(
-                          "w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all",
-                          isSelected ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-violet-200"
-                        )}>
-                        <div className={cn(
-                          "w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all",
-                          isSelected ? "border-violet-600 bg-violet-600" : "border-gray-300"
-                        )}>
-                          {isSelected && <CheckCircle size={14} className="text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900">{addon.name}</p>
-                          <p className="text-xs text-gray-500">{addon.description}</p>
-                        </div>
-                        <span className="text-sm font-bold text-violet-600">+{formatPrice(addon.price)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                {service.addons?.length === 0 ? (
+                  <p className="text-sm text-gray-500">No add-ons available for this service.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {service.addons?.map((addon: any) => {
+                      const isSelected = selectedAddons.includes(addon.id);
+                      return (
+                        <button key={addon.id} onClick={() => toggleAddon(addon.id)}
+                          className={cn("w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all", isSelected ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-violet-200")}>
+                          <div className={cn("w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all", isSelected ? "border-violet-600 bg-violet-600" : "border-gray-300")}>
+                            {isSelected && <CheckCircle size={14} className="text-white" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-900">{addon.name}</p>
+                            <p className="text-xs text-gray-500">{addon.description}</p>
+                          </div>
+                          <span className="text-sm font-bold text-violet-600">+{formatPrice(Number(addon.price))}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -258,8 +323,8 @@ function BookingContent() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">City *</label>
-                    <input type="text" value={address.city} onChange={e => setAddress({...address, city: e.target.value})}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+                    <input type="text" value={address.city} onChange={e => setAddress({...address, city: e.target.value})} disabled={!!preSelectedCity}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm bg-gray-50 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Pincode *</label>
@@ -284,9 +349,7 @@ function BookingContent() {
                   </h2>
                   <div className="space-y-3">
                     <button onClick={() => setPaymentMethod("ADVANCE")}
-                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all",
-                        paymentMethod === "ADVANCE" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                      )}>
+                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all", paymentMethod === "ADVANCE" ? "border-violet-500 bg-violet-50" : "border-gray-200")}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-semibold text-sm text-gray-900">Pay Advance ({service.minAdvancePercent}%)</p>
@@ -296,9 +359,7 @@ function BookingContent() {
                       </div>
                     </button>
                     <button onClick={() => setPaymentMethod("FULL")}
-                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all",
-                        paymentMethod === "FULL" ? "border-violet-500 bg-violet-50" : "border-gray-200"
-                      )}>
+                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all", paymentMethod === "FULL" ? "border-violet-500 bg-violet-50" : "border-gray-200")}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-semibold text-sm text-gray-900">Pay Full Amount</p>
@@ -337,9 +398,9 @@ function BookingContent() {
                   Continue <ArrowRight size={14} />
                 </button>
               ) : (
-                <button onClick={handlePayment}
-                  className="flex items-center gap-2 px-8 py-3 rounded-xl bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors shadow-lg shadow-green-200">
-                  <CreditCard size={16} /> Pay {formatPrice(paymentMethod === "FULL" ? total : advance)}
+                <button onClick={handlePayment} disabled={isSubmitting}
+                  className="flex items-center gap-2 px-8 py-3 rounded-xl bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors shadow-lg shadow-green-200 disabled:opacity-50">
+                  <CreditCard size={16} /> {isSubmitting ? "Processing..." : `Pay ${formatPrice(paymentMethod === "FULL" ? total : advance)}`}
                 </button>
               )}
             </div>
@@ -355,10 +416,10 @@ function BookingContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 leading-tight">{service.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">by {service.vendor.businessName}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">by {service.vendor?.businessName}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Star size={11} className="text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-medium">{service.avgRating}</span>
+                    <span className="text-xs font-medium">{Number(service.avgRating || 0).toFixed(1)}</span>
                   </div>
                 </div>
               </div>
@@ -391,18 +452,61 @@ function BookingContent() {
                     <span className="font-medium text-gray-900">+{formatPrice(addonsTotal)}</span>
                   </div>
                 )}
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>-{formatPrice(appliedCoupon.discount)}</span>
+                  </div>
+                )}
+                {/* 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">GST (18%)</span>
                   <span className="font-medium text-gray-900">{formatPrice(gst)}</span>
                 </div>
+                */}
                 <div className="flex justify-between text-sm pt-2 border-t border-gray-100">
                   <span className="font-bold text-gray-900">Total</span>
                   <span className="font-bold text-lg text-gray-900">{formatPrice(total)}</span>
                 </div>
                 {service.discountPrice && (
-                  <p className="text-xs text-green-600 text-right font-medium">
-                    You save {formatPrice(service.basePrice - service.discountPrice)} 🎉
+                  <p className="text-xs text-green-600 text-right font-medium mt-1">
+                    You save {formatPrice(Number(service.basePrice) - Number(service.discountPrice) + (appliedCoupon ? appliedCoupon.discount : 0))} 🎉
                   </p>
+                )}
+              </div>
+
+              {/* Coupon Section */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                {!appliedCoupon ? (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Have a coupon code?" 
+                        value={couponCode}
+                        onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                        className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-violet-400 focus:bg-white transition-all uppercase"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={validateCoupon.isPending || !couponCode}
+                      className="px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    >
+                      {validateCoupon.isPending ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-green-700 uppercase flex items-center gap-1"><CheckCircle size={12}/> {appliedCoupon.code} APPLIED</p>
+                      <p className="text-[10px] text-green-600 mt-0.5">{appliedCoupon.description}</p>
+                    </div>
+                    <button onClick={removeCoupon} className="p-1 text-green-600 hover:bg-green-100 rounded-lg transition-colors">
+                      <X size={14} />
+                    </button>
+                  </div>
                 )}
               </div>
 

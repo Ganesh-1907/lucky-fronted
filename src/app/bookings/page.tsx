@@ -5,14 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Calendar, Clock, MapPin, Eye, X, Star, Download } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-import { useAuthStore } from "@/store/auth";
-
-const bookings = [
-  { id: 1, bookingNumber: "LM7X8K2A", service: { title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration", image: null }, vendor: { businessName: "Dream Decorators" }, totalAmount: 4498, advancePaid: 2249, remainingAmount: 2249, status: "CONFIRMED", bookingDate: "2024-03-20", timeSlot: "10:00 AM", city: "Mumbai", address: "Andheri West, Mumbai", createdAt: "2024-03-15" },
-  { id: 2, bookingNumber: "LM7X8K3B", service: { title: "Romantic Candlelight Dinner Setup", slug: "romantic-candlelight-dinner-setup", image: null }, vendor: { businessName: "Dream Decorators" }, totalAmount: 5698, advancePaid: 2849, remainingAmount: 2849, status: "PENDING", bookingDate: "2024-03-22", timeSlot: "7:00 PM", city: "Delhi", address: "Connaught Place, Delhi", createdAt: "2024-03-15" },
-  { id: 3, bookingNumber: "LM7X8K4C", service: { title: "Royal Wedding Stage Decoration", slug: "royal-wedding-stage-decoration", image: null }, vendor: { businessName: "Dream Decorators" }, totalAmount: 42999, advancePaid: 42999, remainingAmount: 0, status: "COMPLETED", bookingDate: "2024-03-14", timeSlot: "8:00 AM", city: "Bangalore", address: "Whitefield, Bangalore", createdAt: "2024-03-10" },
-  { id: 4, bookingNumber: "LM7X8K6E", service: { title: "Simple Anniversary Decoration", slug: "simple-anniversary-decoration", image: null }, vendor: { businessName: "Love Setup Co" }, totalAmount: 2499, advancePaid: 1250, remainingAmount: 1249, status: "CANCELLED", bookingDate: "2024-03-18", timeSlot: "5:00 PM", city: "Mumbai", address: "Bandra, Mumbai", createdAt: "2024-03-13" },
-];
+import { useMyBookings } from "@/hooks/useApi";
 
 const statusFilters = ["All", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
 const statusColors: Record<string, string> = {
@@ -28,17 +21,11 @@ const emojiMap: Record<string, string> = {
 
 export default function BookingsPage() {
   const router = useRouter();
-  const { isAuthenticated, _hasHydrated } = useAuthStore();
   const [activeFilter, setActiveFilter] = useState("All");
-  const filtered = bookings.filter(b => activeFilter === "All" || b.status === activeFilter);
+  const { data, isLoading } = useMyBookings(activeFilter);
+  const fetchedBookings = data?.data || (data as any)?.pagination ? (data as any).data : [];
 
-  useEffect(() => {
-    if (_hasHydrated && !isAuthenticated) {
-      router.push("/auth/login");
-    }
-  }, [_hasHydrated, isAuthenticated, router]);
-
-  if (!_hasHydrated || !isAuthenticated) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
@@ -73,7 +60,7 @@ export default function BookingsPage() {
 
         {/* Booking Cards */}
         <div className="space-y-4">
-          {filtered.length > 0 ? filtered.map(booking => (
+          {fetchedBookings.length > 0 ? fetchedBookings.map((booking: any) => (
             <div key={booking.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
               <div className="p-5">
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -85,12 +72,12 @@ export default function BookingsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
-                        <Link href={`/service/${booking.service.slug}`} className="font-semibold text-gray-900 hover:text-violet-600 transition-colors">
-                          {booking.service.title}
+                        <Link href={`/service/${booking.service?.slug}`} className="font-semibold text-gray-900 hover:text-violet-600 transition-colors">
+                          {booking.service?.title || "Unknown Service"}
                         </Link>
-                        <p className="text-xs text-gray-500 mt-0.5">by {booking.vendor.businessName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">by {booking.vendor?.businessName}</p>
                       </div>
-                      <span className={cn("text-[10px] font-bold px-3 py-1 rounded-full uppercase border shrink-0", statusColors[booking.status])}>
+                      <span className={cn("text-[10px] font-bold px-3 py-1 rounded-full uppercase border shrink-0", statusColors[booking.status] || statusColors.PENDING)}>
                         {booking.status.replace("_", " ")}
                       </span>
                     </div>
@@ -98,7 +85,7 @@ export default function BookingsPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
                       <div className="flex items-center gap-1.5 text-sm text-gray-600">
                         <Calendar size={13} className="text-gray-400" />
-                        <span>{booking.bookingDate}</span>
+                        <span>{new Date(booking.bookingDate).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-sm text-gray-600">
                         <Clock size={13} className="text-gray-400" />
@@ -109,19 +96,19 @@ export default function BookingsPage() {
                         <span>{booking.city}</span>
                       </div>
                       <div className="text-sm">
-                        <span className="font-bold text-gray-900">{formatPrice(booking.totalAmount)}</span>
+                        <span className="font-bold text-gray-900">{formatPrice(Number(booking.totalAmount))}</span>
                       </div>
                     </div>
 
                     {/* Payment Progress */}
                     <div className="mt-3 pt-3 border-t border-gray-50">
                       <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-gray-500">Payment: {formatPrice(booking.advancePaid)} of {formatPrice(booking.totalAmount)}</span>
-                        <span className="font-medium text-gray-700">{Math.round((booking.advancePaid / booking.totalAmount) * 100)}%</span>
+                        <span className="text-gray-500">Payment: {formatPrice(Number(booking.advancePaid))} of {formatPrice(Number(booking.totalAmount))}</span>
+                        <span className="font-medium text-gray-700">{Math.round((Number(booking.advancePaid) / Number(booking.totalAmount)) * 100) || 0}%</span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all"
-                          style={{ width: `${(booking.advancePaid / booking.totalAmount) * 100}%` }} />
+                          style={{ width: `${(Number(booking.advancePaid) / Number(booking.totalAmount)) * 100}%` }} />
                       </div>
                     </div>
                   </div>
@@ -129,11 +116,11 @@ export default function BookingsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-400">Booking #{booking.bookingNumber} · Booked on {booking.createdAt}</p>
+                  <p className="text-xs text-gray-400">Booking #{booking.bookingNumber} · Booked on {new Date(booking.createdAt).toLocaleDateString()}</p>
                   <div className="flex gap-2">
-                    {booking.remainingAmount > 0 && booking.status !== "CANCELLED" && (
+                    {Number(booking.remainingAmount) > 0 && booking.status !== "CANCELLED" && (
                       <button className="px-4 py-2 rounded-lg gradient-primary text-white text-xs font-medium hover:opacity-90 transition-opacity">
-                        Pay Remaining {formatPrice(booking.remainingAmount)}
+                        Pay Remaining {formatPrice(Number(booking.remainingAmount))}
                       </button>
                     )}
                     {booking.status === "COMPLETED" && (

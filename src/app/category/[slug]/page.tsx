@@ -4,33 +4,21 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import ServiceCard from "@/components/cards/ServiceCard";
+import BannerCarousel from "@/components/BannerCarousel";
 
-const categoryData: Record<string, { name: string; description: string }> = {
-  "birthday-decorations": { name: "Birthday Decorations", description: "Make birthdays memorable with stunning decoration setups" },
-  "wedding-decorations": { name: "Wedding Decorations", description: "Beautiful wedding setups for your special day" },
-  "anniversary-celebrations": { name: "Anniversary Celebrations", description: "Celebrate your love with romantic anniversary setups" },
-  "candlelight-dinner": { name: "Candlelight Dinner", description: "Romantic candlelight dinner experiences at your location" },
-  "cakes": { name: "Cakes", description: "Delicious cakes for every occasion" },
-  "flowers": { name: "Flowers", description: "Fresh flower arrangements and bouquets" },
-  "corporate-events": { name: "Corporate Events", description: "Professional event setups for businesses" },
-  "balloon-decorations": { name: "Balloon Decorations", description: "Creative balloon arrangements for any celebration" },
-  "surprise-planning": { name: "Surprise Planning", description: "Let us help you plan the perfect surprise" },
-  "romantic-setup": { name: "Romantic Setup", description: "Beautiful romantic setups for special moments" },
-};
-
-const demoServices = [
-  { id: 1, title: "Premium Balloon Decoration", slug: "premium-birthday-balloon-decoration", basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128, isTrending: true, isBestSeller: true, category: { name: "Balloon Decorations", slug: "balloon-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 2, title: "Simple Birthday Setup", slug: "simple-birthday-setup", basePrice: 1999, discountPrice: 1499, images: [], avgRating: 4.2, reviewCount: 87, isNewArrival: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Party Kings", avgRating: 4.5 } },
-  { id: 3, title: "Theme Party Setup", slug: "kids-birthday-theme-party-setup", basePrice: 7999, discountPrice: 5999, images: [], avgRating: 4.6, reviewCount: 72, isTrending: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 4, title: "LED Neon Decoration", slug: "neon-birthday-setup", basePrice: 6999, discountPrice: 5499, images: [], avgRating: 4.7, reviewCount: 38, isFeatured: true, isNewArrival: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Glow Events", avgRating: 4.8 } },
-  { id: 5, title: "Golden Anniversary Setup", slug: "golden-anniversary-setup", basePrice: 8999, discountPrice: 6999, images: [], avgRating: 4.8, reviewCount: 34, isBestSeller: true, category: { name: "Anniversary", slug: "anniversary-celebrations" }, vendor: { businessName: "Love Setup Co", avgRating: 4.6 } },
-  { id: 6, title: "Budget Friendly Decoration", slug: "budget-decoration", basePrice: 999, discountPrice: null, images: [], avgRating: 4.1, reviewCount: 156, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Quick Decor", avgRating: 4.3 } },
-];
+import { useCategoryBySlug, useServices, useBanners } from "@/hooks/useApi";
 
 export default function CategoryPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const category = categoryData[slug] || { name: slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()), description: "Explore our services" };
+  const { data: catData, isLoading: catLoading } = useCategoryBySlug(slug);
+  const { data: servicesData, isLoading: servicesLoading } = useServices({ category: slug });
+  
+  const category = catData?.data || { name: slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()), description: "Explore our services" };
+  const services = servicesData?.data || [];
+
+  const { data: bannerRes } = useBanners("CATEGORY");
+  const banners = bannerRes?.data || [];
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -53,16 +41,31 @@ export default function CategoryPage() {
             {category.name}
           </h1>
           <p className="text-white/80 max-w-xl">{category.description}</p>
-          <p className="text-white/60 text-sm mt-3">{demoServices.length} services available</p>
+          <p className="text-white/60 text-sm mt-3">{services.length} services available</p>
         </div>
       </div>
+
+      {/* Dynamic Category Banners */}
+      {banners.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 mb-8">
+          <BannerCarousel 
+            banners={banners} 
+            className="w-full h-32 md:h-48 shadow-lg hover:scale-[1.01] transition-transform" 
+          />
+        </div>
+      )}
 
       {/* Services Grid */}
       <div className="max-w-7xl mx-auto px-4 pb-20">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {demoServices.map(service => (
+          {services.map((service: any) => (
             <ServiceCard key={service.id} {...service} />
           ))}
+          {!servicesLoading && services.length === 0 && (
+            <div className="col-span-full py-20 text-center text-gray-500">
+              No services found in this category yet.
+            </div>
+          )}
         </div>
       </div>
     </div>
