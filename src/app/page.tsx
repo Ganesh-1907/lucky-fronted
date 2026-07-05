@@ -10,7 +10,8 @@ import {
   Shield, Clock, CheckCircle, Users,
 } from "lucide-react";
 import ServiceCard from "@/components/cards/ServiceCard";
-import { useServices, useCategories, useHomepageSections } from "@/hooks/useApi";
+import BannerCarousel from "@/components/BannerCarousel";
+import { useServices, useCategories, useHomepageSections, useBanners } from "@/hooks/useApi";
 
 // Sample data for demo (replaced by API data in production)
 const sampleServices = [
@@ -87,6 +88,7 @@ export default function HomePage() {
   const { data: bestsellerRes } = useServices({ bestseller: true, limit: 4 });
   const { data: categoriesRes } = useCategories();
   const { data: homepageRes } = useHomepageSections();
+  const { data: bannerRes } = useBanners("HOMEPAGE");
 
   const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
   const bestsellerServices = (bestsellerRes as any)?.data?.length ? (bestsellerRes as any).data : sampleServices;
@@ -128,6 +130,7 @@ export default function HomePage() {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
+  const homepageBanners = bannerRes?.data || [];
 
   const nextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length);
@@ -270,7 +273,9 @@ export default function HomePage() {
         );
 
       case 'services':
-        const displayServices = section.data?.length ? section.data : (section.name === 'trending' ? trendingServices : bestsellerServices);
+        // If data is provided from API, use it (even if empty, to reflect true state).
+        // Only fallback to demo data if section.data is literally undefined.
+        const displayServices = section.data !== undefined ? section.data : (section.name === 'trending' ? trendingServices : bestsellerServices);
         return (
           <section key={section.id} className={`${section.name === 'best_sellers' ? 'bg-gradient-to-b from-violet-50/50 to-transparent py-16 mb-16' : 'max-w-7xl mx-auto px-4 mb-16'}`}>
             <div className={`${section.name === 'best_sellers' ? 'max-w-7xl mx-auto px-4' : ''}`}>
@@ -409,6 +414,16 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {homepageSections.map((section: any, idx: number) => renderSection(section, idx))}
+      
+      {/* HOMEPAGE Banner Slot */}
+      {homepageBanners.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 mb-16 mt-8">
+          <BannerCarousel 
+            banners={homepageBanners} 
+            className="w-full rounded-2xl shadow-xl overflow-hidden hover:scale-[1.01] transition-transform duration-300" 
+          />
+        </div>
+      )}
     </div>
   );
 

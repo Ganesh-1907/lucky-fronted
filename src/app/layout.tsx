@@ -3,6 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import LayoutShell from "@/components/layout/LayoutShell";
 import QueryProvider from "@/providers/QueryProvider";
+import PopupBanner from "@/components/PopupBanner";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -53,6 +54,7 @@ export default function RootLayout({
         />
         <QueryProvider>
           <LayoutShell>{children}</LayoutShell>
+          <PopupBanner />
         </QueryProvider>
       </body>
     </html>

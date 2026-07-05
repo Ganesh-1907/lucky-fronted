@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar } from "lucide-react";
+import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAdminUsers, useToggleUserStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewUser, setViewUser] = useState<any>(null);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminUsers(roleFilter !== "All" ? roleFilter : undefined);
   const users = Array.isArray(data) ? data : (data?.data || []);
@@ -111,7 +112,7 @@ export default function AdminUsersPage() {
                   <th className="text-left p-4 font-medium">Role</th>
                   <th className="text-left p-4 font-medium hidden lg:table-cell">Joined</th>
                   <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Actions</th>
+                  <th className="text-left p-4 font-medium sticky right-0 bg-gray-50/90 z-20 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,21 +149,29 @@ export default function AdminUsersPage() {
                           status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                         )}>{status}</span>
                       </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setViewUser(user)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="View Details"><Eye size={16} /></button>
-                          <a href={`mailto:${user.email}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="Email User"><Mail size={16} /></a>
-                          {role !== "ADMIN" && (
-                            <button 
-                              onClick={() => handleToggleStatus(user.id, status)} 
-                              className={cn("p-1.5 rounded-lg transition-colors", status === "ACTIVE" ? "hover:bg-red-50 text-red-500" : "hover:bg-green-50 text-green-500")}
-                              title={status === "ACTIVE" ? "Suspend User" : "Activate User"}
-                              disabled={toggleUser.isPending}
-                            >
-                              <Ban size={16} />
+                      <td className="p-4 relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                        <button onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+                          <MoreVertical size={16} />
+                        </button>
+                        {openDropdown === user.id && (
+                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
+                            <button onClick={() => { setViewUser(user); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              <Eye size={14} className="text-gray-400" /> View
                             </button>
-                          )}
-                        </div>
+                            <a href={`mailto:${user.email}`} onClick={() => setOpenDropdown(null)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              <Mail size={14} className="text-gray-400" /> Email
+                            </a>
+                            {role !== "ADMIN" && (
+                              <button 
+                                onClick={() => { handleToggleStatus(user.id, status); setOpenDropdown(null); }} 
+                                className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
+                                disabled={toggleUser.isPending}
+                              >
+                                <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { GripVertical, Plus, Trash2, Eye, EyeOff, Edit, Save, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAdminHomepageSections, useUpdateHomepageSection, useReorderHomepageSections, useAddHomepageSection, useDeleteHomepageSection } from "@/hooks/useApi";
+import { useAdminHomepageSections, useUpdateHomepageSection, useReorderHomepageSections, useAddHomepageSection, useDeleteHomepageSection, useCategories } from "@/hooks/useApi";
 import { toast } from "sonner";
 
 interface Section {
@@ -11,6 +11,7 @@ interface Section {
   type: string;
   name: string;
   title: string;
+  subtitle?: string;
   isActive: boolean;
   config: Record<string, any>;
 }
@@ -21,6 +22,7 @@ const sectionTypes = [
   { type: "services", name: "trending", label: "Trending Services", icon: "🔥" },
   { type: "services", name: "best_sellers", label: "Best Sellers", icon: "⭐" },
   { type: "services", name: "new_arrivals", label: "New Arrivals", icon: "✨" },
+  { type: "services", name: "category_specific", label: "Category Specific Services", icon: "🎯" },
   { type: "how_it_works", name: "how_it_works", label: "How It Works", icon: "📋" },
   { type: "testimonials", name: "testimonials", label: "Testimonials", icon: "💬" },
   { type: "vendor_cta", name: "vendor_cta", label: "Vendor CTA Banner", icon: "📢" },
@@ -50,6 +52,8 @@ export default function AdminHomepagePage() {
   const reorderSections = useReorderHomepageSections();
   const addSectionMutation = useAddHomepageSection();
   const deleteSectionMutation = useDeleteHomepageSection();
+  const { data: catData } = useCategories();
+  const apiCategories = catData?.data || [];
 
   useEffect(() => {
     console.log("AdminHomepagePage - data:", data, "error:", error);
@@ -126,6 +130,7 @@ export default function AdminHomepagePage() {
           id: s.id,
           data: {
             title: s.title,
+            subtitle: s.subtitle,
             isActive: s.isActive,
             config: s.config
           }
@@ -236,12 +241,33 @@ export default function AdminHomepagePage() {
                         onChange={e => setSections(sections.map(s => s.id === section.id ? { ...s, title: e.target.value } : s))}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
                     </div>
-                    {(section.type.startsWith("services") || section.type === "testimonials" || section.type === "cities") && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Section Subtitle</label>
+                      <input type="text" value={section.subtitle || ""}
+                        onChange={e => setSections(sections.map(s => s.id === section.id ? { ...s, subtitle: e.target.value } : s))}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
+                    </div>
+                    {(section.type.startsWith("services") || section.type === "testimonials" || section.type === "cities" || section.type === "categories") && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Items Limit</label>
-                        <input type="number" value={section.config?.limit || 8} min={2} max={20}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Items Limit (Number of cards)</label>
+                        <input type="number" value={section.config?.limit || (section.type === 'categories' ? 8 : section.type === 'testimonials' ? 6 : section.type === 'cities' ? 10 : 8)} min={2} max={20}
                           onChange={e => updateConfig(section.id, 'limit', Number(e.target.value))}
                           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
+                      </div>
+                    )}
+                    {section.name === 'category_specific' && (
+                      <div className="col-span-full md:col-span-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
+                        <select 
+                          value={section.config?.categoryId || ""} 
+                          onChange={e => updateConfig(section.id, 'categoryId', Number(e.target.value))}
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 bg-white"
+                        >
+                          <option value="">-- Choose Category --</option>
+                          {apiCategories.map((c: any) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
                       </div>
                     )}
                   </div>

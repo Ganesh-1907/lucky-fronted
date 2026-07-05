@@ -4,11 +4,61 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle, Calendar, Clock, MapPin, Phone, Download, Home, ShoppingBag } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import api from "@/lib/api";
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
-  const bookingId = searchParams.get("id") || "LM7X8K2A";
+  const bookingId = searchParams.get("id");
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!bookingId) {
+      setError("No booking ID provided");
+      setLoading(false);
+      return;
+    }
+
+    const fetchBooking = async () => {
+      try {
+        const res = await api.get<{success: boolean, data: any}>(`/bookings/${bookingId}`);
+        if (res.success) {
+          setBooking(res.data);
+        } else {
+          setError("Failed to fetch booking details");
+        }
+      } catch (err: any) {
+        setError(err.message || "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [bookingId]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><p>Loading booking details...</p></div>;
+  }
+
+  if (error || !booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Link href="/" className="text-violet-600 underline">Return Home</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { service, vendor, client } = booking;
+  const bookingDate = new Date(booking.bookingDate).toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' });
+  const totalAmount = Number(booking.totalAmount);
+  const advancePaid = Number(booking.advancePaid);
+  const remainingAmount = Number(booking.remainingAmount);
 
   return (
     <div className="min-h-screen bg-gray-50/50 flex items-center justify-center px-4 py-10">
@@ -29,7 +79,7 @@ function ConfirmationContent() {
           {/* Header */}
           <div className="gradient-primary p-6 text-white text-center">
             <p className="text-sm opacity-80">Booking ID</p>
-            <p className="text-2xl font-mono font-bold tracking-wider mt-1">{bookingId}</p>
+            <p className="text-2xl font-mono font-bold tracking-wider mt-1">{booking.bookingNumber}</p>
           </div>
 
           {/* Details */}
@@ -39,8 +89,8 @@ function ConfirmationContent() {
                 <span className="text-xl">🎈</span>
               </div>
               <div>
-                <p className="font-semibold text-sm text-gray-900">Premium Birthday Balloon Decoration</p>
-                <p className="text-xs text-gray-500">by Dream Decorators</p>
+                <p className="font-semibold text-sm text-gray-900">{service?.title || "Service"}</p>
+                <p className="text-xs text-gray-500">by {vendor?.businessName || "Vendor"}</p>
               </div>
             </div>
 
@@ -49,14 +99,14 @@ function ConfirmationContent() {
                 <Calendar size={16} className="text-violet-600" />
                 <div>
                   <p className="text-xs text-gray-500">Date</p>
-                  <p className="text-sm font-medium text-gray-900">Mar 20, 2024</p>
+                  <p className="text-sm font-medium text-gray-900">{bookingDate}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
                 <Clock size={16} className="text-violet-600" />
                 <div>
                   <p className="text-xs text-gray-500">Time</p>
-                  <p className="text-sm font-medium text-gray-900">10:00 AM</p>
+                  <p className="text-sm font-medium text-gray-900">{booking.timeSlot}</p>
                 </div>
               </div>
             </div>
@@ -65,7 +115,7 @@ function ConfirmationContent() {
               <MapPin size={16} className="text-violet-600 mt-0.5" />
               <div>
                 <p className="text-xs text-gray-500">Delivery Address</p>
-                <p className="text-sm text-gray-900">Flat 12, Dream Apartments, Andheri West, Mumbai 400058</p>
+                <p className="text-sm text-gray-900">{booking.address}, {booking.city} {booking.pincode}</p>
               </div>
             </div>
 
@@ -73,15 +123,15 @@ function ConfirmationContent() {
             <div className="pt-4 border-t border-gray-100">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Total Amount</span>
-                <span className="font-medium text-gray-900">{formatPrice(4718)}</span>
+                <span className="font-medium text-gray-900">{formatPrice(totalAmount)}</span>
               </div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Advance Paid</span>
-                <span className="font-bold text-green-600">{formatPrice(2359)}</span>
+                <span className="font-bold text-green-600">{formatPrice(advancePaid)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Remaining (pay after service)</span>
-                <span className="font-medium text-amber-600">{formatPrice(2359)}</span>
+                <span className="font-medium text-amber-600">{formatPrice(remainingAmount)}</span>
               </div>
             </div>
           </div>
@@ -90,17 +140,17 @@ function ConfirmationContent() {
           <div className="px-6 pb-6">
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
               <p className="text-sm font-medium text-emerald-800 mb-1">📞 Vendor will contact you</p>
-              <p className="text-xs text-emerald-600">Dream Decorators will reach out within 2 hours to confirm the setup details.</p>
+              <p className="text-xs text-emerald-600">{vendor?.businessName || "Vendor"} will reach out within 2 hours to confirm the setup details.</p>
             </div>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex gap-3 mt-6">
-          <Link href="/bookings" className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl gradient-primary text-white font-medium text-sm">
+          <Link href="/bookings" className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl gradient-primary text-white font-medium text-sm hover:opacity-90 transition-opacity">
             <ShoppingBag size={16} /> View My Bookings
           </Link>
-          <Link href="/" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50">
+          <Link href="/" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition-colors">
             <Home size={16} /> Home
           </Link>
         </div>
@@ -109,10 +159,10 @@ function ConfirmationContent() {
         <div className="text-center mt-4">
           <p className="text-xs text-gray-400">Share booking details via</p>
           <div className="flex justify-center gap-2 mt-2">
-            <button className="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700">
+            <button className="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors">
               WhatsApp
             </button>
-            <button className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200">
+            <button className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors">
               <Download size={12} className="inline mr-1" /> Download PDF
             </button>
           </div>

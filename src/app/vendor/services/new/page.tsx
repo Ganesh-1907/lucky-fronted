@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Save, Plus, Trash2, Image, Upload, DollarSign,
-  Tag, MapPin, Clock, FileText, Info, Loader2
+  Tag, MapPin, Clock, FileText, Info, Loader2, X
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import NextImage from "next/image";
 
 import { useCategories } from "@/hooks/useApi";
 
@@ -35,6 +36,33 @@ export default function NewServicePage() {
   });
   const [addons, setAddons] = useState([{ name: "", price: "", description: "" }]);
   const [faqs, setFaqs] = useState([{ question: "", answer: "" }]);
+
+  const [selectedImages, setSelectedImages] = useState<(File | null)[]>([null, null, null, null]);
+  const [imagePreviews, setImagePreviews] = useState<(string | null)[]>([null, null, null, null]);
+
+  const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      const newImages = [...selectedImages];
+      newImages[index] = file;
+      setSelectedImages(newImages);
+
+      const newPreviews = [...imagePreviews];
+      newPreviews[index] = URL.createObjectURL(file);
+      setImagePreviews(newPreviews);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = [...selectedImages];
+    newImages[index] = null;
+    setSelectedImages(newImages);
+
+    const newPreviews = [...imagePreviews];
+    newPreviews[index] = null;
+    setImagePreviews(newPreviews);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -71,6 +99,24 @@ export default function NewServicePage() {
 
     try {
       setIsSubmitting(true);
+      let uploadedUrls: string[] = [];
+      const filesToUpload = selectedImages.filter(f => f !== null) as File[];
+      
+      if (filesToUpload.length > 0) {
+        const formData = new FormData();
+        filesToUpload.forEach(file => formData.append('images', file));
+        formData.append('folder', 'services');
+
+        const uploadRes = await api.uploadFile('/upload/images', formData);
+        if (uploadRes.success && uploadRes.data?.urls) {
+          uploadedUrls = uploadRes.data.urls;
+        } else {
+          toast.error("Failed to upload images");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const payload = {
         ...formData,
         categoryId: parseInt(formData.categoryId),
@@ -81,7 +127,7 @@ export default function NewServicePage() {
         serviceDuration: parseInt(formData.serviceDuration),
         addons: addons.filter(a => a.name && a.price).map(a => ({ ...a, price: parseFloat(a.price) })),
         faq: faqs.filter(f => f.question && f.answer),
-        images: [] // Assuming images are handled separately or default empty
+        images: uploadedUrls
       };
 
       const res = await api.post<{success: boolean}>("/services", payload);
@@ -147,11 +193,22 @@ export default function NewServicePage() {
         <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Image size={18} className="text-emerald-600" /> Service Images</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map(i => (
-            <label key={i} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/50 transition-all">
-              <Upload size={20} className="text-gray-400" />
-              <span className="text-xs text-gray-400">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
-              <input type="file" className="hidden" accept="image/*" />
-            </label>
+            <div key={i} className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-all">
+              {imagePreviews[i] ? (
+                <>
+                  <NextImage src={imagePreviews[i]!} alt={`Preview ${i + 1}`} fill className="object-cover" />
+                  <button onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 z-10 transition-colors">
+                    <X size={14} />
+                  </button>
+                </>
+              ) : (
+                <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer">
+                  <Upload size={20} className="text-gray-400" />
+                  <span className="text-xs text-gray-400">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
+                  <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleImageChange(i, e)} />
+                </label>
+              )}
+            </div>
           ))}
         </div>
         <p className="text-xs text-gray-400 mt-2">Upload up to 4 images. Square (1:1) images work best. Max 5MB each.</p>

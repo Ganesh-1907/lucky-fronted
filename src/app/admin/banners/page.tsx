@@ -58,6 +58,7 @@ export default function AdminBannersPage() {
   const [viewBanner, setViewBanner] = useState<Banner | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [statusChange, setStatusChange] = useState<{id: number, isActive: boolean} | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -350,21 +351,7 @@ export default function AdminBannersPage() {
                     <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400"><ImageIcon size={32} /></div>
                   )}
                   
-                  {/* Overlay Actions (Desktop) */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex items-center justify-center gap-3">
-                    <button onClick={() => setViewBanner(banner)} className="p-2.5 bg-white rounded-full text-gray-700 hover:text-violet-600 focus:ring-2 focus:ring-violet-400 outline-none transition-colors" title="View Banner" aria-label="View">
-                      <Eye size={18} />
-                    </button>
-                    <button onClick={() => router.push(`/admin/banners/${banner.id}/edit`)} className="p-2.5 bg-white rounded-full text-gray-700 hover:text-blue-600 focus:ring-2 focus:ring-blue-400 outline-none transition-colors" title="Edit Banner" aria-label="Edit">
-                      <Edit size={18} />
-                    </button>
-                    <button onClick={() => setStatusChange({id: banner.id, isActive: !banner.isActive})} className="p-2.5 bg-white rounded-full text-gray-700 hover:text-orange-600 focus:ring-2 focus:ring-orange-400 outline-none transition-colors" title={banner.isActive ? "Disable Banner" : "Enable Banner"} aria-label={banner.isActive ? "Disable" : "Enable"}>
-                      {banner.isActive ? <EyeOff size={18} /> : <Check size={18} />}
-                    </button>
-                    <button onClick={() => setDeleteId(banner.id)} className="p-2.5 bg-white rounded-full text-gray-700 hover:text-red-600 focus:ring-2 focus:ring-red-400 outline-none transition-colors" title="Delete Banner" aria-label="Delete">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+
                   
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase bg-white/95 text-gray-800 shadow-sm backdrop-blur-sm tracking-wider">
@@ -380,17 +367,19 @@ export default function AdminBannersPage() {
                   <div>
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2" title={banner.title}>{banner.title}</h3>
-                      {/* Mobile Actions Dropdown */}
-                      <div className="md:hidden relative group">
-                        <button className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"><MoreVertical size={18}/></button>
-                        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 shadow-lg rounded-xl py-1 w-32 hidden group-hover:block z-10">
-                          <button onClick={() => setViewBanner(banner)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Eye size={14}/> View</button>
-                          <button onClick={() => router.push(`/admin/banners/${banner.id}/edit`)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Edit size={14}/> Edit</button>
-                          <button onClick={() => setStatusChange({id: banner.id, isActive: !banner.isActive})} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                            {banner.isActive ? <><EyeOff size={14}/> Disable</> : <><Check size={14}/> Enable</>}
-                          </button>
-                          <button onClick={() => setDeleteId(banner.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14}/> Delete</button>
-                        </div>
+                      {/* Actions Dropdown */}
+                      <div className="relative">
+                        <button onClick={() => setOpenDropdown(openDropdown === banner.id ? null : banner.id)} className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"><MoreVertical size={18}/></button>
+                        {openDropdown === banner.id && (
+                          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 shadow-lg rounded-xl py-1 w-32 z-20">
+                            <button onClick={() => { setViewBanner(banner); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Eye size={14}/> View</button>
+                            <button onClick={() => { router.push(`/admin/banners/${banner.id}/edit`); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Edit size={14}/> Edit</button>
+                            <button onClick={() => { setStatusChange({id: banner.id, isActive: !banner.isActive}); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              {banner.isActive ? <><EyeOff size={14}/> Disable</> : <><Check size={14}/> Enable</>}
+                            </button>
+                            <button onClick={() => { setDeleteId(banner.id); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14}/> Delete</button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {banner.description && (

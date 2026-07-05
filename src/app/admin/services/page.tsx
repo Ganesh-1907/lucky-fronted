@@ -8,7 +8,7 @@ import {
   Edit, ChevronLeft, ChevronRight, X, Briefcase, MoreVertical
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-import { useAdminServices, useUpdateServiceStatus, useDeleteService } from "@/hooks/useApi";
+import { useAdminServices, useUpdateServiceStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -30,14 +30,13 @@ export default function AdminServicesPage() {
   const [viewService, setViewService] = useState<any>(null);
   
   // Modal states
-  const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | "DELETE" | null; serviceId: number | null }>({ type: null, serviceId: null });
+  const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | null; serviceId: number | null }>({ type: null, serviceId: null });
   const [reason, setReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminServices(statusFilter !== "All" ? statusFilter : undefined);
   const updateServiceStatus = useUpdateServiceStatus();
-  const deleteService = useDeleteService();
 
   const services = Array.isArray(data) ? data : (data?.data || []);
 
@@ -72,16 +71,11 @@ export default function AdminServicesPage() {
     
     try {
       setActionLoading(true);
-      if (modalState.type === "DELETE") {
-        await deleteService.mutateAsync(modalState.serviceId);
-        toast.success("Service deleted successfully");
-      } else {
-        await updateServiceStatus.mutateAsync({ 
-          id: modalState.serviceId, 
-          status: modalState.type === "APPROVE" ? "APPROVED" : modalState.type === "REJECT" ? "REJECTED" : "SUSPENDED"
-        });
-        toast.success(`Service ${modalState.type.toLowerCase()} successfully`);
-      }
+      await updateServiceStatus.mutateAsync({ 
+        id: modalState.serviceId, 
+        status: modalState.type === "APPROVE" ? "APPROVED" : modalState.type === "REJECT" ? "REJECTED" : "SUSPENDED"
+      });
+      toast.success(`Service ${modalState.type.toLowerCase()} successfully`);
       setModalState({ type: null, serviceId: null });
       setReason("");
     } catch (err: any) {
@@ -99,9 +93,7 @@ export default function AdminServicesPage() {
       <Link href={`/admin/services/${service.id}/edit`} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 w-full text-left" title="Edit">
         <Edit size={16} /> {isMobile && <span className="text-sm">Edit</span>}
       </Link>
-      <button onClick={() => { setModalState({ type: "DELETE", serviceId: service.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Delete">
-        <X size={16} /> {isMobile && <span className="text-sm">Delete</span>}
-      </button>
+
 
       {(service.status === "PENDING" || service.status === "REJECTED" || service.status === "SUSPENDED") && (
         <button onClick={() => { setModalState({ type: "APPROVE", serviceId: service.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
@@ -184,7 +176,7 @@ export default function AdminServicesPage() {
                   <th className="text-left p-4 font-medium hidden lg:table-cell">Bookings</th>
                   <th className="text-left p-4 font-medium hidden md:table-cell">Tags</th>
                   <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Actions</th>
+                  <th className="text-left p-4 font-medium sticky right-0 bg-gray-50/90 z-20 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,11 +216,9 @@ export default function AdminServicesPage() {
                         {service.status || "UNKNOWN"}
                       </span>
                     </td>
-                    <td className="p-4 relative">
-                      <div className="hidden md:block">
-                        <Actions service={service} />
-                      </div>
-                      <div className="md:hidden">
+                    <td className="p-4 relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                      {/* Actions Dropdown */}
+                      <div className="relative">
                         <button onClick={() => setOpenDropdown(openDropdown === service.id ? null : service.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
                           <MoreVertical size={16} />
                         </button>
@@ -292,12 +282,11 @@ export default function AdminServicesPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalState({ type: null, serviceId: null })} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 overflow-hidden">
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {modalState.type === "APPROVE" ? "Approve Service" : modalState.type === "REJECT" ? "Reject Service" : modalState.type === "DELETE" ? "Delete Service" : "Suspend Service"}
+                {modalState.type === "APPROVE" ? "Approve Service" : modalState.type === "REJECT" ? "Reject Service" : "Suspend Service"}
               </h3>
               <p className="text-sm text-gray-500 mb-4">
                 {modalState.type === "APPROVE" ? "Are you sure you want to approve this service? It will become public and bookable." : 
                  modalState.type === "REJECT" ? "Please provide a reason for rejecting this service." :
-                 modalState.type === "DELETE" ? "Are you sure you want to completely delete this service? This action is permanent. You cannot delete a service that has active bookings." :
                  "Suspended services cannot receive new bookings."}
               </p>
               
@@ -317,7 +306,7 @@ export default function AdminServicesPage() {
                 <button onClick={handleAction} disabled={actionLoading} className={cn("px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors flex items-center gap-2", 
                   modalState.type === "APPROVE" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700")}>
                   {actionLoading && <Loader size={16} className="animate-spin" />}
-                  {modalState.type === "APPROVE" ? "Approve Service" : modalState.type === "REJECT" ? "Reject Service" : modalState.type === "DELETE" ? "Delete Service" : "Suspend Service"}
+                  {modalState.type === "APPROVE" ? "Approve Service" : modalState.type === "REJECT" ? "Reject Service" : "Suspend Service"}
                 </button>
               </div>
             </motion.div>

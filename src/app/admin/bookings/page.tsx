@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Eye, X, Filter, CalendarDays, User, MapPin, CheckCircle2, Clock, Check, XCircle, Trash2 } from "lucide-react";
+import { Search, Eye, X, Filter, CalendarDays, User, MapPin, CheckCircle2, Clock, Check, XCircle, MoreVertical } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import api from "@/lib/api";
 
@@ -61,8 +61,7 @@ export default function AdminBookingsPage() {
   const [newStatus, setNewStatus] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [updating, setUpdating] = useState(false);
-  const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
@@ -143,20 +142,6 @@ export default function AdminBookingsPage() {
     setCancelReason("");
   };
 
-  const handleDelete = async () => {
-    if (!deleteModalId) return;
-    try {
-      setDeleting(true);
-      await api.delete(`/admin/bookings/${deleteModalId}`);
-      showToast("Booking deleted successfully", "success");
-      setDeleteModalId(null);
-      fetchBookings();
-    } catch (err: any) {
-      showToast(err.message || "Failed to delete booking", "error");
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   return (
     <div className="space-y-6 pb-10">
@@ -210,7 +195,7 @@ export default function AdminBookingsPage() {
                 <th className="px-6 py-4">Schedule</th>
                 <th className="px-6 py-4">Amount</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4 text-right sticky right-0 bg-gray-50/90 z-20 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -236,7 +221,7 @@ export default function AdminBookingsPage() {
                 </tr>
               ) : (
                 bookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="font-mono text-sm font-bold text-violet-600">{booking.bookingNumber}</div>
                       <div className="text-xs text-gray-400 mt-1">{new Date(booking.createdAt).toLocaleDateString()}</div>
@@ -262,21 +247,23 @@ export default function AdminBookingsPage() {
                         {booking.status.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right flex justify-end gap-1">
+                    <td className="px-6 py-4 text-right relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
                       <button 
-                        onClick={() => setViewBooking(booking)}
-                        className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-violet-100"
-                        title="View Details"
+                        onClick={() => setOpenDropdown(openDropdown === booking.id ? null : booking.id)}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
                       >
-                        <Eye size={18} />
+                        <MoreVertical size={16} />
                       </button>
-                      <button 
-                        onClick={() => setDeleteModalId(booking.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-100"
-                        title="Delete Booking"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {openDropdown === booking.id && (
+                        <div className="absolute right-6 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 text-left">
+                          <button 
+                            onClick={() => { setViewBooking(booking); setOpenDropdown(null); }}
+                            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700 w-full text-sm transition-colors"
+                          >
+                            <Eye size={16} className="text-gray-400" /> View Details
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -523,34 +510,6 @@ export default function AdminBookingsPage() {
           <div className={cn("px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 border", toast.type === "success" ? "bg-gray-900 text-white border-gray-800" : "bg-red-600 text-white border-red-700")}>
             {toast.type === "success" ? <CheckCircle2 size={20} className="text-green-400" /> : <XCircle size={20} className="text-red-300" />}
             <span className="text-sm font-bold tracking-wide">{toast.message}</span>
-          </div>
-        </div>
-      )}
-      {/* Delete Confirmation Modal */}
-      {deleteModalId && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl transform transition-all">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Booking</h3>
-            <p className="text-sm text-gray-500 mb-6">Are you sure you want to completely delete this booking? This action is permanent and cannot be undone. Bookings with completed payments cannot be deleted.</p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setDeleteModalId(null)}
-                disabled={deleting}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                {deleting ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                ) : <Trash2 size={16} />}
-                Delete Booking
-              </button>
-            </div>
           </div>
         </div>
       )}

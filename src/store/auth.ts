@@ -123,18 +123,23 @@ export const useAuthStore = create<AuthState>()(
           const res: any = await api.post("/auth/register", data);
           const { user, accessToken, refreshToken } = res.data;
 
-          if (typeof window !== "undefined") {
-            localStorage.setItem("accessToken", accessToken);
-            localStorage.setItem("refreshToken", refreshToken);
-          }
+          if (accessToken && refreshToken) {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("accessToken", accessToken);
+              localStorage.setItem("refreshToken", refreshToken);
+            }
 
-          set({
-            user,
-            accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+            set({
+              user,
+              accessToken,
+              refreshToken,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          } else {
+            // For pending vendors, no tokens are returned
+            set({ isLoading: false });
+          }
         } catch (error) {
           set({ isLoading: false });
           throw error;

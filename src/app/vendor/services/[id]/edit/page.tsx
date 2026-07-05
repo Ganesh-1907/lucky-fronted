@@ -4,11 +4,13 @@ import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Save, Plus, Trash2, Image, Upload, DollarSign,
-  Tag, MapPin, Clock, FileText, Info, Loader2
+  Tag, MapPin, Clock, FileText, Info, Loader2, X
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
+import NextImage from "next/image";
 
 import { useCategories, useServiceById, useUpdateVendorService } from "@/hooks/useApi";
 
@@ -41,6 +43,9 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
   const [addons, setAddons] = useState([{ name: "", price: "", description: "" }]);
   const [faqs, setFaqs] = useState([{ question: "", answer: "" }]);
 
+  const [selectedImages, setSelectedImages] = useState<(File | null)[]>([null, null, null, null]);
+  const [imagePreviews, setImagePreviews] = useState<(string | null)[]>([null, null, null, null]);
+
   useEffect(() => {
     if (service) {
       setFormData({
@@ -61,8 +66,45 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
       if (service.faq && service.faq.length > 0) {
         setFaqs(service.faq.map((f: any) => ({ question: f.question, answer: f.answer })));
       }
+      if (service.images && service.images.length > 0) {
+        const previews = [null, null, null, null];
+        for (let i = 0; i < Math.min(service.images.length, 4); i++) {
+          previews[i] = service.images[i];
+        }
+        setImagePreviews(previews as (string | null)[]);
+      }
     }
   }, [service]);
+
+  const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      const newImages = [...selectedImages];
+      newImages[index] = file;
+      setSelectedImages(newImages);
+
+      const newPreviews = [...imagePreviews];
+      newPreviews[index] = URL.createObjectURL(file);
+      setImagePreviews(newPreviews);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = [...selectedImages];
+    newImages[index] = null;
+    setSelectedImages(newImages);
+
+    const newPreviews = [...imagePreviews];
+    newPreviews[index] = null;
+    setImagePreviews(newPreviews);
+  };
+
+  const getPreviewUrl = (url: string | null) => {
+    if (!url) return null;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${url}`;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -99,6 +141,36 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
 
     try {
       setIsSubmitting(true);
+      
+      let finalUrls: string[] = [];
+      let newlyUploadedUrls: string[] = [];
+      const newFiles = selectedImages.map((f, i) => f ? { file: f, index: i } : null).filter(Boolean) as { file: File, index: number }[];
+      
+      if (newFiles.length > 0) {
+        const formData = new FormData();
+        newFiles.forEach(nf => formData.append('images', nf.file));
+        formData.append('folder', 'services');
+
+        const uploadRes = await api.uploadFile('/upload/images', formData);
+        if (uploadRes.success && uploadRes.data?.urls) {
+          newlyUploadedUrls = uploadRes.data.urls;
+        } else {
+          toast.error("Failed to upload new images");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      let uploadIndex = 0;
+      for (let i = 0; i < 4; i++) {
+        if (selectedImages[i]) {
+          finalUrls.push(newlyUploadedUrls[uploadIndex]);
+          uploadIndex++;
+        } else if (imagePreviews[i] && !imagePreviews[i]?.startsWith('blob:')) {
+          finalUrls.push(imagePreviews[i]!);
+        }
+      }
+
       const payload = {
         ...formData,
         categoryId: parseInt(formData.categoryId),
@@ -109,7 +181,7 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
         serviceDuration: parseInt(formData.serviceDuration),
         addons: addons.filter(a => a.name && a.price).map(a => ({ ...a, price: parseFloat(a.price) })),
         faq: faqs.filter(f => f.question && f.answer),
-        images: service?.images || [] // Preserve existing images for now
+        images: finalUrls
       };
 
       await updateService.mutateAsync({ id: serviceId, data: payload });
@@ -179,11 +251,22 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
         <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Image size={18} className="text-emerald-600" /> Service Images</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map(i => (
-            <label key={i} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/50 transition-all">
-              <Upload size={20} className="text-gray-400" />
-              <span className="text-xs text-gray-400">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
-              <input type="file" className="hidden" accept="image/*" />
-            </label>
+            <div key={i} className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-all">
+              {imagePreviews[i] ? (
+                <>
+                  <NextImage src={getPreviewUrl(imagePreviews[i])!} alt={`Preview ${i + 1}`} fill className="object-cover" />
+                  <button onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 z-10 transition-colors">
+                    <X size={14} />
+                  </button>
+                </>
+              ) : (
+                <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer">
+                  <Upload size={20} className="text-gray-400" />
+                  <span className="text-xs text-gray-400">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
+                  <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleImageChange(i, e)} />
+                </label>
+              )}
+            </div>
           ))}
         </div>
         <p className="text-xs text-gray-400 mt-2">Upload up to 4 images. Square (1:1) images work best. Max 5MB each.</p>

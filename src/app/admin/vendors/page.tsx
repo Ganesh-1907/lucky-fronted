@@ -8,7 +8,7 @@ import {
   Edit, ArrowUpDown, ChevronLeft, ChevronRight, X, User
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-import { useAdminVendors, useUpdateVendorStatus, useDeleteVendor } from "@/hooks/useApi";
+import { useAdminVendors, useUpdateVendorStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -30,14 +30,13 @@ export default function AdminVendorsPage() {
   const [viewVendor, setViewVendor] = useState<any>(null);
   
   // Modal states
-  const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | "DELETE" | null; vendorId: number | null }>({ type: null, vendorId: null });
+  const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | null; vendorId: number | null }>({ type: null, vendorId: null });
   const [reason, setReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminVendors(statusFilter !== "All" ? statusFilter : undefined);
   const updateVendorStatus = useUpdateVendorStatus();
-  const deleteVendor = useDeleteVendor();
 
   const vendors = Array.isArray(data) ? data : (data?.data || []);
 
@@ -74,16 +73,11 @@ export default function AdminVendorsPage() {
     
     try {
       setActionLoading(true);
-      if (modalState.type === "DELETE") {
-        await deleteVendor.mutateAsync(modalState.vendorId);
-        toast.success("Vendor deleted successfully");
-      } else {
-        await updateVendorStatus.mutateAsync({ 
-          id: modalState.vendorId, 
-          status: modalState.type === "APPROVE" ? "APPROVED" : modalState.type === "REJECT" ? "REJECTED" : "SUSPENDED"
-        });
-        toast.success(`Vendor ${modalState.type.toLowerCase()} successfully`);
-      }
+      await updateVendorStatus.mutateAsync({ 
+        id: modalState.vendorId, 
+        status: modalState.type === "APPROVE" ? "APPROVED" : modalState.type === "REJECT" ? "REJECTED" : "SUSPENDED"
+      });
+      toast.success(`Vendor ${modalState.type.toLowerCase()} successfully`);
       setModalState({ type: null, vendorId: null });
       setReason("");
     } catch (err: any) {
@@ -101,9 +95,7 @@ export default function AdminVendorsPage() {
       <Link href={`/admin/vendors/${vendor.id}/edit`} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 w-full text-left" title="Edit">
         <Edit size={16} /> {isMobile && <span className="text-sm">Edit</span>}
       </Link>
-      <button onClick={() => { setModalState({ type: "DELETE", vendorId: vendor.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Delete">
-        <X size={16} /> {isMobile && <span className="text-sm">Delete</span>}
-      </button>
+
 
       {(vendor.status === "PENDING" || vendor.status === "REJECTED" || vendor.status === "SUSPENDED") && (
         <button onClick={() => { setModalState({ type: "APPROVE", vendorId: vendor.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
@@ -171,7 +163,7 @@ export default function AdminVendorsPage() {
 
       {!isLoading && vendors.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[300px]">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-50/90 backdrop-blur z-10">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
@@ -182,7 +174,7 @@ export default function AdminVendorsPage() {
                   <th className="text-left p-4 font-medium hidden md:table-cell">Rating</th>
                   <th className="text-left p-4 font-medium hidden lg:table-cell">Earnings</th>
                   <th className="text-left p-4 font-medium">Status</th>
-                  <th className="text-left p-4 font-medium">Actions</th>
+                  <th className="text-left p-4 font-medium sticky right-0 bg-gray-50/90 z-20 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,13 +208,9 @@ export default function AdminVendorsPage() {
                         {vendor.status}
                       </span>
                     </td>
-                    <td className="p-4 relative">
-                      {/* Desktop Actions */}
-                      <div className="hidden md:block">
-                        <Actions vendor={vendor} />
-                      </div>
-                      {/* Mobile Dropdown */}
-                      <div className="md:hidden">
+                    <td className="p-4 relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                      {/* Actions Dropdown */}
+                      <div className="relative">
                         <button onClick={() => setOpenDropdown(openDropdown === vendor.id ? null : vendor.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
                           <MoreVertical size={16} />
                         </button>
@@ -286,12 +274,11 @@ export default function AdminVendorsPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModalState({ type: null, vendorId: null })} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 overflow-hidden">
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {modalState.type === "APPROVE" ? "Approve Vendor" : modalState.type === "REJECT" ? "Reject Vendor" : modalState.type === "DELETE" ? "Delete Vendor" : "Suspend Vendor"}
+                {modalState.type === "APPROVE" ? "Approve Vendor" : modalState.type === "REJECT" ? "Reject Vendor" : "Suspend Vendor"}
               </h3>
               <p className="text-sm text-gray-500 mb-4">
                 {modalState.type === "APPROVE" ? "Are you sure you want to approve this vendor? This vendor will be able to publish services and receive bookings." : 
                  modalState.type === "REJECT" ? "Please provide a reason for rejecting this vendor application." :
-                 modalState.type === "DELETE" ? "Are you sure you want to completely delete this vendor? This action is permanent. You cannot delete a vendor who has active bookings." :
                  "Suspended vendors cannot receive new bookings or publish services."}
               </p>
               
@@ -311,7 +298,7 @@ export default function AdminVendorsPage() {
                 <button onClick={handleAction} disabled={actionLoading} className={cn("px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors flex items-center gap-2", 
                   modalState.type === "APPROVE" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700")}>
                   {actionLoading && <Loader size={16} className="animate-spin" />}
-                  {modalState.type === "APPROVE" ? "Approve Vendor" : modalState.type === "REJECT" ? "Reject Vendor" : modalState.type === "DELETE" ? "Delete Vendor" : "Suspend Vendor"}
+                  {modalState.type === "APPROVE" ? "Approve Vendor" : modalState.type === "REJECT" ? "Reject Vendor" : "Suspend Vendor"}
                 </button>
               </div>
             </motion.div>

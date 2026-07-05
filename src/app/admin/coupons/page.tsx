@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit, Trash2, Copy, ToggleLeft, ToggleRight, X, Loader2, Info } from "lucide-react";
+import { Plus, Edit, Trash2, Copy, ToggleLeft, ToggleRight, X, Loader2, Info, MoreVertical } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { useAdminCoupons, useCreateCoupon, useUpdateCoupon, useDeleteCoupon } from "@/hooks/useApi";
 import toast from "react-hot-toast";
@@ -17,6 +17,7 @@ export default function AdminCouponsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     code: "",
@@ -228,19 +229,26 @@ export default function AdminCouponsPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1 mt-4">
-                      <button onClick={() => {navigator.clipboard.writeText(coupon.code); toast.success("Code copied");}} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="Copy code">
-                        <Copy size={16} />
+                    <div className="flex items-center gap-1 mt-4 relative">
+                      <button onClick={() => setOpenDropdown(openDropdown === coupon.id ? null : coupon.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                        <MoreVertical size={16} />
                       </button>
-                      <button onClick={() => handleEdit(coupon)} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="Edit">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleToggle(coupon)} className={cn("p-2 rounded-lg transition-colors", coupon.isActive ? "text-emerald-600 hover:bg-emerald-50" : "text-gray-400 hover:bg-gray-100")} title="Toggle Status">
-                        {coupon.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                      </button>
-                      <button onClick={() => setDeleteId(coupon.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors" title="Delete">
-                        <Trash2 size={16} />
-                      </button>
+                      {openDropdown === coupon.id && (
+                        <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
+                          <button onClick={() => { navigator.clipboard.writeText(coupon.code); toast.success("Code copied"); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Copy size={14} className="text-gray-400" /> Copy Code
+                          </button>
+                          <button onClick={() => { handleEdit(coupon); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Edit size={14} className="text-gray-400" /> Edit
+                          </button>
+                          <button onClick={() => { handleToggle(coupon); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            {coupon.isActive ? <><ToggleLeft size={14} className="text-gray-400"/> Deactivate</> : <><ToggleRight size={14} className="text-gray-400"/> Activate</>}
+                          </button>
+                          <button onClick={() => { setDeleteId(coupon.id); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
