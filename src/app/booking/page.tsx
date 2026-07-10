@@ -116,8 +116,7 @@ function BookingContent() {
   const subtotal = servicePrice + addonsTotal;
   const discount = appliedCoupon ? appliedCoupon.discount : 0;
   const totalAfterDiscount = Math.max(0, subtotal - discount);
-  const gst = Math.round(totalAfterDiscount * 0.18);
-  const total = totalAfterDiscount + gst; // Or just totalAfterDiscount if GST is included. Let's keep it as is.
+  const total = totalAfterDiscount;
   const advance = Math.round(total * (service.minAdvancePercent / 100));
 
   const handleApplyCoupon = async () => {
@@ -144,6 +143,16 @@ function BookingContent() {
     return true;
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePayment = async () => {
     try {
       setIsSubmitting(true);
@@ -161,17 +170,104 @@ function BookingContent() {
         couponDiscount: appliedCoupon ? String(appliedCoupon.discount) : "0",
       };
 
+      // 1. Create booking
       const res = await api.post<{success: boolean, data: { booking: any }}>(`/bookings`, payload);
       
-      if (res.success) {
-        toast.success("Booking created successfully!");
-        setTimeout(() => {
-          router.push(`/booking/confirmation?id=${res.data.booking.bookingNumber}`);
-        }, 1500);
-      } else {
+      if (!res.success) {
         toast.error("Failed to create booking");
         setIsSubmitting(false);
+        return;
       }
+
+      const bookingId = res.data.booking.id;
+      const bookingNumber = res.data.booking.bookingNumber;
+
+      // 2. Create Payment Order
+      const orderRes = await api.post<{success: boolean, data: any}>(`/payments/create-order`, {
+        bookingId,
+        type: paymentMethod
+      });
+
+      if (!orderRes.success) {
+        toast.error("Failed to initiate payment");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const orderData = orderRes.data;
+
+      // 3. Handle Demo Mode or Razorpay
+      if (orderData.demoMode) {
+        const verifyRes = await api.post<{success: boolean}>(`/payments/verify`, {
+          razorpayOrderId: orderData.orderId,
+          demoMode: true
+        });
+
+        if (verifyRes.success) {
+          toast.success("Payment successful!");
+          router.push(`/booking/confirmation?id=${bookingNumber}`);
+        } else {
+          toast.error("Payment verification failed");
+          setIsSubmitting(false);
+        }
+        return;
+      }
+
+      // Real Razorpay
+      const resLoad = await loadRazorpayScript();
+      if (!resLoad) {
+        toast.error("Razorpay SDK failed to load");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Lucky Marketplace",
+        description: `Booking #${bookingNumber}`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await api.post<{success: boolean}>(`/payments/verify`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              demoMode: false
+            });
+
+            if (verifyRes.success) {
+              toast.success("Payment successful!");
+              router.push(`/booking/confirmation?id=${bookingNumber}`);
+            } else {
+              toast.error("Payment verification failed");
+              setIsSubmitting(false);
+            }
+          } catch (err) {
+            toast.error("Payment verification failed");
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: address.name,
+          contact: address.phone,
+        },
+        theme: {
+          color: "#7c3aed"
+        },
+        modal: {
+          ondismiss: function() {
+            toast.error("Payment cancelled");
+            setIsSubmitting(false);
+            router.push(`/bookings`);
+          }
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
       setIsSubmitting(false);

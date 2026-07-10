@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
                           status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                         )}>{status}</span>
                       </td>
-                      <td className="p-4 relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                      <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
                         <button onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
                           <MoreVertical size={16} />
                         </button>

@@ -208,7 +208,7 @@ export default function AdminVendorsPage() {
                         {vendor.status}
                       </span>
                     </td>
-                    <td className="p-4 relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                    <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
                       {/* Actions Dropdown */}
                       <div className="relative">
                         <button onClick={() => setOpenDropdown(openDropdown === vendor.id ? null : vendor.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">

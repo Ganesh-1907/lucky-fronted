@@ -245,6 +245,16 @@ export function useAdminUsers(role?: string) {
   });
 }
 
+export function useAdminPayments(status?: string, search?: string) {
+  const queryParams = new URLSearchParams();
+  if (status && status !== "All") queryParams.append("status", status);
+  if (search) queryParams.append("search", search);
+  return useQuery({
+    queryKey: ["admin", "payments", status, search],
+    queryFn: () => api.get<{ data: any[] }>(`/admin/payments?${queryParams.toString()}`),
+  });
+}
+
 export function useToggleUserStatus() {
   const qc = useQueryClient();
   return useMutation({

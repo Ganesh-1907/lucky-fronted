@@ -3,14 +3,7 @@
 import { useState } from "react";
 import { Search, Eye, Download, ChevronDown } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-
-const payments = [
-  { id: 1, paymentId: "pay_NX7K2A9xB1", bookingNumber: "LM7X8K2A", customer: "Priya Sharma", vendor: "Dream Decorators", amount: 4498, commission: 675, vendorPayout: 3823, method: "UPI", status: "SUCCESS", createdAt: "2024-03-15 10:23 AM" },
-  { id: 2, paymentId: "pay_NX7K3B8yC2", bookingNumber: "LM7X8K3B", customer: "Rahul Verma", vendor: "Dream Decorators", amount: 2849, commission: 427, vendorPayout: 2422, method: "CARD", status: "SUCCESS", createdAt: "2024-03-15 07:45 PM" },
-  { id: 3, paymentId: "pay_NX7K4C7zD3", bookingNumber: "LM7X8K4C", customer: "Anita Patel", vendor: "Dream Decorators", amount: 42999, commission: 6450, vendorPayout: 36549, method: "NETBANKING", status: "SUCCESS", createdAt: "2024-03-14 08:10 AM" },
-  { id: 4, paymentId: "pay_NX7K5D6wE4", bookingNumber: "LM7X8K5D", customer: "Vikram Singh", vendor: "Party Kings", amount: 3249, commission: 487, vendorPayout: 2762, method: "UPI", status: "PENDING", createdAt: "2024-03-16 03:30 PM" },
-  { id: 5, paymentId: "pay_NX7K6E5vF5", bookingNumber: "LM7X8K6E", customer: "Meera Joshi", vendor: "Love Setup Co", amount: 1250, commission: 188, vendorPayout: 1062, method: "WALLET", status: "REFUNDED", createdAt: "2024-03-13 05:15 PM" },
-];
+import { useAdminPayments } from "@/hooks/useApi";
 
 const statusFilters = ["All", "SUCCESS", "PENDING", "REFUNDED", "FAILED"];
 const statusColors: Record<string, string> = {
@@ -20,20 +13,17 @@ const statusColors: Record<string, string> = {
   FAILED: "bg-red-100 text-red-700",
 };
 
-const methodIcons: Record<string, string> = { UPI: "📱", CARD: "💳", NETBANKING: "🏦", WALLET: "👛" };
+const methodIcons: Record<string, string> = { RAZORPAY: "💳", UPI: "📱", CARD: "💳", NETBANKING: "🏦", WALLET: "👛" };
 
 export default function AdminPaymentsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const filtered = payments.filter(p => {
-    if (statusFilter !== "All" && p.status !== statusFilter) return false;
-    if (search && !p.paymentId.toLowerCase().includes(search.toLowerCase()) && !p.customer.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const { data, isLoading } = useAdminPayments(statusFilter, search);
+  const payments = data?.data || (data as any)?.pagination ? (data as any).data : [];
 
-  const totalRevenue = payments.filter(p => p.status === "SUCCESS").reduce((s, p) => s + p.amount, 0);
-  const totalCommission = payments.filter(p => p.status === "SUCCESS").reduce((s, p) => s + p.commission, 0);
+  const totalRevenue = payments.filter((p: any) => p.status === "SUCCESS").reduce((s: number, p: any) => s + p.amount, 0);
+  const totalCommission = payments.filter((p: any) => p.status === "SUCCESS").reduce((s: number, p: any) => s + p.commission, 0);
 
   return (
     <div className="space-y-6">
@@ -98,30 +88,40 @@ export default function AdminPaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(p => (
-                <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                  <td className="p-4">
-                    <p className="text-xs font-mono font-bold text-violet-600">{p.paymentId}</p>
-                    <p className="text-xs text-gray-400">{p.createdAt}</p>
-                  </td>
-                  <td className="p-4 hidden md:table-cell">
-                    <p className="text-sm font-medium text-gray-900">{p.customer}</p>
-                    <p className="text-xs text-gray-400">#{p.bookingNumber}</p>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell text-sm text-gray-600">{p.vendor}</td>
-                  <td className="p-4 text-sm font-bold text-gray-900">{formatPrice(p.amount)}</td>
-                  <td className="p-4 hidden md:table-cell">
-                    <p className="text-sm text-emerald-600 font-medium">{formatPrice(p.commission)}</p>
-                    <p className="text-xs text-gray-400">Payout: {formatPrice(p.vendorPayout)}</p>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell">
-                    <span className="text-sm">{methodIcons[p.method] || "💳"} {p.method}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full", statusColors[p.status])}>{p.status}</span>
-                  </td>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-gray-500">Loading payments...</td>
                 </tr>
-              ))}
+              ) : payments.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-gray-500">No payments found.</td>
+                </tr>
+              ) : (
+                payments.map((p: any) => (
+                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td className="p-4">
+                      <p className="text-xs font-mono font-bold text-violet-600">{p.paymentId}</p>
+                      <p className="text-xs text-gray-400">{p.createdAt}</p>
+                    </td>
+                    <td className="p-4 hidden md:table-cell">
+                      <p className="text-sm font-medium text-gray-900">{p.customer}</p>
+                      <p className="text-xs text-gray-400">#{p.bookingNumber}</p>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell text-sm text-gray-600">{p.vendor}</td>
+                    <td className="p-4 text-sm font-bold text-gray-900">{formatPrice(p.amount)}</td>
+                    <td className="p-4 hidden md:table-cell">
+                      <p className="text-sm text-emerald-600 font-medium">{formatPrice(p.commission)}</p>
+                      <p className="text-xs text-gray-400">Payout: {formatPrice(p.vendorPayout)}</p>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="text-sm">{methodIcons[p.method] || "💳"} {p.method}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full", statusColors[p.status] || "bg-gray-100 text-gray-700")}>{p.status}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

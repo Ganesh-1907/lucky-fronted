@@ -7,6 +7,7 @@ import { ChevronRight, Calendar, Clock, MapPin, Eye, X, Star, Download } from "l
 import { cn, formatPrice } from "@/lib/utils";
 import { useMyBookings, useCreateReview } from "@/hooks/useApi";
 import { toast } from "sonner";
+import api from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 const statusFilters = ["All", "PENDING", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
@@ -26,10 +27,106 @@ export default function BookingsPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [reviewModal, setReviewModal] = useState<{ isOpen: boolean; bookingId?: number }>({ isOpen: false });
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", comment: "" });
+  const [paymentLoadingId, setPaymentLoadingId] = useState<number | null>(null);
   
-  const { data, isLoading } = useMyBookings(activeFilter);
+  const { data, isLoading, refetch } = useMyBookings(activeFilter);
   const createReview = useCreateReview();
   const fetchedBookings = data?.data || (data as any)?.pagination ? (data as any).data : [];
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayRemaining = async (booking: any) => {
+    try {
+      setPaymentLoadingId(booking.id);
+      const orderRes = await api.post<{success: boolean, data: any}>(`/payments/create-order`, {
+        bookingId: booking.id,
+        type: "FULL" // Paying the remaining amount
+      });
+
+      if (!orderRes.success) {
+        toast.error("Failed to initiate payment");
+        setPaymentLoadingId(null);
+        return;
+      }
+
+      const orderData = orderRes.data;
+
+      if (orderData.demoMode) {
+        const verifyRes = await api.post<{success: boolean}>(`/payments/verify`, {
+          razorpayOrderId: orderData.orderId,
+          demoMode: true
+        });
+
+        if (verifyRes.success) {
+          toast.success("Payment successful!");
+          refetch();
+        } else {
+          toast.error("Payment verification failed");
+        }
+        setPaymentLoadingId(null);
+        return;
+      }
+
+      const resLoad = await loadRazorpayScript();
+      if (!resLoad) {
+        toast.error("Razorpay SDK failed to load");
+        setPaymentLoadingId(null);
+        return;
+      }
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Lucky Marketplace",
+        description: `Balance for Booking #${booking.bookingNumber}`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await api.post<{success: boolean}>(`/payments/verify`, {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              demoMode: false
+            });
+
+            if (verifyRes.success) {
+              toast.success("Payment successful!");
+              refetch();
+            } else {
+              toast.error("Payment verification failed");
+            }
+          } catch (err) {
+            toast.error("Payment verification failed");
+          } finally {
+            setPaymentLoadingId(null);
+          }
+        },
+        theme: { color: "#7c3aed" },
+        modal: {
+          ondismiss: function() {
+            toast.error("Payment cancelled");
+            setPaymentLoadingId(null);
+          }
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process payment");
+      setPaymentLoadingId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,8 +222,8 @@ export default function BookingsPage() {
                   <p className="text-xs text-gray-400">Booking #{booking.bookingNumber} · Booked on {new Date(booking.createdAt).toLocaleDateString()}</p>
                   <div className="flex gap-2">
                     {Number(booking.remainingAmount) > 0 && booking.status !== "CANCELLED" && (
-                      <button className="px-4 py-2 rounded-lg gradient-primary text-white text-xs font-medium hover:opacity-90 transition-opacity">
-                        Pay Remaining {formatPrice(Number(booking.remainingAmount))}
+                      <button onClick={() => handlePayRemaining(booking)} disabled={paymentLoadingId === booking.id} className="px-4 py-2 rounded-lg gradient-primary text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+                        {paymentLoadingId === booking.id ? "Processing..." : `Pay Remaining ${formatPrice(Number(booking.remainingAmount))}`}
                       </button>
                     )}
                     {booking.status === "COMPLETED" && !booking.review && (
