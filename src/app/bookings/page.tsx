@@ -48,7 +48,7 @@ export default function BookingsPage() {
       setPaymentLoadingId(booking.id);
       const orderRes = await api.post<{success: boolean, data: any}>(`/payments/create-order`, {
         bookingId: booking.id,
-        type: "FULL" // Paying the remaining amount
+        type: "REMAINING" // Paying the remaining amount
       });
 
       if (!orderRes.success) {

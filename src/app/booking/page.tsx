@@ -46,7 +46,7 @@ function BookingContent() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<number[]>(preSelectedAddons);
   const [address, setAddress] = useState({ name: "", phone: "", line1: "", city: preSelectedCity, pincode: "", notes: "" });
-  const [paymentMethod, setPaymentMethod] = useState<"FULL" | "ADVANCE">("ADVANCE");
+  const [paymentMethod, setPaymentMethod] = useState<"REMAINING" | "ADVANCE">("ADVANCE");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Coupon State
@@ -454,8 +454,8 @@ function BookingContent() {
                         <span className="text-lg font-bold text-violet-600">{formatPrice(advance)}</span>
                       </div>
                     </button>
-                    <button onClick={() => setPaymentMethod("FULL")}
-                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all", paymentMethod === "FULL" ? "border-violet-500 bg-violet-50" : "border-gray-200")}>
+                    <button onClick={() => setPaymentMethod("REMAINING")}
+                      className={cn("w-full p-4 rounded-xl border-2 text-left transition-all", paymentMethod === "REMAINING" ? "border-violet-500 bg-violet-50" : "border-gray-200")}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-semibold text-sm text-gray-900">Pay Full Amount</p>
@@ -496,7 +496,7 @@ function BookingContent() {
               ) : (
                 <button onClick={handlePayment} disabled={isSubmitting}
                   className="flex items-center gap-2 px-8 py-3 rounded-xl bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors shadow-lg shadow-green-200 disabled:opacity-50">
-                  <CreditCard size={16} /> {isSubmitting ? "Processing..." : `Pay ${formatPrice(paymentMethod === "FULL" ? total : advance)}`}
+                  <CreditCard size={16} /> {isSubmitting ? "Processing..." : `Pay ${formatPrice(paymentMethod === "REMAINING" ? total : advance)}`}
                 </button>
               )}
             </div>
@@ -609,8 +609,8 @@ function BookingContent() {
               {step === 4 && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{paymentMethod === "FULL" ? "Paying now" : "Advance"}</span>
-                    <span className="font-bold text-violet-600">{formatPrice(paymentMethod === "FULL" ? total : advance)}</span>
+                    <span className="text-gray-600">{paymentMethod === "REMAINING" ? "Paying now" : "Advance"}</span>
+                    <span className="font-bold text-violet-600">{formatPrice(paymentMethod === "REMAINING" ? total : advance)}</span>
                   </div>
                   {paymentMethod === "ADVANCE" && (
                     <div className="flex justify-between text-sm">
