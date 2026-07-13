@@ -5,8 +5,9 @@ import Link from "next/link";
 import {
   Search, Eye, CheckCircle, XCircle, Star, TrendingUp,
   Award, Sparkles, Loader, ShoppingBag, Ban,
-  Edit, ChevronLeft, ChevronRight, X, Briefcase, MoreVertical
+  Edit, ChevronLeft, ChevronRight, X, Briefcase
 } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn, formatPrice } from "@/lib/utils";
 import { useAdminServices, useUpdateServiceStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -33,7 +34,6 @@ export default function AdminServicesPage() {
   const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | null; serviceId: number | null }>({ type: null, serviceId: null });
   const [reason, setReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminServices(statusFilter !== "All" ? statusFilter : undefined);
   const updateServiceStatus = useUpdateServiceStatus();
@@ -86,8 +86,8 @@ export default function AdminServicesPage() {
   };
 
   const Actions = ({ service, isMobile }: { service: any, isMobile?: boolean }) => (
-    <div className={cn("flex items-center gap-1", isMobile ? "flex-col items-start p-1" : "")}>
-      <button onClick={() => { setViewService(service); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 w-full text-left" title="View">
+    <div className={cn("flex items-center gap-1", isMobile ? "flex-col items-start p-1 w-full" : "")}>
+      <button onClick={() => { setViewService(service); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 w-full text-left" title="View">
         <Eye size={16} /> {isMobile && <span className="text-sm">View</span>}
       </button>
       <Link href={`/admin/services/${service.id}/edit`} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 w-full text-left" title="Edit">
@@ -96,19 +96,19 @@ export default function AdminServicesPage() {
 
 
       {(service.status === "PENDING" || service.status === "REJECTED" || service.status === "SUSPENDED") && (
-        <button onClick={() => { setModalState({ type: "APPROVE", serviceId: service.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
+        <button onClick={() => { setModalState({ type: "APPROVE", serviceId: service.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
           <CheckCircle size={16} /> {isMobile && <span className="text-sm">Approve</span>}
         </button>
       )}
       
       {service.status === "PENDING" && (
-        <button onClick={() => { setModalState({ type: "REJECT", serviceId: service.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Reject">
+        <button onClick={() => { setModalState({ type: "REJECT", serviceId: service.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Reject">
           <XCircle size={16} /> {isMobile && <span className="text-sm">Reject</span>}
         </button>
       )}
 
       {service.status === "APPROVED" && (
-        <button onClick={() => { setModalState({ type: "SUSPEND", serviceId: service.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 w-full text-left" title="Suspend">
+        <button onClick={() => { setModalState({ type: "SUSPEND", serviceId: service.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 w-full text-left" title="Suspend">
           <Ban size={16} /> {isMobile && <span className="text-sm">Suspend</span>}
         </button>
       )}
@@ -217,17 +217,9 @@ export default function AdminServicesPage() {
                       </span>
                     </td>
                     <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                      {/* Actions Dropdown */}
-                      <div className="relative">
-                        <button onClick={() => setOpenDropdown(openDropdown === service.id ? null : service.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdown === service.id && (
-                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
-                            <Actions service={service} isMobile />
-                          </div>
-                        )}
-                      </div>
+                      <ActionMenu>
+                        <Actions service={service} isMobile />
+                      </ActionMenu>
                     </td>
                   </tr>
                 )) : (

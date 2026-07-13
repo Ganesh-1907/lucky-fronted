@@ -4,9 +4,10 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Search, Eye, CheckCircle, XCircle, Ban,
-  Star, ShoppingBag, MoreVertical, Loader,
+  Star, ShoppingBag, Loader,
   Edit, ArrowUpDown, ChevronLeft, ChevronRight, X, User
 } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn, formatPrice } from "@/lib/utils";
 import { useAdminVendors, useUpdateVendorStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -33,7 +34,6 @@ export default function AdminVendorsPage() {
   const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | "SUSPEND" | null; vendorId: number | null }>({ type: null, vendorId: null });
   const [reason, setReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminVendors(statusFilter !== "All" ? statusFilter : undefined);
   const updateVendorStatus = useUpdateVendorStatus();
@@ -88,8 +88,8 @@ export default function AdminVendorsPage() {
   };
 
   const Actions = ({ vendor, isMobile }: { vendor: any, isMobile?: boolean }) => (
-    <div className={cn("flex items-center gap-1", isMobile ? "flex-col items-start p-1" : "")}>
-      <button onClick={() => { setViewVendor(vendor); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 w-full text-left" title="View">
+    <div className={cn("flex items-center gap-1", isMobile ? "flex-col items-start p-1 w-full" : "")}>
+      <button onClick={() => { setViewVendor(vendor); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 w-full text-left" title="View">
         <Eye size={16} /> {isMobile && <span className="text-sm">View</span>}
       </button>
       <Link href={`/admin/vendors/${vendor.id}/edit`} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 w-full text-left" title="Edit">
@@ -98,19 +98,19 @@ export default function AdminVendorsPage() {
 
 
       {(vendor.status === "PENDING" || vendor.status === "REJECTED" || vendor.status === "SUSPENDED") && (
-        <button onClick={() => { setModalState({ type: "APPROVE", vendorId: vendor.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
+        <button onClick={() => { setModalState({ type: "APPROVE", vendorId: vendor.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-green-50 text-green-600 w-full text-left" title="Approve">
           <CheckCircle size={16} /> {isMobile && <span className="text-sm">Approve</span>}
         </button>
       )}
       
       {vendor.status === "PENDING" && (
-        <button onClick={() => { setModalState({ type: "REJECT", vendorId: vendor.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Reject">
+        <button onClick={() => { setModalState({ type: "REJECT", vendorId: vendor.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 text-red-600 w-full text-left" title="Reject">
           <XCircle size={16} /> {isMobile && <span className="text-sm">Reject</span>}
         </button>
       )}
 
       {vendor.status === "APPROVED" && (
-        <button onClick={() => { setModalState({ type: "SUSPEND", vendorId: vendor.id }); setOpenDropdown(null); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 w-full text-left" title="Suspend">
+        <button onClick={() => { setModalState({ type: "SUSPEND", vendorId: vendor.id }); }} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 w-full text-left" title="Suspend">
           <Ban size={16} /> {isMobile && <span className="text-sm">Suspend</span>}
         </button>
       )}
@@ -209,17 +209,9 @@ export default function AdminVendorsPage() {
                       </span>
                     </td>
                     <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                      {/* Actions Dropdown */}
-                      <div className="relative">
-                        <button onClick={() => setOpenDropdown(openDropdown === vendor.id ? null : vendor.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdown === vendor.id && (
-                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
-                            <Actions vendor={vendor} isMobile />
-                          </div>
-                        )}
-                      </div>
+                      <ActionMenu>
+                        <Actions vendor={vendor} isMobile />
+                      </ActionMenu>
                     </td>
                   </tr>
                 )) : (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Eye, X, Filter, CalendarDays, User, MapPin, CheckCircle2, Clock, Check, XCircle, MoreVertical } from "lucide-react";
+import { Search, Eye, X, Filter, CalendarDays, User, MapPin, CheckCircle2, Clock, Check, XCircle } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn, formatPrice } from "@/lib/utils";
 import api from "@/lib/api";
 
@@ -61,7 +62,6 @@ export default function AdminBookingsPage() {
   const [newStatus, setNewStatus] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [updating, setUpdating] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
@@ -247,23 +247,15 @@ export default function AdminBookingsPage() {
                         {booking.status.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right relative sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                      <button 
-                        onClick={() => setOpenDropdown(openDropdown === booking.id ? null : booking.id)}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {openDropdown === booking.id && (
-                        <div className="absolute right-6 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 text-left">
-                          <button 
-                            onClick={() => { setViewBooking(booking); setOpenDropdown(null); }}
-                            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700 w-full text-sm transition-colors"
-                          >
-                            <Eye size={16} className="text-gray-400" /> View Details
-                          </button>
-                        </div>
-                      )}
+                    <td className="px-6 py-4 text-right sticky right-0 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
+                      <ActionMenu>
+                        <button 
+                          onClick={() => { setViewBooking(booking); }}
+                          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-gray-700 w-full text-sm transition-colors"
+                        >
+                          <Eye size={16} className="text-gray-400" /> View Details
+                        </button>
+                      </ActionMenu>
                     </td>
                   </tr>
                 ))

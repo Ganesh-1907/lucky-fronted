@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Edit, Trash2, Eye, EyeOff, Image as ImageIcon, ExternalLink, Search, X, UploadCloud, ChevronLeft, ChevronRight, Check, MoreVertical } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Image as ImageIcon, ExternalLink, Search, X, UploadCloud, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -58,7 +59,6 @@ export default function AdminBannersPage() {
   const [viewBanner, setViewBanner] = useState<Banner | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [statusChange, setStatusChange] = useState<{id: number, isActive: boolean} | null>(null);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -367,20 +367,14 @@ export default function AdminBannersPage() {
                   <div>
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2" title={banner.title}>{banner.title}</h3>
-                      {/* Actions Dropdown */}
-                      <div className="relative">
-                        <button onClick={() => setOpenDropdown(openDropdown === banner.id ? null : banner.id)} className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg"><MoreVertical size={18}/></button>
-                        {openDropdown === banner.id && (
-                          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 shadow-lg rounded-xl py-1 w-32 z-20">
-                            <button onClick={() => { setViewBanner(banner); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Eye size={14}/> View</button>
-                            <button onClick={() => { router.push(`/admin/banners/${banner.id}/edit`); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Edit size={14}/> Edit</button>
-                            <button onClick={() => { setStatusChange({id: banner.id, isActive: !banner.isActive}); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              {banner.isActive ? <><EyeOff size={14}/> Disable</> : <><Check size={14}/> Enable</>}
-                            </button>
-                            <button onClick={() => { setDeleteId(banner.id); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14}/> Delete</button>
-                          </div>
-                        )}
-                      </div>
+                      <ActionMenu>
+                        <button onClick={() => { setViewBanner(banner); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Eye size={14}/> View</button>
+                        <button onClick={() => { router.push(`/admin/banners/${banner.id}/edit`); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Edit size={14}/> Edit</button>
+                        <button onClick={() => { setStatusChange({id: banner.id, isActive: !banner.isActive}); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                          {banner.isActive ? <><EyeOff size={14}/> Disable</> : <><Check size={14}/> Enable</>}
+                        </button>
+                        <button onClick={() => { setDeleteId(banner.id); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={14}/> Delete</button>
+                      </ActionMenu>
                     </div>
                     {banner.description && (
                       <p className="text-sm text-gray-500 mt-2 line-clamp-1">{banner.description}</p>

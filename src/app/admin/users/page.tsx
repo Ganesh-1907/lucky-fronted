@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, MoreVertical } from "lucide-react";
+import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
 import { useAdminUsers, useToggleUserStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -21,7 +22,6 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewUser, setViewUser] = useState<any>(null);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminUsers(roleFilter !== "All" ? roleFilter : undefined);
   const users = Array.isArray(data) ? data : (data?.data || []);
@@ -150,28 +150,23 @@ export default function AdminUsersPage() {
                         )}>{status}</span>
                       </td>
                       <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                        <button onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdown === user.id && (
-                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
-                            <button onClick={() => { setViewUser(user); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <Eye size={14} className="text-gray-400" /> View
+                        <ActionMenu>
+                          <button onClick={() => setViewUser(user)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Eye size={14} className="text-gray-400" /> View
+                          </button>
+                          <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Mail size={14} className="text-gray-400" /> Email
+                          </a>
+                          {role !== "ADMIN" && (
+                            <button 
+                              onClick={() => handleToggleStatus(user.id, status)} 
+                              className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
+                              disabled={toggleUser.isPending}
+                            >
+                              <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
                             </button>
-                            <a href={`mailto:${user.email}`} onClick={() => setOpenDropdown(null)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <Mail size={14} className="text-gray-400" /> Email
-                            </a>
-                            {role !== "ADMIN" && (
-                              <button 
-                                onClick={() => { handleToggleStatus(user.id, status); setOpenDropdown(null); }} 
-                                className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
-                                disabled={toggleUser.isPending}
-                              >
-                                <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
-                              </button>
-                            )}
-                          </div>
-                        )}
+                          )}
+                        </ActionMenu>
                       </td>
                     </tr>
                   );

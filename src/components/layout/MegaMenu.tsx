@@ -17,7 +17,7 @@ const mapIcon = (slug: string) => {
 };
 
 export default function MegaMenu() {
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState<number | string | null>(null);
   const { data } = useMenu();
   const menuItems = data?.data || [];
 
@@ -45,7 +45,7 @@ export default function MegaMenu() {
         <div
           key={item.id}
           className="relative menu-trigger"
-          onMouseEnter={() => setActiveMenu(item.label)}
+          onMouseEnter={() => setActiveMenu(item.id)}
           onMouseLeave={() => setActiveMenu(null)}
         >
           <Link
@@ -58,7 +58,7 @@ export default function MegaMenu() {
           </Link>
 
           {/* Mega Menu Dropdown */}
-          {item.children && activeMenu === item.label && (
+          {item.children && activeMenu === item.id && (
             <div className="mega-menu absolute left-0 top-full pt-2 z-50" style={{ opacity: 1, visibility: "visible", transform: "translateY(0)" }}>
               <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 min-w-[400px]">
                 <div className="flex gap-8">

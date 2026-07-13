@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  Plus, Search, Edit, Eye, Trash2, MoreVertical, Star,
+  Plus, Search, Edit, Eye, Trash2, Star,
   ShoppingBag, TrendingUp, ToggleLeft, ToggleRight, Loader2
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Star, CheckCircle, XCircle, Flag, Loader, MessageSquareOff, ChevronLeft, ChevronRight, Ban, MoreVertical } from "lucide-react";
+import { Search, Star, CheckCircle, XCircle, Flag, Loader, MessageSquareOff, ChevronLeft, ChevronRight, Ban } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
 import { useAdminReviews, useUpdateReviewStatus } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -18,7 +19,6 @@ export default function AdminReviewsPage() {
 
   const [modalState, setModalState] = useState<{ type: "APPROVE" | "REJECT" | null; reviewId: number | null }>({ type: null, reviewId: null });
   const [actionLoading, setActionLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   // Fetch reviews from API
   const { data, isLoading, error } = useAdminReviews();
@@ -149,24 +149,17 @@ export default function AdminReviewsPage() {
                     {status === "APPROVED" && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Approved</span>}
                     {status === "PENDING" && <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">Pending</span>}
                     
-                    <div className="relative">
-                      <button onClick={() => setOpenDropdown(openDropdown === review.id ? null : review.id)} className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg">
-                        <MoreVertical size={16} />
-                      </button>
-                      {openDropdown === review.id && (
-                        <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
-                          {status === "PENDING" ? (
-                            <button onClick={() => { setModalState({ type: "APPROVE", reviewId: review.id }); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center gap-2">
-                              <CheckCircle size={14} /> Approve Review
-                            </button>
-                          ) : (
-                            <button onClick={() => { setModalState({ type: "REJECT", reviewId: review.id }); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-amber-700 hover:bg-amber-50 flex items-center gap-2">
-                              <Ban size={14} /> Hide Review
-                            </button>
-                          )}
-                        </div>
+                    <ActionMenu>
+                      {status === "PENDING" ? (
+                        <button onClick={() => { setModalState({ type: "APPROVE", reviewId: review.id }); }} className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center gap-2">
+                          <CheckCircle size={14} /> Approve Review
+                        </button>
+                      ) : (
+                        <button onClick={() => { setModalState({ type: "REJECT", reviewId: review.id }); }} className="w-full text-left px-4 py-2 text-sm text-amber-700 hover:bg-amber-50 flex items-center gap-2">
+                          <Ban size={14} /> Hide Review
+                        </button>
                       )}
-                    </div>
+                    </ActionMenu>
                   </div>
                 </div>
 
