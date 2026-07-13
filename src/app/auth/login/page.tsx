@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useGoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 
 function LoginContent() {
@@ -33,6 +34,35 @@ function LoginContent() {
     }
   };
 
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await res.json();
+
+        await useAuthStore.getState().googleLogin({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          avatar: userInfo.picture,
+        });
+
+        toast.success("Welcome back!");
+        const { user: loggedInUser } = useAuthStore.getState();
+        if (loggedInUser?.role === "ADMIN") router.push("/admin");
+        else if (loggedInUser?.role === "EMPLOYEE") router.push("/employee");
+        else if (loggedInUser?.role === "INVESTOR") router.push("/investor");
+        else if (loggedInUser?.role === "VENDOR") router.push("/vendor");
+        else router.push(redirectUrl || "/");
+      } catch (error: any) {
+        toast.error(error.message || "Google sign-in failed");
+      }
+    },
+    onError: () => toast.error("Google sign-in failed"),
+  });
+
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -54,6 +84,7 @@ function LoginContent() {
           {/* Google Login */}
           <button
             type="button"
+            onClick={() => handleGoogleLogin()}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all mb-6"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">

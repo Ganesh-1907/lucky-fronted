@@ -27,6 +27,7 @@ interface AuthState {
   isAuthenticated: boolean;
   _hasHydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (googleData: { googleId: string; email: string; name: string; avatar?: string }) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -102,6 +103,30 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== "undefined") {
             localStorage.setItem("accessToken", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
+          }
+
+          set({
+            user,
+            accessToken,
+            refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      googleLogin: async (googleData) => {
+        set({ isLoading: true });
+        try {
+          const res: any = await api.post('/auth/google', googleData);
+          const { user, accessToken, refreshToken } = res.data;
+
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
           }
 
           set({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -8,9 +8,10 @@ import {
   ArrowRight, Loader2, MapPin
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useGoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") === "vendor" ? "VENDOR" : "CLIENT";
 
@@ -46,6 +47,33 @@ export default function RegisterPage() {
       toast.error(error.message || "Registration failed");
     }
   };
+
+  const handleGoogleRegister = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await res.json();
+
+        await useAuthStore.getState().googleLogin({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          avatar: userInfo.picture,
+        });
+
+        toast.success("Registration successful!");
+        const { user: loggedInUser } = useAuthStore.getState();
+        if (loggedInUser?.role === "ADMIN") router.push("/admin");
+        else if (loggedInUser?.role === "VENDOR") router.push("/vendor");
+        else router.push("/");
+      } catch (error: any) {
+        toast.error(error.message || "Google sign-up failed");
+      }
+    },
+    onError: () => toast.error("Google sign-up failed"),
+  });
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
@@ -93,6 +121,7 @@ export default function RegisterPage() {
           {/* Google Signup */}
           <button
             type="button"
+            onClick={() => handleGoogleRegister()}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all mb-6"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -246,5 +275,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-violet-600" /></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

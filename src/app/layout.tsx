@@ -5,6 +5,7 @@ import LayoutShell from "@/components/layout/LayoutShell";
 import QueryProvider from "@/providers/QueryProvider";
 import PopupBanner from "@/components/PopupBanner";
 import { Toaster } from "react-hot-toast";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -52,10 +53,12 @@ export default function RootLayout({
             },
           }}
         />
-        <QueryProvider>
-          <LayoutShell>{children}</LayoutShell>
-          <PopupBanner />
-        </QueryProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+          <QueryProvider>
+            <LayoutShell>{children}</LayoutShell>
+            <PopupBanner />
+          </QueryProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

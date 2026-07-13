@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Heart, Star, MapPin } from "lucide-react";
-import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
+import { cn, formatPrice, calculateDiscount, getImageUrl } from "@/lib/utils";
 
 interface ServiceCardProps {
   id: number;
@@ -31,7 +31,7 @@ export default function ServiceCard({
   const discount = calculateDiscount(Number(basePrice), discountPrice != null ? Number(discountPrice) : null);
   const displayPrice = discountPrice ? Number(discountPrice) : Number(basePrice);
   const parsedImages = typeof images === 'string' ? JSON.parse(images) : images;
-  const imageUrl = parsedImages?.[0] || "/placeholder.jpg";
+  const imageUrl = getImageUrl(parsedImages?.[0] || null);
 
   return (
     <Link
