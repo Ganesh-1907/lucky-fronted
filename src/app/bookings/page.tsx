@@ -29,9 +29,13 @@ export default function BookingsPage() {
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", comment: "" });
   const [paymentLoadingId, setPaymentLoadingId] = useState<number | null>(null);
   
-  const { data, isLoading, refetch } = useMyBookings(activeFilter);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  
+  const { data, isLoading, refetch } = useMyBookings(activeFilter, page, limit);
   const createReview = useCreateReview();
   const fetchedBookings = data?.data || (data as any)?.pagination ? (data as any).data : [];
+  const pagination = (data as any)?.pagination;
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -152,7 +156,7 @@ export default function BookingsPage() {
         {/* Filters */}
         <div className="flex gap-2 flex-wrap mb-6">
           {statusFilters.map(s => (
-            <button key={s} onClick={() => setActiveFilter(s)}
+            <button key={s} onClick={() => { setActiveFilter(s); setPage(1); }}
               className={cn("px-4 py-2 rounded-full text-sm font-medium transition-all border",
                 activeFilter === s ? "bg-violet-100 text-violet-700 border-violet-200" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               )}>
@@ -262,6 +266,31 @@ export default function BookingsPage() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
+            <span className="text-sm text-gray-500">
+              Showing <span className="font-medium text-gray-900">{(pagination.page - 1) * pagination.limit + 1}</span> to <span className="font-medium text-gray-900">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-medium text-gray-900">{pagination.total}</span> bookings
+            </span>
+            <div className="flex gap-2">
+              <button 
+                disabled={pagination.page === 1} 
+                onClick={() => setPage(p => p - 1)}
+                className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <button 
+                disabled={pagination.page >= pagination.totalPages} 
+                onClick={() => setPage(p => p + 1)}
+                className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Review Modal */}

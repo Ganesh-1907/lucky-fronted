@@ -105,11 +105,14 @@ export function useChangePassword() {
 }
 
 // ─── BOOKINGS ───────────────────────────────────────────────
-export function useMyBookings(status?: string) {
-  const params = status && status !== "ALL" ? `?status=${status}` : "";
+export function useMyBookings(status?: string, page: number = 1, limit: number = 10) {
+  const queryParams = new URLSearchParams();
+  if (status && status.toUpperCase() !== "ALL") queryParams.append("status", status);
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
   return useQuery({
-    queryKey: ["bookings", "mine", status],
-    queryFn: () => api.get<{ data: any[] }>(`/bookings${params}`),
+    queryKey: ["bookings", "mine", status, page, limit],
+    queryFn: () => api.get<{ data: any[], pagination: any }>(`/bookings?${queryParams.toString()}`),
   });
 }
 
@@ -159,7 +162,7 @@ export function useVendorServices() {
 }
 
 export function useVendorBookings(status?: string) {
-  const params = status && status !== "ALL" ? `?status=${status}` : "";
+  const params = status && status.toUpperCase() !== "ALL" ? `?status=${status}` : "";
   return useQuery({
     queryKey: ["vendor", "bookings", status],
     queryFn: () => api.get<{ data: any[] }>(`/vendor/bookings${params}`),
@@ -214,7 +217,7 @@ export function useAdminDashboard() {
 }
 
 export function useAdminVendors(status?: string) {
-  const params = status && status !== "ALL" ? `?status=${status}` : "";
+  const params = status && status.toUpperCase() !== "ALL" ? `?status=${status}` : "";
   return useQuery({
     queryKey: ["admin", "vendors", status],
     queryFn: () => api.get<{ data: any[] }>(`/admin/vendors${params}`),
@@ -222,7 +225,7 @@ export function useAdminVendors(status?: string) {
 }
 
 export function useAdminServices(status?: string) {
-  const params = status && status !== "ALL" ? `?status=${status}` : "";
+  const params = status && status.toUpperCase() !== "ALL" ? `?status=${status}` : "";
   return useQuery({
     queryKey: ["admin", "services", status],
     queryFn: () => api.get<{ data: any[] }>(`/admin/services${params}`),
@@ -230,7 +233,7 @@ export function useAdminServices(status?: string) {
 }
 
 export function useAdminBookings(status?: string) {
-  const params = status && status !== "ALL" ? `?status=${status}` : "";
+  const params = status && status.toUpperCase() !== "ALL" ? `?status=${status}` : "";
   return useQuery({
     queryKey: ["admin", "bookings", status],
     queryFn: () => api.get<{ data: any[] }>(`/admin/bookings${params}`),
@@ -238,7 +241,7 @@ export function useAdminBookings(status?: string) {
 }
 
 export function useAdminUsers(role?: string) {
-  const params = role && role !== "All" ? `?role=${role}` : "";
+  const params = role && role.toUpperCase() !== "ALL" ? `?role=${role}` : "";
   return useQuery({
     queryKey: ["admin", "users", role],
     queryFn: () => api.get<{ data: any[] }>(`/admin/users${params}`),
@@ -247,7 +250,7 @@ export function useAdminUsers(role?: string) {
 
 export function useAdminPayments(status?: string, search?: string) {
   const queryParams = new URLSearchParams();
-  if (status && status !== "All") queryParams.append("status", status);
+  if (status && status.toUpperCase() !== "ALL") queryParams.append("status", status);
   if (search) queryParams.append("search", search);
   return useQuery({
     queryKey: ["admin", "payments", status, search],
