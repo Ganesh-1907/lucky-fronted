@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Save, Loader, Briefcase, FileText, IndianRupee, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminServices } from "@/hooks/useApi";
+import api from "@/lib/api";
+import NextImage from "next/image";
 
 export default function EditServicePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -28,6 +30,9 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [selectedImages, setSelectedImages] = useState<(File | null)[]>([null, null, null, null]);
+  const [imagePreviews, setImagePreviews] = useState<(string | null)[]>([null, null, null, null]);
+
   useEffect(() => {
     if (services.length > 0) {
       const service = services.find((s: any) => s.id === serviceId);
@@ -40,9 +45,46 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
           basePrice: (service.basePrice || service.price || "").toString(),
           discountPrice: (service.discountPrice || "").toString(),
         }));
+        if (service.images && service.images.length > 0) {
+          const previews = [null, null, null, null];
+          for (let i = 0; i < Math.min(service.images.length, 4); i++) {
+            previews[i] = service.images[i];
+          }
+          setImagePreviews(previews as (string | null)[]);
+        }
       }
     }
   }, [services, serviceId]);
+
+  const handleImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      const newImages = [...selectedImages];
+      newImages[index] = file;
+      setSelectedImages(newImages);
+
+      const newPreviews = [...imagePreviews];
+      newPreviews[index] = URL.createObjectURL(file);
+      setImagePreviews(newPreviews);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = [...selectedImages];
+    newImages[index] = null;
+    setSelectedImages(newImages);
+
+    const newPreviews = [...imagePreviews];
+    newPreviews[index] = null;
+    setImagePreviews(newPreviews);
+  };
+
+  const getPreviewUrl = (url: string | null) => {
+    if (!url) return null;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${url}`;
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -70,13 +112,49 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
       return;
     }
 
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      let finalUrls: string[] = [];
+      let newlyUploadedUrls: string[] = [];
+      const newFiles = selectedImages.map((f, i) => f ? { file: f, index: i } : null).filter(Boolean) as { file: File, index: number }[];
+      
+      if (newFiles.length > 0) {
+        const uploadData = new FormData();
+        newFiles.forEach(nf => uploadData.append('images', nf.file));
+        uploadData.append('folder', 'services');
+
+        const uploadRes = await api.uploadFile('/upload/images', uploadData);
+        if (uploadRes.success && uploadRes.data?.urls) {
+          newlyUploadedUrls = uploadRes.data.urls;
+        } else {
+          toast.error("Failed to upload new images");
+          setLoading(false);
+          return;
+        }
+      }
+
+      let uploadIndex = 0;
+      for (let i = 0; i < 4; i++) {
+        if (selectedImages[i]) {
+          finalUrls.push(newlyUploadedUrls[uploadIndex]);
+          uploadIndex++;
+        } else if (imagePreviews[i] && !imagePreviews[i]?.startsWith('blob:')) {
+          finalUrls.push(imagePreviews[i]!);
+        }
+      }
+
+      // TODO: Replace with actual update API call, e.g. api.put(`/admin/services/${serviceId}`, {...formData, images: finalUrls})
+      
+      setTimeout(() => {
+        setLoading(false);
+        toast.success("Service updated successfully");
+        router.push("/admin/services");
+      }, 1500);
+    } catch (err) {
+      console.error(err);
       setLoading(false);
-      toast.success("Service updated successfully");
-      router.push("/admin/services");
-    }, 1500);
+      toast.error("Failed to save changes");
+    }
   };
 
   if (isLoading) {
@@ -176,15 +254,28 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
             <h2 className="font-bold text-gray-900">Service Images</h2>
           </div>
           <div className="p-6">
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-12 flex flex-col items-center justify-center text-center group hover:border-blue-500 transition-colors cursor-pointer bg-gray-50 hover:bg-blue-50/50 relative overflow-hidden">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-gray-100 text-gray-400 group-hover:text-blue-500 transition-colors">
-                <ImageIcon size={28} />
-              </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">Upload Service Images</h3>
-              <p className="text-sm text-gray-500">Drag & drop images here, or click to browse</p>
-              <p className="text-xs text-gray-400 mt-2">Maximum file size: 5MB. Formats: JPG, PNG, WEBP</p>
-              <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 hover:bg-blue-50/50 hover:border-blue-300 transition-all">
+                  {imagePreviews[i] ? (
+                    <>
+                      <NextImage src={getPreviewUrl(imagePreviews[i])!} alt={`Preview ${i + 1}`} fill className="object-cover" />
+                      <button type="button" onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 z-10 transition-colors">
+                        <span className="sr-only">Remove</span>
+                        ×
+                      </button>
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer">
+                      <ImageIcon size={24} className="text-gray-400 group-hover:text-blue-500" />
+                      <span className="text-xs text-gray-500">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
+                      <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleImageChange(i, e)} />
+                    </label>
+                  )}
+                </div>
+              ))}
             </div>
+            <p className="text-xs text-gray-400 mt-3 text-center">Maximum file size: 5MB per image. Formats: JPG, PNG, WEBP. Square (1:1) aspect ratio recommended.</p>
           </div>
         </div>
 

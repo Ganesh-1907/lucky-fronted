@@ -15,7 +15,7 @@ function RegisterContent() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") === "vendor" ? "VENDOR" : "CLIENT";
 
-  const [role, setRole] = useState<"CLIENT" | "VENDOR">(initialRole);
+  const [role, setRole] = useState<"CLIENT" | "VENDOR" | "EMPLOYEE" | "INVESTOR">(initialRole as "CLIENT" | "VENDOR" | "EMPLOYEE" | "INVESTOR");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -39,10 +39,17 @@ function RegisterContent() {
       await register({ ...formData, role });
       if (role === "VENDOR") {
         toast.success("Vendor registration submitted! Pending admin approval.");
+        router.push("/");
+      } else if (role === "EMPLOYEE") {
+        toast.success("Registration successful!");
+        router.push("/employee");
+      } else if (role === "INVESTOR") {
+        toast.success("Registration successful!");
+        router.push("/investor");
       } else {
         toast.success("Registration successful!");
+        router.push("/");
       }
-      router.push("/");
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
     }
@@ -67,6 +74,8 @@ function RegisterContent() {
         const { user: loggedInUser } = useAuthStore.getState();
         if (loggedInUser?.role === "ADMIN") router.push("/admin");
         else if (loggedInUser?.role === "VENDOR") router.push("/vendor");
+        else if (loggedInUser?.role === "EMPLOYEE") router.push("/employee");
+        else if (loggedInUser?.role === "INVESTOR") router.push("/investor");
         else router.push("/");
       } catch (error: any) {
         toast.error(error.message || "Google sign-up failed");
@@ -93,11 +102,11 @@ function RegisterContent() {
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           {/* Role Toggle */}
-          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+          <div className="flex rounded-xl bg-gray-100 p-1 mb-6 flex-wrap gap-1">
             <button
               type="button"
               onClick={() => setRole("CLIENT")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 py-2 px-1 rounded-lg text-xs font-medium transition-all ${
                 role === "CLIENT"
                   ? "bg-white shadow-sm text-violet-600"
                   : "text-gray-600 hover:text-gray-800"
@@ -108,13 +117,35 @@ function RegisterContent() {
             <button
               type="button"
               onClick={() => setRole("VENDOR")}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 py-2 px-1 rounded-lg text-xs font-medium transition-all ${
                 role === "VENDOR"
                   ? "bg-white shadow-sm text-violet-600"
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
               🏪 Vendor
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("EMPLOYEE")}
+              className={`flex-1 py-2 px-1 rounded-lg text-xs font-medium transition-all ${
+                role === "EMPLOYEE"
+                  ? "bg-white shadow-sm text-violet-600"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              💼 Employee
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("INVESTOR")}
+              className={`flex-1 py-2 px-1 rounded-lg text-xs font-medium transition-all ${
+                role === "INVESTOR"
+                  ? "bg-white shadow-sm text-violet-600"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              📈 Investor
             </button>
           </div>
 
