@@ -87,7 +87,7 @@ export default function HomePage() {
   const { data: trendingRes } = useServices({ trending: true, limit: 4 });
   const { data: bestsellerRes } = useServices({ bestseller: true, limit: 4 });
   const { data: categoriesRes } = useCategories();
-  const { data: homepageRes } = useHomepageSections();
+  const { data: homepageRes, isLoading: homepageLoading } = useHomepageSections();
   const { data: bannerRes } = useBanners("HOMEPAGE");
 
   const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
@@ -142,7 +142,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [carouselPaused, nextSlide]);
   
-  if (!homepageSections || homepageSections.length === 0) {
+  if (homepageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600"></div>
