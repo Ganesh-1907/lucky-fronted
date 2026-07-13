@@ -11,6 +11,7 @@ interface User {
   avatar: string | null;
   city: string | null;
   isActive: boolean;
+  mustChangePassword?: boolean;
   vendor?: {
     id: number;
     businessName: string;
