@@ -11,10 +11,10 @@ import { cn, formatPrice, formatDate } from "@/lib/utils";
 import api from "@/lib/api";
 
 const PIPELINE_COLORS: Record<string, string> = {
-  NEW_LEAD: "bg-slate-600/20 text-slate-300 border-slate-600/30",
+  NEW_LEAD: "bg-gray-100 text-gray-600 border-gray-200",
   CUSTOMER_CONTACTED: "bg-blue-500/15 text-blue-400 border-blue-500/30",
   VENDOR_CONTACTED: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
-  CUSTOMER_DISCUSSION: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  CUSTOMER_DISCUSSION: "bg-violet-50 text-violet-600 border-cyan-500/30",
   ADVANCE_PAYMENT_PENDING: "bg-amber-500/15 text-amber-400 border-amber-500/30",
   ADVANCE_PAYMENT_RECEIVED: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
   BOOKING_CONFIRMED: "bg-green-500/15 text-green-400 border-green-500/30",
@@ -22,9 +22,9 @@ const PIPELINE_COLORS: Record<string, string> = {
   VENDOR_CONFIRMATION_PENDING: "bg-orange-500/15 text-orange-400 border-orange-500/30",
   EVENT_PREPARATION: "bg-teal-500/15 text-teal-400 border-teal-500/30",
   EVENT_ONGOING: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  EVENT_COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  EVENT_COMPLETED: "bg-violet-50 text-violet-600 border-emerald-500/30",
   CUSTOMER_FEEDBACK_PENDING: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-  CLOSED: "bg-gray-500/15 text-gray-400 border-gray-500/30",
+  CLOSED: "bg-gray-500/15 text-gray-500 border-gray-500/30",
   CANCELLED: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
@@ -72,10 +72,10 @@ export default function BookingDetailPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 w-40 bg-slate-800/50 rounded-xl animate-pulse" />
+        <div className="h-10 w-40 bg-gray-50 rounded-xl animate-pulse" />
         <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-96 bg-slate-800/50 rounded-2xl animate-pulse" />
-          <div className="h-96 bg-slate-800/50 rounded-2xl animate-pulse" />
+          <div className="lg:col-span-2 h-96 bg-gray-50 rounded-2xl animate-pulse" />
+          <div className="h-96 bg-gray-50 rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -85,8 +85,8 @@ export default function BookingDetailPage() {
     return (
       <div className="text-center py-20">
         <AlertCircle size={40} className="text-red-400/40 mx-auto mb-3" />
-        <p className="text-slate-400">Booking not found</p>
-        <button onClick={() => router.back()} className="mt-4 text-sm text-cyan-400 hover:text-cyan-300">← Go Back</button>
+        <p className="text-gray-500">Booking not found</p>
+        <button onClick={() => router.back()} className="mt-4 text-sm text-violet-600 hover:text-cyan-300">← Go Back</button>
       </div>
     );
   }
@@ -96,17 +96,17 @@ export default function BookingDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors">
+          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors">
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
               {booking.bookingNumber}
               <span className={cn("text-[9px] font-bold px-2 py-1 rounded-full border uppercase", PIPELINE_COLORS[booking.pipelineStatus])}>
                 {fmtStatus(booking.pipelineStatus)}
               </span>
             </h1>
-            <p className="text-sm text-slate-400">{booking.service?.title}</p>
+            <p className="text-sm text-gray-500">{booking.service?.title}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function BookingDetailPage() {
             booking.priority === "URGENT" ? "bg-red-500/15 text-red-400" :
             booking.priority === "HIGH" ? "bg-orange-500/15 text-orange-400" :
             booking.priority === "MEDIUM" ? "bg-blue-500/15 text-blue-400" :
-            "bg-slate-700/50 text-slate-400"
+            "bg-gray-100 text-gray-500"
           )}>
             {booking.priority} PRIORITY
           </span>
@@ -126,9 +126,9 @@ export default function BookingDetailPage() {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Booking Details Card */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-            <h2 className="font-bold text-white mb-4 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
-              <Calendar size={16} className="text-cyan-400" /> Booking Details
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+              <Calendar size={16} className="text-violet-600" /> Booking Details
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <InfoRow label="Event Date" value={formatDate(booking.bookingDate)} />
@@ -169,19 +169,19 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Timeline */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-            <h2 className="font-bold text-white mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+            <h2 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
               Status Timeline
             </h2>
             {(booking.bookingTimeline || []).length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-6">No status changes yet</p>
+              <p className="text-sm text-gray-500 text-center py-6">No status changes yet</p>
             ) : (
               <div className="space-y-3">
                 {booking.bookingTimeline.map((entry: any, i: number) => (
                   <div key={entry.id} className="flex gap-3">
                     <div className="flex flex-col items-center">
                       <div className="w-3 h-3 rounded-full bg-cyan-500 border-2 border-slate-900 shrink-0" />
-                      {i < booking.bookingTimeline.length - 1 && <div className="w-0.5 flex-1 bg-slate-700/40" />}
+                      {i < booking.bookingTimeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-100" />}
                     </div>
                     <div className="pb-4 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -193,10 +193,10 @@ export default function BookingDetailPage() {
                           {fmtStatus(entry.toStatus)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         {entry.employee?.name} • {formatDate(entry.createdAt)}
                       </p>
-                      {entry.note && <p className="text-xs text-slate-400 mt-1 bg-slate-700/20 rounded-lg px-3 py-2">{entry.note}</p>}
+                      {entry.note && <p className="text-xs text-gray-500 mt-1 bg-gray-50 rounded-lg px-3 py-2">{entry.note}</p>}
                     </div>
                   </div>
                 ))}
@@ -208,10 +208,10 @@ export default function BookingDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 space-y-3">
-            <h3 className="font-bold text-white text-sm" style={{ fontFamily: "var(--font-outfit)" }}>Quick Actions</h3>
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 space-y-3">
+            <h3 className="font-bold text-gray-900 text-sm" style={{ fontFamily: "var(--font-outfit)" }}>Quick Actions</h3>
             {booking.client?.phone && (
-              <a href={`tel:${booking.client.phone}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-sm text-cyan-400 hover:bg-cyan-500/15 transition-colors">
+              <a href={`tel:${booking.client.phone}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-sm text-violet-600 hover:bg-violet-50 transition-colors">
                 <Phone size={14} /> Call Customer
               </a>
             )}
@@ -233,26 +233,26 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Follow-Ups */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-            <h3 className="font-bold text-white text-sm mb-3" style={{ fontFamily: "var(--font-outfit)" }}>Follow-Ups</h3>
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+            <h3 className="font-bold text-gray-900 text-sm mb-3" style={{ fontFamily: "var(--font-outfit)" }}>Follow-Ups</h3>
             {(booking.followUps || []).length === 0 ? (
-              <p className="text-xs text-slate-500 text-center py-4">No follow-ups scheduled</p>
+              <p className="text-xs text-gray-500 text-center py-4">No follow-ups scheduled</p>
             ) : (
               <div className="space-y-2">
                 {booking.followUps.slice(0, 5).map((fu: any) => (
-                  <div key={fu.id} className="px-3 py-2 rounded-lg bg-slate-700/20 border border-slate-700/30">
+                  <div key={fu.id} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-300">{formatDate(fu.followUpDate)} • {fu.followUpTime}</span>
+                      <span className="text-xs text-gray-600">{formatDate(fu.followUpDate)} • {fu.followUpTime}</span>
                       <span className={cn(
                         "text-[9px] font-bold px-1.5 py-0.5 rounded-full",
-                        fu.status === "COMPLETED" ? "bg-emerald-500/15 text-emerald-400"
+                        fu.status === "COMPLETED" ? "bg-violet-50 text-violet-600"
                           : fu.status === "MISSED" ? "bg-red-500/15 text-red-400"
                           : "bg-amber-500/15 text-amber-400"
                       )}>
                         {fu.status}
                       </span>
                     </div>
-                    {fu.reminderNote && <p className="text-xs text-slate-500 mt-1">{fu.reminderNote}</p>}
+                    {fu.reminderNote && <p className="text-xs text-gray-500 mt-1">{fu.reminderNote}</p>}
                   </div>
                 ))}
               </div>
@@ -260,8 +260,8 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Notes */}
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-            <h3 className="font-bold text-white text-sm mb-3 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+            <h3 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
               <StickyNote size={14} className="text-violet-400" /> Notes
             </h3>
             <div className="flex gap-2 mb-4">
@@ -271,24 +271,24 @@ export default function BookingDetailPage() {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Add a quick note..."
                 onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                className="flex-1 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+                className="flex-1 py-2 px-3 rounded-xl bg-white border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
               />
               <button
                 onClick={handleAddNote}
                 disabled={addingNote || !noteContent.trim()}
-                className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white disabled:opacity-40 hover:shadow-lg hover:shadow-violet-500/20 transition-all"
+                className="p-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-gray-900 disabled:opacity-40 hover:shadow-lg hover:shadow-violet-500/20 transition-all"
               >
                 <Send size={14} />
               </button>
             </div>
             {(booking.bookingNotes || []).length === 0 ? (
-              <p className="text-xs text-slate-500 text-center py-4">No notes yet</p>
+              <p className="text-xs text-gray-500 text-center py-4">No notes yet</p>
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {booking.bookingNotes.map((note: any) => (
-                  <div key={note.id} className="px-3 py-2 rounded-lg bg-slate-700/20 border border-slate-700/30">
-                    <p className="text-sm text-slate-300">{note.content}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">{note.employee?.name} • {formatDate(note.createdAt)}</p>
+                  <div key={note.id} className="px-3 py-2 rounded-lg bg-gray-50 border border-gray-200/30">
+                    <p className="text-sm text-gray-600">{note.content}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{note.employee?.name} • {formatDate(note.createdAt)}</p>
                   </div>
                 ))}
               </div>
@@ -303,8 +303,8 @@ export default function BookingDetailPage() {
 function InfoRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
-      <p className={cn("text-sm mt-0.5", highlight ? "text-cyan-400 font-semibold" : "text-slate-300")}>{value}</p>
+      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">{label}</p>
+      <p className={cn("text-sm mt-0.5", highlight ? "text-violet-600 font-semibold" : "text-gray-600")}>{value}</p>
     </div>
   );
 }
@@ -313,18 +313,18 @@ function ContactCard({ title, icon, name, email, phone, color }: {
   title: string; icon: React.ReactNode; name?: string; email?: string; phone?: string; color: string;
 }) {
   const colorClasses = color === "cyan"
-    ? { bg: "bg-cyan-500/10", border: "border-cyan-500/20", text: "text-cyan-400", hover: "hover:text-cyan-300" }
+    ? { bg: "bg-cyan-500/10", border: "border-cyan-500/20", text: "text-violet-600", hover: "hover:text-cyan-300" }
     : { bg: "bg-violet-500/10", border: "border-violet-500/20", text: "text-violet-400", hover: "hover:text-violet-300" };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4">
+    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", colorClasses.bg, colorClasses.text)}>
           {icon}
         </div>
-        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <h3 className="text-sm font-bold text-gray-900">{title}</h3>
       </div>
-      <p className="text-sm font-medium text-slate-200 mb-1">{name || "—"}</p>
+      <p className="text-sm font-medium text-gray-900 mb-1">{name || "—"}</p>
       {phone && (
         <a href={`tel:${phone}`} className={cn("text-xs flex items-center gap-1 mb-0.5", colorClasses.text, colorClasses.hover)}>
           <Phone size={10} /> {phone}

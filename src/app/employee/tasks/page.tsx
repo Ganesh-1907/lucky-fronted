@@ -12,13 +12,13 @@ const PRIORITY_CONFIGS: Record<string, { color: string; label: string }> = {
   URGENT: { color: "bg-red-500/15 text-red-400 border-red-500/30", label: "Urgent" },
   HIGH: { color: "bg-orange-500/15 text-orange-400 border-orange-500/30", label: "High" },
   MEDIUM: { color: "bg-blue-500/15 text-blue-400 border-blue-500/30", label: "Medium" },
-  LOW: { color: "bg-slate-600/20 text-slate-400 border-slate-600/30", label: "Low" },
+  LOW: { color: "bg-gray-100 text-gray-500 border-gray-200", label: "Low" },
 };
 
 const STATUS_CONFIGS: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
   PENDING: { color: "bg-amber-500/15 text-amber-400 border-amber-500/30", icon: <Clock size={12} />, label: "Pending" },
   IN_PROGRESS: { color: "bg-blue-500/15 text-blue-400 border-blue-500/30", icon: <AlertCircle size={12} />, label: "In Progress" },
-  COMPLETED: { color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", icon: <CheckCircle2 size={12} />, label: "Completed" },
+  COMPLETED: { color: "bg-violet-50 text-violet-600 border-emerald-500/30", icon: <CheckCircle2 size={12} />, label: "Completed" },
 };
 
 export default function TasksPage() {
@@ -116,12 +116,12 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>Tasks</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage your personal tasks and to-dos.</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Tasks</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your personal tasks and to-dos.</p>
         </div>
         <button
           onClick={() => { setEditTask(null); setForm({ title: "", description: "", dueDate: "", priority: "MEDIUM" }); setShowModal(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-gray-900 text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
         >
           <Plus size={14} /> New Task
         </button>
@@ -134,8 +134,8 @@ export default function TasksPage() {
           className={cn(
             "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all",
             !filterStatus
-              ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
-              : "bg-slate-800/50 text-slate-400 border border-slate-700/40 hover:bg-slate-800"
+              ? "bg-violet-50 text-violet-600 border border-cyan-500/30"
+              : "bg-gray-50 text-gray-500 border border-gray-200/40 hover:bg-gray-50"
           )}
         >
           <ClipboardList size={14} /> All
@@ -148,7 +148,7 @@ export default function TasksPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border",
               filterStatus === key
                 ? cfg.color
-                : "bg-slate-800/50 text-slate-400 border-slate-700/40 hover:bg-slate-800"
+                : "bg-gray-50 text-gray-500 border-gray-200/40 hover:bg-gray-50"
             )}
           >
             {cfg.icon} {cfg.label}
@@ -160,12 +160,12 @@ export default function TasksPage() {
       <div className="space-y-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-slate-800/50 rounded-2xl animate-pulse" />
+            <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />
           ))
         ) : tasks.length === 0 ? (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-12 text-center">
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-12 text-center">
             <ClipboardList size={40} className="text-slate-600 mx-auto mb-3" />
-            <p className="text-sm text-slate-500">No tasks found. Create one to get started!</p>
+            <p className="text-sm text-gray-500">No tasks found. Create one to get started!</p>
           </div>
         ) : (
           tasks.map((task) => {
@@ -178,8 +178,8 @@ export default function TasksPage() {
               <div
                 key={task.id}
                 className={cn(
-                  "bg-slate-800/50 border rounded-2xl p-4 hover:border-slate-600/60 transition-all group",
-                  isOverdue ? "border-red-500/30" : "border-slate-700/50",
+                  "bg-gray-50 border rounded-2xl p-4 hover:border-slate-600/60 transition-all group",
+                  isOverdue ? "border-red-500/30" : "border-gray-100",
                   task.status === "COMPLETED" && "opacity-60"
                 )}
               >
@@ -200,7 +200,7 @@ export default function TasksPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className={cn(
                           "text-sm font-medium",
-                          task.status === "COMPLETED" ? "text-slate-500 line-through" : "text-slate-200"
+                          task.status === "COMPLETED" ? "text-gray-500 line-through" : "text-gray-900"
                         )}>
                           {task.title}
                         </p>
@@ -209,12 +209,12 @@ export default function TasksPage() {
                         </span>
                       </div>
                       {task.description && (
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">{task.description}</p>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
                       )}
                       <div className="flex items-center gap-3 mt-2">
                         <span className={cn(
                           "text-xs flex items-center gap-1",
-                          isOverdue ? "text-red-400" : "text-slate-500"
+                          isOverdue ? "text-red-400" : "text-gray-500"
                         )}>
                           <Calendar size={10} /> Due: {formatDate(task.dueDate)}
                         </span>
@@ -228,7 +228,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(task)}
-                      className="p-1.5 rounded-lg hover:bg-cyan-500/10 text-cyan-400 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-cyan-500/10 text-violet-600 transition-colors"
                       title="Edit"
                     >
                       <Edit3 size={14} />
@@ -251,12 +251,12 @@ export default function TasksPage() {
       {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-500">Page {pagination.page} of {pagination.totalPages}</p>
+          <p className="text-xs text-gray-500">Page {pagination.page} of {pagination.totalPages}</p>
           <div className="flex items-center gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 disabled:opacity-40">Previous</button>
+              className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs text-gray-600 disabled:opacity-40">Previous</button>
             <button onClick={() => setPage(p => p + 1)} disabled={page >= pagination.totalPages}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 disabled:opacity-40">Next</button>
+              className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs text-gray-600 disabled:opacity-40">Next</button>
           </div>
         </div>
       )}
@@ -264,53 +264,53 @@ export default function TasksPage() {
       {/* Create/Edit Task Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setShowModal(false); setEditTask(null); }}>
-          <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+              <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
                 {editTask ? "Edit Task" : "New Task"}
               </h3>
-              <button onClick={() => { setShowModal(false); setEditTask(null); }} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
+              <button onClick={() => { setShowModal(false); setEditTask(null); }} className="p-1 rounded-lg hover:bg-gray-50 text-gray-500">
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Title *</label>
+                <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Title *</label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm(p => ({ ...p, title: e.target.value }))}
                   placeholder="e.g. Call customer, Collect quotation"
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Description</label>
+                <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Description</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
                   rows={3}
                   placeholder="Add details..."
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Due Date *</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Due Date *</label>
                   <input
                     type="date"
                     value={form.dueDate}
                     onChange={(e) => setForm(p => ({ ...p, dueDate: e.target.value }))}
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                    className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 focus:outline-none focus:border-cyan-500/50"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Priority</label>
+                  <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Priority</label>
                   <select
                     value={form.priority}
                     onChange={(e) => setForm(p => ({ ...p, priority: e.target.value }))}
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                    className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 focus:outline-none focus:border-cyan-500/50"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -321,13 +321,13 @@ export default function TasksPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => { setShowModal(false); setEditTask(null); }}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-700/50 text-sm text-slate-300 hover:bg-slate-800 transition-colors">
+                  className="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                   Cancel
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={saving || !form.title || !form.dueDate}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-medium text-white hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-medium text-gray-900 hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : editTask ? "Update" : "Create Task"}
                 </button>

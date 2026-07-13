@@ -17,10 +17,10 @@ const PIPELINE_STATUSES = [
 ];
 
 const PIPELINE_COLORS: Record<string, string> = {
-  NEW_LEAD: "bg-slate-600/20 text-slate-300 border-slate-600/30",
+  NEW_LEAD: "bg-gray-100 text-gray-600 border-gray-200",
   CUSTOMER_CONTACTED: "bg-blue-500/15 text-blue-400 border-blue-500/30",
   VENDOR_CONTACTED: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
-  CUSTOMER_DISCUSSION: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  CUSTOMER_DISCUSSION: "bg-violet-50 text-violet-600 border-cyan-500/30",
   ADVANCE_PAYMENT_PENDING: "bg-amber-500/15 text-amber-400 border-amber-500/30",
   ADVANCE_PAYMENT_RECEIVED: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
   BOOKING_CONFIRMED: "bg-green-500/15 text-green-400 border-green-500/30",
@@ -28,9 +28,9 @@ const PIPELINE_COLORS: Record<string, string> = {
   VENDOR_CONFIRMATION_PENDING: "bg-orange-500/15 text-orange-400 border-orange-500/30",
   EVENT_PREPARATION: "bg-teal-500/15 text-teal-400 border-teal-500/30",
   EVENT_ONGOING: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  EVENT_COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  EVENT_COMPLETED: "bg-violet-50 text-violet-600 border-emerald-500/30",
   CUSTOMER_FEEDBACK_PENDING: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-  CLOSED: "bg-gray-500/15 text-gray-400 border-gray-500/30",
+  CLOSED: "bg-gray-500/15 text-gray-500 border-gray-500/30",
   CANCELLED: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
@@ -38,7 +38,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   URGENT: "bg-red-500/15 text-red-400",
   HIGH: "bg-orange-500/15 text-orange-400",
   MEDIUM: "bg-blue-500/15 text-blue-400",
-  LOW: "bg-slate-700/50 text-slate-400",
+  LOW: "bg-gray-100 text-gray-500",
 };
 
 function formatStatus(s: string) { return s.replace(/_/g, " "); }
@@ -122,14 +122,14 @@ export default function EmployeeBookingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
             Bookings
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Manage your assigned bookings and update statuses.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage your assigned bookings and update statuses.</p>
         </div>
         <button
           onClick={() => { setPage(1); fetchBookings(); }}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-300 hover:border-cyan-500/30 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-600 hover:border-cyan-500/30 transition-colors"
         >
           <RefreshCw size={14} />
           Refresh
@@ -139,20 +139,20 @@ export default function EmployeeBookingsPage() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             placeholder="Search bookings, customers..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50/70 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
           />
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={cn(
             "flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors",
-            showFilters ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400" : "bg-slate-800/70 border-slate-700/50 text-slate-300 hover:border-slate-600"
+            showFilters ? "bg-cyan-500/10 border-cyan-500/30 text-violet-600" : "bg-gray-50/70 border-gray-100 text-gray-600 hover:border-slate-600"
           )}
         >
           <Filter size={14} />
@@ -165,13 +165,13 @@ export default function EmployeeBookingsPage() {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 flex flex-wrap gap-4 animate-fade-in">
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex flex-wrap gap-4 animate-fade-in">
           <div className="flex-1 min-w-[200px]">
-            <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Pipeline Status</label>
+            <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Pipeline Status</label>
             <select
               value={filterPipeline}
               onChange={(e) => { setFilterPipeline(e.target.value); setPage(1); }}
-              className="w-full py-2 px-3 rounded-lg bg-slate-900 border border-slate-700/50 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+              className="w-full py-2 px-3 rounded-lg bg-white border border-gray-100 text-sm text-gray-900 focus:outline-none focus:border-cyan-500/50"
             >
               <option value="">All Statuses</option>
               {PIPELINE_STATUSES.map(s => (
@@ -180,11 +180,11 @@ export default function EmployeeBookingsPage() {
             </select>
           </div>
           <div className="flex-1 min-w-[160px]">
-            <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Priority</label>
+            <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Priority</label>
             <select
               value={filterPriority}
               onChange={(e) => { setFilterPriority(e.target.value); setPage(1); }}
-              className="w-full py-2 px-3 rounded-lg bg-slate-900 border border-slate-700/50 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+              className="w-full py-2 px-3 rounded-lg bg-white border border-gray-100 text-sm text-gray-900 focus:outline-none focus:border-cyan-500/50"
             >
               <option value="">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -205,11 +205,11 @@ export default function EmployeeBookingsPage() {
       )}
 
       {/* Bookings Table */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-slate-700/30">
+              <tr className="text-[10px] text-gray-500 uppercase tracking-wider border-b border-gray-200/30">
                 <th className="text-left p-4 font-medium">Booking</th>
                 <th className="text-left p-4 font-medium">Customer</th>
                 <th className="text-left p-4 font-medium hidden lg:table-cell">Vendor</th>
@@ -223,56 +223,56 @@ export default function EmployeeBookingsPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-700/20">
-                    <td colSpan={8} className="p-4"><div className="h-6 bg-slate-700/40 rounded animate-pulse" /></td>
+                  <tr key={i} className="border-b border-gray-200/20">
+                    <td colSpan={8} className="p-4"><div className="h-6 bg-gray-100 rounded animate-pulse" /></td>
                   </tr>
                 ))
               ) : bookings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="p-12 text-center text-sm text-gray-500">
                     No bookings found
                   </td>
                 </tr>
               ) : (
                 bookings.map((b) => (
-                  <tr key={b.id} className="border-b border-slate-700/20 hover:bg-slate-700/15 transition-colors">
+                  <tr key={b.id} className="border-b border-gray-200/20 hover:bg-gray-50 transition-colors">
                     <td className="p-4">
-                      <Link href={`/employee/bookings/${b.id}`} className="text-sm font-mono font-medium text-cyan-400 hover:text-cyan-300">
+                      <Link href={`/employee/bookings/${b.id}`} className="text-sm font-mono font-medium text-violet-600 hover:text-cyan-300">
                         {b.bookingNumber}
                       </Link>
-                      <p className="text-xs text-slate-500 truncate max-w-[150px]">{b.service?.title}</p>
+                      <p className="text-xs text-gray-500 truncate max-w-[150px]">{b.service?.title}</p>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm font-medium text-slate-200">{b.client?.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{b.client?.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {b.client?.phone && (
-                          <a href={`tel:${b.client.phone}`} className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-0.5">
+                          <a href={`tel:${b.client.phone}`} className="text-xs text-gray-500 hover:text-violet-600 flex items-center gap-0.5">
                             <Phone size={9} /> {b.client.phone}
                           </a>
                         )}
                       </div>
                     </td>
                     <td className="p-4 hidden lg:table-cell">
-                      <p className="text-sm text-slate-300">{b.vendor?.user?.name || b.vendor?.businessName}</p>
+                      <p className="text-sm text-gray-600">{b.vendor?.user?.name || b.vendor?.businessName}</p>
                       {b.vendor?.user?.phone && (
-                        <a href={`tel:${b.vendor.user.phone}`} className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-0.5 mt-0.5">
+                        <a href={`tel:${b.vendor.user.phone}`} className="text-xs text-gray-500 hover:text-violet-600 flex items-center gap-0.5 mt-0.5">
                           <Phone size={9} /> {b.vendor.user.phone}
                         </a>
                       )}
                     </td>
                     <td className="p-4 hidden md:table-cell">
-                      <p className="text-sm text-slate-300">{formatDate(b.bookingDate)}</p>
-                      <p className="text-xs text-slate-500">{b.timeSlot}</p>
+                      <p className="text-sm text-gray-600">{formatDate(b.bookingDate)}</p>
+                      <p className="text-xs text-gray-500">{b.timeSlot}</p>
                     </td>
                     <td className="p-4">
-                      <span className="text-sm font-semibold text-white">{formatPrice(Number(b.totalAmount))}</span>
+                      <span className="text-sm font-semibold text-gray-900">{formatPrice(Number(b.totalAmount))}</span>
                     </td>
                     <td className="p-4">
                       <button
                         onClick={() => { setStatusModal(b); setNewPipeline(b.pipelineStatus); }}
                         className={cn(
                           "text-[9px] font-bold px-2 py-1 rounded-full border uppercase tracking-wide cursor-pointer hover:opacity-80 transition-opacity",
-                          PIPELINE_COLORS[b.pipelineStatus] || "bg-slate-700 text-slate-300"
+                          PIPELINE_COLORS[b.pipelineStatus] || "bg-gray-100 text-gray-600"
                         )}
                       >
                         {formatStatus(b.pipelineStatus)}
@@ -287,7 +287,7 @@ export default function EmployeeBookingsPage() {
                       <div className="flex items-center gap-1">
                         <Link
                           href={`/employee/bookings/${b.id}`}
-                          className="p-1.5 rounded-lg hover:bg-cyan-500/10 text-cyan-400 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-cyan-500/10 text-violet-600 transition-colors"
                           title="Open Booking"
                         >
                           <ArrowUpRight size={14} />
@@ -317,22 +317,22 @@ export default function EmployeeBookingsPage() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-slate-700/30">
-            <p className="text-xs text-slate-500">
+          <div className="flex items-center justify-between p-4 border-t border-gray-200/30">
+            <p className="text-xs text-gray-500">
               Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="px-3 py-1.5 rounded-lg bg-slate-700/50 text-xs text-slate-300 disabled:opacity-40 hover:bg-slate-700 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-xs text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition-colors"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={page >= pagination.totalPages}
-                className="px-3 py-1.5 rounded-lg bg-slate-700/50 text-xs text-slate-300 disabled:opacity-40 hover:bg-slate-700 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-xs text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition-colors"
               >
                 Next
               </button>
@@ -344,22 +344,22 @@ export default function EmployeeBookingsPage() {
       {/* Status Update Modal */}
       {statusModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setStatusModal(null)}>
-          <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>Update Pipeline Status</h3>
-              <button onClick={() => setStatusModal(null)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
+              <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Update Pipeline Status</h3>
+              <button onClick={() => setStatusModal(null)} className="p-1 rounded-lg hover:bg-gray-50 text-gray-500">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-slate-400 mb-4">Booking: <span className="text-cyan-400 font-mono">{statusModal.bookingNumber}</span></p>
+            <p className="text-sm text-gray-500 mb-4">Booking: <span className="text-violet-600 font-mono">{statusModal.bookingNumber}</span></p>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">New Status</label>
+                <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">New Status</label>
                 <select
                   value={newPipeline}
                   onChange={(e) => setNewPipeline(e.target.value)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 focus:outline-none focus:border-cyan-500/50"
                 >
                   {PIPELINE_STATUSES.map(s => (
                     <option key={s} value={s}>{formatStatus(s)}</option>
@@ -367,26 +367,26 @@ export default function EmployeeBookingsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-medium mb-1.5 block">Note (Optional)</label>
+                <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Note (Optional)</label>
                 <textarea
                   value={statusNote}
                   onChange={(e) => setStatusNote(e.target.value)}
                   placeholder="Add a note about this status change..."
                   rows={3}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+                  className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
                 />
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setStatusModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-700/50 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpdatePipeline}
                   disabled={updating}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-medium text-white hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-medium text-gray-900 hover:shadow-lg hover:shadow-cyan-500/25 transition-all disabled:opacity-50"
                 >
                   {updating ? "Updating..." : "Update Status"}
                 </button>
@@ -399,14 +399,14 @@ export default function EmployeeBookingsPage() {
       {/* Add Note Modal */}
       {notesModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setNotesModal(null)}>
-          <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200/60 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>Add Note</h3>
-              <button onClick={() => setNotesModal(null)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
+              <h3 className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Add Note</h3>
+              <button onClick={() => setNotesModal(null)} className="p-1 rounded-lg hover:bg-gray-50 text-gray-500">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-slate-400 mb-4">Booking: <span className="text-cyan-400 font-mono">{notesModal.bookingNumber}</span></p>
+            <p className="text-sm text-gray-500 mb-4">Booking: <span className="text-violet-600 font-mono">{notesModal.bookingNumber}</span></p>
 
             <div className="space-y-4">
               <textarea
@@ -414,19 +414,19 @@ export default function EmployeeBookingsPage() {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Write your note..."
                 rows={4}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
+                className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
               />
               <div className="flex gap-3">
                 <button
                   onClick={() => setNotesModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-700/50 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddNote}
                   disabled={addingNote || !noteContent.trim()}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-sm font-medium text-white hover:shadow-lg hover:shadow-violet-500/25 transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-sm font-medium text-gray-900 hover:shadow-lg hover:shadow-violet-500/25 transition-all disabled:opacity-50"
                 >
                   {addingNote ? "Saving..." : "Save Note"}
                 </button>

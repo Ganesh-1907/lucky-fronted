@@ -112,8 +112,8 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>Calendar</h1>
-          <p className="text-sm text-slate-400 mt-1">View events, follow-ups, and tasks at a glance.</p>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Calendar</h1>
+          <p className="text-sm text-gray-500 mt-1">View events, follow-ups, and tasks at a glance.</p>
         </div>
         <div className="flex items-center gap-2">
           {(["month", "week", "day"] as ViewMode[]).map(v => (
@@ -122,7 +122,7 @@ export default function CalendarPage() {
               onClick={() => setViewMode(v)}
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                viewMode === v ? "bg-cyan-500/15 text-cyan-400" : "bg-slate-800 text-slate-400 hover:text-slate-200"
+                viewMode === v ? "bg-violet-50 text-violet-600" : "bg-gray-50 text-gray-500 hover:text-gray-900"
               )}
             >
               {v}
@@ -132,46 +132,46 @@ export default function CalendarPage() {
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/50 rounded-2xl px-5 py-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 transition-colors">
+      <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
           <ChevronLeft size={18} />
         </button>
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+          <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
             {viewMode === "day"
               ? currentDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
               : `${MONTHS[month]} ${year}`}
           </h2>
-          <button onClick={goToday} className="px-2 py-1 rounded-lg bg-cyan-500/10 text-[10px] text-cyan-400 font-medium hover:bg-cyan-500/15 transition-colors">
+          <button onClick={goToday} className="px-2 py-1 rounded-lg bg-cyan-500/10 text-[10px] text-violet-600 font-medium hover:bg-violet-50 transition-colors">
             Today
           </button>
         </div>
-        <button onClick={() => navigate(1)} className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 transition-colors">
+        <button onClick={() => navigate(1)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
           <ChevronRight size={18} />
         </button>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Calendar Grid */}
-        <div className="lg:col-span-2 bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div className="lg:col-span-2 bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
           {viewMode === "month" && (
             <>
               {/* Day headers */}
-              <div className="grid grid-cols-7 border-b border-slate-700/30">
+              <div className="grid grid-cols-7 border-b border-gray-200/30">
                 {DAYS.map((d) => (
-                  <div key={d} className="p-2.5 text-center text-[10px] text-slate-500 uppercase tracking-wider font-medium">
+                  <div key={d} className="p-2.5 text-center text-[10px] text-gray-500 uppercase tracking-wider font-medium">
                     {d}
                   </div>
                 ))}
               </div>
               {/* Calendar cells */}
               {loading ? (
-                <div className="p-12 text-center text-sm text-slate-500">Loading calendar...</div>
+                <div className="p-12 text-center text-sm text-gray-500">Loading calendar...</div>
               ) : (
                 weeks.map((w, wi) => (
-                  <div key={wi} className="grid grid-cols-7 border-b border-slate-700/20 last:border-0">
+                  <div key={wi} className="grid grid-cols-7 border-b border-gray-200/20 last:border-0">
                     {w.map((day, di) => {
-                      if (!day) return <div key={di} className="p-2 min-h-[80px] bg-slate-900/30" />;
+                      if (!day) return <div key={di} className="p-2 min-h-[80px] bg-white/30" />;
                       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                       const items = dayMap[dateStr];
                       const isToday = dateStr === todayStr;
@@ -182,14 +182,14 @@ export default function CalendarPage() {
                           key={di}
                           onClick={() => setSelectedDate(dateStr)}
                           className={cn(
-                            "p-2 min-h-[80px] text-left transition-colors relative border-r border-slate-700/10 last:border-0",
-                            isSelected ? "bg-cyan-500/5" : "hover:bg-slate-700/20",
+                            "p-2 min-h-[80px] text-left transition-colors relative border-r border-gray-200/10 last:border-0",
+                            isSelected ? "bg-violet-50" : "hover:bg-gray-50",
                             isToday && "bg-cyan-500/[0.03]"
                           )}
                         >
                           <span className={cn(
                             "inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-medium",
-                            isToday ? "bg-cyan-500 text-white" : isSelected ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400"
+                            isToday ? "bg-cyan-500 text-gray-900" : isSelected ? "bg-cyan-500/20 text-violet-600" : "text-gray-500"
                           )}>
                             {day}
                           </span>
@@ -213,14 +213,14 @@ export default function CalendarPage() {
                 ))
               )}
               {/* Legend */}
-              <div className="flex items-center gap-4 p-3 border-t border-slate-700/30">
-                <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <div className="flex items-center gap-4 p-3 border-t border-gray-200/30">
+                <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
                   <span className="w-2 h-2 rounded-full bg-violet-400" /> Events
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
                   <span className="w-2 h-2 rounded-full bg-amber-400" /> Follow-Ups
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
                   <span className="w-2 h-2 rounded-full bg-blue-400" /> Tasks
                 </span>
               </div>
@@ -239,15 +239,15 @@ export default function CalendarPage() {
                     onClick={() => setSelectedDate(dateStr)}
                     className={cn(
                       "w-full p-4 text-left flex items-center gap-4 transition-colors",
-                      dateStr === selectedDate ? "bg-cyan-500/5" : "hover:bg-slate-700/20",
+                      dateStr === selectedDate ? "bg-violet-50" : "hover:bg-gray-50",
                       isToday && "bg-cyan-500/[0.03]"
                     )}
                   >
                     <div className="text-center w-12 shrink-0">
-                      <p className="text-[10px] text-slate-500 uppercase">{DAYS[date.getDay()]}</p>
+                      <p className="text-[10px] text-gray-500 uppercase">{DAYS[date.getDay()]}</p>
                       <p className={cn(
                         "text-lg font-bold mt-0.5",
-                        isToday ? "text-cyan-400" : "text-slate-300"
+                        isToday ? "text-violet-600" : "text-gray-600"
                       )} style={{ fontFamily: "var(--font-outfit)" }}>{date.getDate()}</p>
                     </div>
                     <div className="flex-1 flex items-center gap-2 flex-wrap">
@@ -282,7 +282,7 @@ export default function CalendarPage() {
                 {!items ? (
                   <div className="text-center py-12">
                     <CalendarIcon size={40} className="text-slate-600 mx-auto mb-3" />
-                    <p className="text-sm text-slate-500">Nothing scheduled for this day</p>
+                    <p className="text-sm text-gray-500">Nothing scheduled for this day</p>
                   </div>
                 ) : (
                   <>
@@ -293,8 +293,8 @@ export default function CalendarPage() {
                         </h3>
                         {items.events.map((e: any) => (
                           <div key={e.id} className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 mb-2">
-                            <p className="text-sm font-medium text-slate-200">{e.service?.title}</p>
-                            <p className="text-xs text-slate-400">{e.client?.name} • {e.timeSlot}</p>
+                            <p className="text-sm font-medium text-gray-900">{e.service?.title}</p>
+                            <p className="text-xs text-gray-500">{e.client?.name} • {e.timeSlot}</p>
                           </div>
                         ))}
                       </div>
@@ -306,8 +306,8 @@ export default function CalendarPage() {
                         </h3>
                         {items.followUps.map((f: any) => (
                           <div key={f.id} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-2">
-                            <p className="text-sm font-medium text-slate-200">{f.customerName}</p>
-                            <p className="text-xs text-slate-400">{f.followUpTime} • {f.status}</p>
+                            <p className="text-sm font-medium text-gray-900">{f.customerName}</p>
+                            <p className="text-xs text-gray-500">{f.followUpTime} • {f.status}</p>
                           </div>
                         ))}
                       </div>
@@ -319,8 +319,8 @@ export default function CalendarPage() {
                         </h3>
                         {items.tasks.map((t: any) => (
                           <div key={t.id} className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-2">
-                            <p className="text-sm font-medium text-slate-200">{t.title}</p>
-                            <p className="text-xs text-slate-400">{t.priority} • {t.status}</p>
+                            <p className="text-sm font-medium text-gray-900">{t.title}</p>
+                            <p className="text-xs text-gray-500">{t.priority} • {t.status}</p>
                           </div>
                         ))}
                       </div>
@@ -333,15 +333,15 @@ export default function CalendarPage() {
         </div>
 
         {/* Day Detail Panel */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
-          <div className="p-5 border-b border-slate-700/40">
-            <h3 className="font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
+          <div className="p-5 border-b border-gray-200/40">
+            <h3 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
               {selectedDate ? formatDate(selectedDate) : "Select a date"}
             </h3>
           </div>
           <div className="p-5 space-y-4 max-h-[600px] overflow-y-auto">
             {!selectedDate || !selectedItems ? (
-              <p className="text-sm text-slate-500 text-center py-8">Click a date to see details</p>
+              <p className="text-sm text-gray-500 text-center py-8">Click a date to see details</p>
             ) : (
               <>
                 {selectedItems.events.length > 0 && (
@@ -351,8 +351,8 @@ export default function CalendarPage() {
                     </h4>
                     {selectedItems.events.map((e: any) => (
                       <div key={e.id} className="bg-violet-500/5 border border-violet-500/15 rounded-xl p-3 mb-2">
-                        <p className="text-sm font-medium text-slate-200">{e.service?.title || e.bookingNumber}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{e.client?.name} • {e.timeSlot}</p>
+                        <p className="text-sm font-medium text-gray-900">{e.service?.title || e.bookingNumber}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{e.client?.name} • {e.timeSlot}</p>
                         <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 mt-1 inline-block">
                           {e.pipelineStatus?.replace(/_/g, " ")}
                         </span>
@@ -368,11 +368,11 @@ export default function CalendarPage() {
                     </h4>
                     {selectedItems.followUps.map((f: any) => (
                       <div key={f.id} className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-3 mb-2">
-                        <p className="text-sm font-medium text-slate-200">{f.customerName}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{f.followUpTime} • {f.reminderNote || "No note"}</p>
+                        <p className="text-sm font-medium text-gray-900">{f.customerName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{f.followUpTime} • {f.reminderNote || "No note"}</p>
                         <span className={cn(
                           "text-[9px] font-bold px-2 py-0.5 rounded-full border mt-1 inline-block",
-                          f.status === "COMPLETED" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                          f.status === "COMPLETED" ? "bg-violet-50 text-violet-600 border-emerald-500/30"
                             : f.status === "MISSED" ? "bg-red-500/15 text-red-400 border-red-500/30"
                             : "bg-amber-500/15 text-amber-400 border-amber-500/30"
                         )}>
@@ -390,7 +390,7 @@ export default function CalendarPage() {
                     </h4>
                     {selectedItems.tasks.map((t: any) => (
                       <div key={t.id} className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-3 mb-2">
-                        <p className="text-sm font-medium text-slate-200">{t.title}</p>
+                        <p className="text-sm font-medium text-gray-900">{t.title}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={cn(
                             "text-[9px] font-bold px-2 py-0.5 rounded-full",
@@ -400,7 +400,7 @@ export default function CalendarPage() {
                           )}>
                             {t.priority}
                           </span>
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                             {t.status?.replace(/_/g, " ")}
                           </span>
                         </div>
@@ -410,7 +410,7 @@ export default function CalendarPage() {
                 )}
 
                 {selectedItems.events.length === 0 && selectedItems.followUps.length === 0 && selectedItems.tasks.length === 0 && (
-                  <p className="text-sm text-slate-500 text-center py-8">Nothing scheduled</p>
+                  <p className="text-sm text-gray-500 text-center py-8">Nothing scheduled</p>
                 )}
               </>
             )}
