@@ -24,6 +24,10 @@ function LoginContent() {
       toast.success("Welcome back!");
       // Route based on role
       const { user } = useAuthStore.getState();
+      if (user?.mustChangePassword) {
+        router.push("/auth/change-password?force=true");
+        return;
+      }
       if (user?.role === "ADMIN") router.push("/admin");
       else if (user?.role === "EMPLOYEE") router.push("/employee");
       else if (user?.role === "INVESTOR") router.push("/investor");
@@ -51,6 +55,10 @@ function LoginContent() {
 
         toast.success("Welcome back!");
         const { user: loggedInUser } = useAuthStore.getState();
+        if (loggedInUser?.mustChangePassword) {
+          router.push("/auth/change-password?force=true");
+          return;
+        }
         if (loggedInUser?.role === "ADMIN") router.push("/admin");
         else if (loggedInUser?.role === "EMPLOYEE") router.push("/employee");
         else if (loggedInUser?.role === "INVESTOR") router.push("/investor");

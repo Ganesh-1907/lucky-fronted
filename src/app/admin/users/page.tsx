@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar } from "lucide-react";
-import ActionMenu from "@/components/ActionMenu";
+import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, MoreVertical, UserPlus, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAdminUsers, useToggleUserStatus } from "@/hooks/useApi";
+import { useAdminUsers, useToggleUserStatus, useCreateAdminUser } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,10 +21,13 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewUser, setViewUser] = useState<any>(null);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data, isLoading, error } = useAdminUsers(roleFilter !== "All" ? roleFilter : undefined);
   const users = Array.isArray(data) ? data : (data?.data || []);
   const toggleUser = useToggleUserStatus();
+  const createUser = useCreateAdminUser();
 
   const filteredAndSorted = useMemo(() => {
     let result = users.filter((u: any) => {
@@ -57,9 +59,17 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>User Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage all registered accounts across the platform</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>User Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage all registered accounts across the platform</p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-violet-200"
+        >
+          <UserPlus size={16} /> Create User
+        </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
@@ -150,23 +160,28 @@ export default function AdminUsersPage() {
                         )}>{status}</span>
                       </td>
                       <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                        <ActionMenu>
-                          <button onClick={() => setViewUser(user)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                            <Eye size={14} className="text-gray-400" /> View
-                          </button>
-                          <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                            <Mail size={14} className="text-gray-400" /> Email
-                          </a>
-                          {role !== "ADMIN" && (
-                            <button 
-                              onClick={() => handleToggleStatus(user.id, status)} 
-                              className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
-                              disabled={toggleUser.isPending}
-                            >
-                              <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
+                        <button onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+                          <MoreVertical size={16} />
+                        </button>
+                        {openDropdown === user.id && (
+                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
+                            <button onClick={() => { setViewUser(user); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              <Eye size={14} className="text-gray-400" /> View
                             </button>
-                          )}
-                        </ActionMenu>
+                            <a href={`mailto:${user.email}`} onClick={() => setOpenDropdown(null)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                              <Mail size={14} className="text-gray-400" /> Email
+                            </a>
+                            {role !== "ADMIN" && (
+                              <button 
+                                onClick={() => { handleToggleStatus(user.id, status); setOpenDropdown(null); }} 
+                                className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
+                                disabled={toggleUser.isPending}
+                              >
+                                <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
@@ -215,6 +230,26 @@ export default function AdminUsersPage() {
           <p className="text-sm text-gray-400 mt-1">There are no users registered on the platform right now.</p>
         </div>
       )}
+
+      {/* Create User Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateUserModal
+            onClose={() => setShowCreateModal(false)}
+            onSubmit={async (data) => {
+              try {
+                const res = await createUser.mutateAsync(data);
+                toast.success("User created! Password shown below.");
+                return res;
+              } catch (err: any) {
+                toast.error(err.response?.data?.message || err.message || "Failed to create user");
+                throw err;
+              }
+            }}
+            isLoading={createUser.isPending}
+          />
+        )}
+      </AnimatePresence>
 
       {/* View Drawer */}
       <AnimatePresence>
@@ -289,6 +324,162 @@ export default function AdminUsersPage() {
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Create User Modal ──────────────────────────────────
+function CreateUserModal({
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  onClose: () => void;
+  onSubmit: (data: { name: string; email: string; role: string; phone?: string; city?: string }) => Promise<any>;
+  isLoading: boolean;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");
+  const [role, setRole] = useState("EMPLOYEE");
+  const [result, setResult] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await onSubmit({ name, email, role, phone: phone || undefined, city: city || undefined });
+      const data = res?.data || res;
+      setResult(data);
+    } catch {
+      // error handled by parent
+    }
+  };
+
+  const copyPassword = async () => {
+    if (result?.tempPassword) {
+      await navigator.clipboard.writeText(result.tempPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <h2 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+            <UserPlus size={18} className="text-violet-600" />
+            {result ? "User Created Successfully" : "Create New User"}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 text-gray-500">
+            <X size={20} />
+          </button>
+        </div>
+
+        {result ? (
+          <div className="p-6 space-y-6">
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+              <p className="text-green-800 font-semibold text-sm">User created successfully!</p>
+              <p className="text-green-700 text-xs mt-1">The user will receive their credentials via email.</p>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Name</p>
+                <p className="text-sm font-medium text-gray-900">{result.user?.name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Email</p>
+                <p className="text-sm font-medium text-gray-900">{result.user?.email}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Role</p>
+                <p className="text-sm font-medium text-gray-900">{result.user?.role}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Temporary Password</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-200 font-mono text-gray-900 flex-1">
+                    {result.tempPassword}
+                  </code>
+                  <button
+                    onClick={copyPassword}
+                    className="p-2 rounded-lg hover:bg-white border border-gray-200 text-gray-500 hover:text-violet-600 transition-colors"
+                  >
+                    {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                  </button>
+                </div>
+                <p className="text-xs text-amber-600 mt-2">Save this password — it won't be shown again after closing.</p>
+              </div>
+            </div>
+
+            <button onClick={onClose} className="w-full py-2.5 rounded-xl gradient-primary text-white font-semibold text-sm hover:opacity-90 transition-all">
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Enter full name"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="user@example.com"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 9876543210"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
+              <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Mumbai"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Role *</label>
+              <div className="flex gap-2">
+                {["EMPLOYEE", "INVESTOR"].map(r => (
+                  <button key={r} type="button" onClick={() => setRole(r)}
+                    className={cn("flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border",
+                      role === r
+                        ? "bg-violet-100 text-violet-700 border-violet-200"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    )}>
+                    {r === "EMPLOYEE" ? "👨‍💼 Employee" : "📈 Investor"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+              <p className="text-xs text-amber-700">
+                <strong>Note:</strong> A random password will be generated automatically. The user will receive their credentials via email and will be required to set a new password on first login.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={isLoading}
+                className="flex-1 py-2.5 rounded-xl gradient-primary text-white font-semibold text-sm hover:opacity-90 disabled:opacity-60 transition-all">
+                {isLoading ? "Creating..." : "Create User"}
+              </button>
+            </div>
+          </form>
+        )}
+      </motion.div>
     </div>
   );
 }

@@ -266,6 +266,15 @@ export function useToggleUserStatus() {
   });
 }
 
+export function useCreateAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; email: string; role: string; phone?: string; city?: string }) =>
+      api.post("/admin/users", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+}
+
 // Get admin reviews (list all)
 export function useAdminReviews() {
   return useQuery({
