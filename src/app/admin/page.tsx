@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   TrendingUp, Users, Store, ShoppingBag, DollarSign,
@@ -7,34 +8,7 @@ import {
   Eye, Star, ChevronRight
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-
-const stats = [
-  { label: "Total Revenue", value: "₹12,45,890", change: "+12.5%", up: true, icon: <DollarSign size={20} />, color: "from-violet-500 to-purple-500" },
-  { label: "Total Orders", value: "1,234", change: "+8.2%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
-  { label: "Active Vendors", value: "156", change: "+3.1%", up: true, icon: <Store size={20} />, color: "from-emerald-500 to-teal-500" },
-  { label: "Total Customers", value: "8,432", change: "+15.7%", up: true, icon: <Users size={20} />, color: "from-amber-500 to-orange-500" },
-];
-
-const pendingActions = [
-  { type: "vendor", label: "Pending Vendor Approvals", count: 5, href: "/admin/vendors?status=PENDING", color: "bg-amber-50 text-amber-700" },
-  { type: "service", label: "Services Awaiting Review", count: 12, href: "/admin/services?status=PENDING", color: "bg-blue-50 text-blue-700" },
-  { type: "review", label: "Unmoderated Reviews", count: 8, href: "/admin/reviews?approved=false", color: "bg-rose-50 text-rose-700" },
-];
-
-const recentOrders = [
-  { id: "LM7X8K2A", customer: "Priya Sharma", service: "Premium Birthday Balloon Decoration", amount: 4498, status: "CONFIRMED", date: "2024-03-15" },
-  { id: "LM7X8K3B", customer: "Rahul Verma", service: "Romantic Candlelight Dinner", amount: 5698, status: "PENDING", date: "2024-03-15" },
-  { id: "LM7X8K4C", customer: "Anita Patel", service: "Royal Wedding Stage", amount: 42999, status: "COMPLETED", date: "2024-03-14" },
-  { id: "LM7X8K5D", customer: "Vikram Singh", service: "Kids Theme Party Setup", amount: 6498, status: "IN_PROGRESS", date: "2024-03-14" },
-  { id: "LM7X8K6E", customer: "Meera Joshi", service: "Simple Anniversary Decoration", amount: 2499, status: "CANCELLED", date: "2024-03-13" },
-];
-
-const topServices = [
-  { title: "Premium Birthday Balloon Decoration", vendor: "Dream Decorators", bookings: 456, revenue: 1823544, rating: 4.5 },
-  { title: "Romantic Candlelight Dinner Setup", vendor: "Dream Decorators", bookings: 234, revenue: 1053666, rating: 4.8 },
-  { title: "Royal Wedding Stage Decoration", vendor: "Dream Decorators", bookings: 123, revenue: 4919877, rating: 4.9 },
-  { title: "Kids Birthday Theme Party", vendor: "Party Kings", bookings: 189, revenue: 1133811, rating: 4.6 },
-];
+import api from "@/lib/api";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -45,6 +19,30 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-dashboard"],
+    queryFn: () => api.get<any>("/admin/dashboard"),
+  });
+
+  const dashboardData = data?.data;
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const stats = dashboardData?.stats ? [
+    { label: "Total Revenue", value: formatPrice(dashboardData.stats.totalRevenue || 0), change: "+12.5%", up: true, icon: <DollarSign size={20} />, color: "from-violet-500 to-purple-500" },
+    { label: "Total Orders", value: (dashboardData.stats.totalOrders || 0).toLocaleString(), change: "+8.2%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Active Vendors", value: (dashboardData.stats.totalVendors || 0).toLocaleString(), change: "+3.1%", up: true, icon: <Store size={20} />, color: "from-emerald-500 to-teal-500" },
+    { label: "Total Customers", value: (dashboardData.stats.totalClients || 0).toLocaleString(), change: "+15.7%", up: true, icon: <Users size={20} />, color: "from-amber-500 to-orange-500" },
+  ] : [];
+
+  const pendingActions = [
+    { type: "vendor", label: "Pending Vendor Approvals", count: dashboardData?.stats?.pendingVendors || 0, href: "/admin/vendors?status=PENDING", color: "bg-amber-50 text-amber-700" },
+    { type: "service", label: "Services Awaiting Review", count: dashboardData?.stats?.pendingServices || 0, href: "/admin/services?status=PENDING", color: "bg-blue-50 text-blue-700" },
+  ];
+
+  const recentOrders = dashboardData?.recentOrders || [];
+  const topServices = dashboardData?.topServices || [];
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -80,7 +78,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Pending Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {pendingActions.map((action, i) => (
           <Link
             key={i}
@@ -125,10 +123,10 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => (
+                {recentOrders.map((order: any) => (
                   <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                     <td className="p-4">
-                      <span className="text-sm font-mono font-medium text-violet-600">{order.id}</span>
+                      <span className="text-sm font-mono font-medium text-violet-600">{String(order.id)}</span>
                     </td>
                     <td className="p-4">
                       <p className="text-sm font-medium text-gray-900">{order.customer}</p>
@@ -145,7 +143,7 @@ export default function AdminDashboard() {
                         "text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
                         statusColors[order.status] || "bg-gray-100 text-gray-600"
                       )}>
-                        {order.status.replace("_", " ")}
+                        {order.status?.replace("_", " ")}
                       </span>
                     </td>
                   </tr>
@@ -167,7 +165,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="p-4 space-y-4">
-            {topServices.map((service, i) => (
+            {topServices.map((service: any, i: number) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 text-sm font-bold shrink-0">
                   #{i + 1}
@@ -200,7 +198,9 @@ export default function AdminDashboard() {
         </h2>
         <div className="h-64 bg-gradient-to-b from-violet-50 to-transparent rounded-xl flex items-end justify-around px-4 pb-4">
           {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month, i) => {
-            const h = [35, 42, 55, 48, 62, 70, 58, 75, 82, 78, 90, 85][i];
+            const h = dashboardData?.stats?.monthlyRevenue?.[month?.toLowerCase()] 
+              ? Math.min(Math.round((dashboardData.stats.monthlyRevenue[month.toLowerCase()] / (dashboardData.stats.totalRevenue || 1)) * 100), 95)
+              : [35, 42, 55, 48, 62, 70, 58, 75, 82, 78, 90, 85][i];
             return (
               <div key={month} className="flex flex-col items-center gap-2 flex-1">
                 <div

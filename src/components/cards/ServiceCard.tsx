@@ -58,29 +58,6 @@ export default function ServiceCard({
           )}
         </div>
 
-        {/* Tags */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {isTrending && (
-            <span className="badge-trending text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-              🔥 Trending
-            </span>
-          )}
-          {isBestSeller && (
-            <span className="badge-bestseller text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-              ⭐ Best Seller
-            </span>
-          )}
-          {isNewArrival && (
-            <span className="badge-new text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-              ✨ New
-            </span>
-          )}
-          {isFeatured && !isTrending && !isBestSeller && (
-            <span className="badge-featured text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-              Featured
-            </span>
-          )}
-        </div>
 
         {/* Discount Badge */}
         {discount > 0 && (
@@ -104,6 +81,32 @@ export default function ServiceCard({
 
       {/* Content */}
       <div className="p-4">
+        {/* Tags */}
+        {(isTrending || isBestSeller || isNewArrival || (isFeatured && !isTrending && !isBestSeller)) && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {isTrending && (
+              <span className="badge-trending text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                🔥 Trending
+              </span>
+            )}
+            {isBestSeller && (
+              <span className="badge-bestseller text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                ⭐ Best Seller
+              </span>
+            )}
+            {isNewArrival && (
+              <span className="badge-new text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                ✨ New
+              </span>
+            )}
+            {isFeatured && !isTrending && !isBestSeller && (
+              <span className="badge-featured text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Featured
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Category */}
         {category && (
           <p className="text-[11px] font-medium text-violet-600 uppercase tracking-wider mb-1">

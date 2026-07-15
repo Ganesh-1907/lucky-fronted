@@ -4,17 +4,10 @@ import { useState, Suspense } from "react";
 import { Search, ChevronRight, Star, SlidersHorizontal, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
 import ServiceCard from "@/components/cards/ServiceCard";
-
-const searchResults = [
-  { id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration", basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128, isTrending: true, isBestSeller: true, category: { name: "Balloon Decorations", slug: "balloon-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 2, title: "Kids Birthday Theme Party Setup", slug: "kids-birthday-theme-party-setup", basePrice: 7999, discountPrice: 5999, images: [], avgRating: 4.6, reviewCount: 72, isTrending: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Party Kings", avgRating: 4.5 } },
-  { id: 3, title: "Birthday Cake - Custom Design", slug: "birthday-cake-custom", basePrice: 1999, discountPrice: 1499, images: [], avgRating: 4.4, reviewCount: 234, isBestSeller: true, category: { name: "Cakes", slug: "cakes" }, vendor: { businessName: "Sweet Bliss", avgRating: 4.6 } },
-  { id: 4, title: "Neon Birthday Setup", slug: "neon-birthday-setup", basePrice: 6999, discountPrice: 5499, images: [], avgRating: 4.7, reviewCount: 38, isNewArrival: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Glow Events", avgRating: 4.8 } },
-  { id: 5, title: "Simple Birthday Decoration", slug: "simple-birthday-decoration", basePrice: 1499, discountPrice: null, images: [], avgRating: 4.2, reviewCount: 89, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Quick Decor", avgRating: 4.3 } },
-  { id: 6, title: "Birthday Room Decoration", slug: "birthday-room-decoration", basePrice: 2999, discountPrice: 2499, images: [], avgRating: 4.5, reviewCount: 156, isFeatured: true, category: { name: "Birthday", slug: "birthday-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-];
 
 const popularSearches = ["Birthday", "Wedding", "Anniversary", "Candlelight", "Balloon", "Cake", "Surprise"];
 
@@ -23,9 +16,13 @@ function SearchContent() {
   const q = searchParams.get("q") || "";
   const [query, setQuery] = useState(q);
 
-  const filtered = query
-    ? searchResults.filter(s => s.title.toLowerCase().includes(query.toLowerCase()))
-    : searchResults;
+  const { data, isLoading } = useQuery({
+    queryKey: ["search", query],
+    queryFn: () => api.get<{ data: any[] }>(`/api/services?search=${encodeURIComponent(query)}&limit=20`),
+    enabled: !!query,
+  });
+
+  const results = data?.data || [];
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -64,13 +61,18 @@ function SearchContent() {
           <>
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-gray-600">
-                Showing <strong>{filtered.length}</strong> results for <strong>&ldquo;{query}&rdquo;</strong>
+                Showing <strong>{results.length}</strong> results for <strong>&ldquo;{query}&rdquo;</strong>
               </p>
             </div>
 
-            {filtered.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-20">
+                <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto" />
+                <p className="text-gray-500 mt-4">Searching...</p>
+              </div>
+            ) : results.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {filtered.map(service => (
+                {results.map((service: any) => (
                   <ServiceCard key={service.id} {...service} />
                 ))}
               </div>

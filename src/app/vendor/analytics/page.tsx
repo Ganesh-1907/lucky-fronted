@@ -1,39 +1,33 @@
 "use client";
 
-import { Eye, ShoppingBag, Star, TrendingUp, Users, DollarSign, ArrowUpRight } from "lucide-react";
+import { Eye, ShoppingBag, Star, TrendingUp, Users, DollarSign, ArrowUpRight, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-
-const metrics = [
-  { label: "Profile Views", value: "2,340", change: "+12%", icon: <Eye size={18} />, color: "from-blue-500 to-indigo-500" },
-  { label: "Total Bookings", value: "890", change: "+8%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
-  { label: "Avg Rating", value: "4.7", change: "+0.2", icon: <Star size={18} />, color: "from-amber-500 to-orange-500" },
-  { label: "Repeat Customers", value: "234", change: "+15%", icon: <Users size={18} />, color: "from-violet-500 to-purple-500" },
-];
-
-const topServices = [
-  { name: "Premium Birthday Balloon Decoration", bookings: 456, revenue: 1823544, conversion: 38, rating: 4.5 },
-  { name: "Romantic Candlelight Dinner Setup", bookings: 234, revenue: 1053666, conversion: 42, rating: 4.8 },
-  { name: "Royal Wedding Stage Decoration", bookings: 123, revenue: 4919877, conversion: 55, rating: 4.9 },
-  { name: "Kids Birthday Theme Party", bookings: 77, revenue: 461923, conversion: 30, rating: 4.6 },
-];
-
-const weeklyViews = [
-  { day: "Mon", views: 45 }, { day: "Tue", views: 62 }, { day: "Wed", views: 38 },
-  { day: "Thu", views: 78 }, { day: "Fri", views: 92 }, { day: "Sat", views: 110 }, { day: "Sun", views: 85 },
-];
-const maxViews = Math.max(...weeklyViews.map(w => w.views));
-
-const cityBreakdown = [
-  { city: "Mumbai", bookings: 345, percentage: 39 },
-  { city: "Delhi", bookings: 234, percentage: 26 },
-  { city: "Bangalore", bookings: 156, percentage: 18 },
-  { city: "Pune", bookings: 89, percentage: 10 },
-  { city: "Others", bookings: 66, percentage: 7 },
-];
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 const cityColors = ["bg-violet-500", "bg-emerald-500", "bg-blue-500", "bg-amber-500", "bg-gray-400"];
 
 export default function VendorAnalyticsPage() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["vendor", "analytics"],
+    queryFn: () => api.get<any>("/vendors/analytics"),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-emerald-600" size={36} />
+      </div>
+    );
+  }
+
+  const d = data || {};
+  const metrics: any[] = d.metrics || [];
+  const topServices: any[] = d.topServices || [];
+  const weeklyViews: { day: string; views: number }[] = d.weeklyViews || [];
+  const cityBreakdown: { city: string; bookings: number; percentage: number }[] = d.cityBreakdown || [];
+  const maxViews = Math.max(...weeklyViews.map((w: any) => w.views), 1);
+
   return (
     <div className="space-y-6">
       <div>
@@ -43,12 +37,14 @@ export default function VendorAnalyticsPage() {
 
       {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((m, i) => (
+        {metrics.map((m: any, i: number) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.color} flex items-center justify-center text-white`}>{m.icon}</div>
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.color || "from-gray-500 to-gray-600"} flex items-center justify-center text-white`}>
+                {m.icon || <TrendingUp size={18} />}
+              </div>
               <span className="flex items-center gap-0.5 text-xs font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-                <ArrowUpRight size={10} /> {m.change}
+                <ArrowUpRight size={10} /> {m.change || "+0%"}
               </span>
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{m.value}</p>
@@ -62,7 +58,7 @@ export default function VendorAnalyticsPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Weekly Profile Views</h3>
           <div className="h-44 flex items-end justify-around gap-2">
-            {weeklyViews.map(w => (
+            {weeklyViews.map((w: any) => (
               <div key={w.day} className="flex flex-col items-center gap-1 flex-1">
                 <span className="text-xs font-medium text-gray-600">{w.views}</span>
                 <div className="w-full max-w-[40px] rounded-t-lg bg-gradient-to-t from-emerald-600 to-emerald-400 hover:from-emerald-700 hover:to-emerald-500 transition-all"
@@ -76,15 +72,14 @@ export default function VendorAnalyticsPage() {
         {/* City Breakdown */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Bookings by City</h3>
-          {/* Bar */}
           <div className="flex h-4 rounded-full overflow-hidden mb-4">
-            {cityBreakdown.map((c, i) => (
+            {cityBreakdown.map((c: any, i: number) => (
               <div key={c.city} className={`${cityColors[i]} transition-all`} style={{ width: `${c.percentage}%` }}
                 title={`${c.city}: ${c.percentage}%`} />
             ))}
           </div>
           <div className="space-y-2">
-            {cityBreakdown.map((c, i) => (
+            {cityBreakdown.map((c: any, i: number) => (
               <div key={c.city} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-sm ${cityColors[i]}`} />
@@ -117,7 +112,7 @@ export default function VendorAnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {topServices.map((s, i) => (
+              {topServices.map((s: any, i: number) => (
                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
                   <td className="p-4 text-sm font-medium text-gray-900">{s.name}</td>
                   <td className="p-4 text-sm font-bold text-gray-900">{s.bookings}</td>

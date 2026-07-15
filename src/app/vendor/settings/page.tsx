@@ -1,27 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Settings, Clock, Shield, Mail, Bell, Globe, DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Save, Settings, Clock, Shield, Mail, Bell, Globe, DollarSign, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 
+const defaultSettings = {
+  businessName: "",
+  description: "",
+  phone: "",
+  email: "",
+  address: "",
+  gstNumber: "",
+  bankName: "",
+  accountNumber: "",
+  ifscCode: "",
+  autoAccept: false,
+  instantBooking: true,
+  emailNotifications: true,
+  smsNotifications: false,
+};
+
 export default function VendorSettingsPage() {
-  const [settings, setSettings] = useState({
-    businessName: "Dream Decorators",
-    description: "Premium decoration services for all your celebrations",
-    phone: "+91 98765 43210",
-    email: "contact@dreamdecorators.com",
-    address: "Shop 12, Lower Parel, Mumbai 400013",
-    gstNumber: "",
-    bankName: "HDFC Bank",
-    accountNumber: "****4521",
-    ifscCode: "HDFC0001234",
-    autoAccept: false,
-    instantBooking: true,
-    emailNotifications: true,
-    smsNotifications: false,
+  const qc = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["vendor", "profile"],
+    queryFn: () => api.get<any>("/vendors/profile"),
   });
 
-  const handleSave = () => toast.success("Settings saved!");
+  const saveMutation = useMutation({
+    mutationFn: (form: any) => api.put("/vendors/profile", form),
+    onSuccess: () => {
+      toast.success("Settings saved!");
+      qc.invalidateQueries({ queryKey: ["vendor", "profile"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to save settings");
+    },
+  });
+
+  const [settings, setSettings] = useState(defaultSettings);
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (data && !initialized) {
+      const d = data as any;
+      setSettings({
+        businessName: d.businessName || "",
+        description: d.description || "",
+        phone: d.phone || "",
+        email: d.email || "",
+        address: d.address || "",
+        gstNumber: d.gstNumber || "",
+        bankName: d.bankName || "",
+        accountNumber: d.accountNumber || "",
+        ifscCode: d.ifscCode || "",
+        autoAccept: d.autoAccept ?? false,
+        instantBooking: d.instantBooking ?? true,
+        emailNotifications: d.emailNotifications ?? true,
+        smsNotifications: d.smsNotifications ?? false,
+      });
+      setInitialized(true);
+    }
+  }, [data, initialized]);
+
+  const handleSave = () => saveMutation.mutate(settings);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-emerald-600" size={36} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -111,8 +164,9 @@ export default function VendorSettingsPage() {
         ))}
       </div>
 
-      <button onClick={handleSave} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium text-sm hover:opacity-90">
-        <Save size={16} /> Save Settings
+      <button onClick={handleSave} disabled={saveMutation.isPending} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium text-sm hover:opacity-90 disabled:opacity-50">
+        {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+        Save Settings
       </button>
     </div>
   );

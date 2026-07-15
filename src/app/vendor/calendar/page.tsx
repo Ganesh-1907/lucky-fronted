@@ -1,22 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-const bookingsByDate: Record<string, { time: string; customer: string; service: string; status: string; city: string }[]> = {
-  "2024-03-15": [{ time: "10:00 AM", customer: "Priya Sharma", service: "Birthday Balloon Decoration", status: "CONFIRMED", city: "Mumbai" }],
-  "2024-03-16": [{ time: "3:00 PM", customer: "Vikram Singh", service: "Kids Theme Party", status: "IN_PROGRESS", city: "Pune" }],
-  "2024-03-20": [
-    { time: "10:00 AM", customer: "Priya Sharma", service: "Birthday Decoration", status: "CONFIRMED", city: "Mumbai" },
-    { time: "4:00 PM", customer: "Sneha Kapoor", service: "Anniversary Setup", status: "PENDING", city: "Delhi" },
-  ],
-  "2024-03-22": [{ time: "7:00 PM", customer: "Rahul Verma", service: "Candlelight Dinner", status: "CONFIRMED", city: "Delhi" }],
-  "2024-03-25": [{ time: "9:00 AM", customer: "Anita Patel", service: "Wedding Stage", status: "CONFIRMED", city: "Bangalore" }],
-};
 
 const statusDots: Record<string, string> = {
   PENDING: "bg-amber-400",
@@ -26,19 +17,28 @@ const statusDots: Record<string, string> = {
 };
 
 export default function VendorCalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 2, 1)); // March 2024
-  const [selectedDate, setSelectedDate] = useState<string | null>("2024-03-20");
+  const now = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["vendor", "calendar", year, month],
+    queryFn: () => api.get<any>(`/vendors/calendar?month=${month + 1}&year=${year}`),
+  });
+
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   const formatDate = (day: number) => `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
+  const bookingsByDate: Record<string, { time: string; customer: string; service: string; status: string; city: string }[]> = data || {};
   const selectedBookings = selectedDate ? bookingsByDate[selectedDate] || [] : [];
 
   return (
@@ -68,41 +68,47 @@ export default function VendorCalendarPage() {
           </div>
 
           {/* Date Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const dateStr = formatDate(day);
-              const hasBookings = !!bookingsByDate[dateStr];
-              const isSelected = selectedDate === dateStr;
-              const isToday = dateStr === "2024-03-15";
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin text-emerald-600" size={28} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateStr = formatDate(day);
+                const hasBookings = !!bookingsByDate[dateStr];
+                const isSelected = selectedDate === dateStr;
+                const isToday = dateStr === todayStr;
 
-              return (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDate(dateStr)}
-                  className={cn(
-                    "aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative transition-all",
-                    isSelected ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" :
-                    isToday ? "bg-emerald-50 text-emerald-700 font-bold" :
-                    hasBookings ? "bg-gray-50 text-gray-900 hover:bg-emerald-50" : "text-gray-600 hover:bg-gray-50"
-                  )}
-                >
-                  {day}
-                  {hasBookings && !isSelected && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {bookingsByDate[dateStr].map((b, j) => (
-                        <div key={j} className={cn("w-1.5 h-1.5 rounded-full", statusDots[b.status] || "bg-gray-400")} />
-                      ))}
-                    </div>
-                  )}
-                  {hasBookings && isSelected && (
-                    <span className="text-[9px] mt-0.5">{bookingsByDate[dateStr].length} bookings</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDate(dateStr)}
+                    className={cn(
+                      "aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative transition-all",
+                      isSelected ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" :
+                      isToday ? "bg-emerald-50 text-emerald-700 font-bold" :
+                      hasBookings ? "bg-gray-50 text-gray-900 hover:bg-emerald-50" : "text-gray-600 hover:bg-gray-50"
+                    )}
+                  >
+                    {day}
+                    {hasBookings && !isSelected && (
+                      <div className="flex gap-0.5 mt-0.5">
+                        {bookingsByDate[dateStr].map((b, j) => (
+                          <div key={j} className={cn("w-1.5 h-1.5 rounded-full", statusDots[b.status] || "bg-gray-400")} />
+                        ))}
+                      </div>
+                    )}
+                    {hasBookings && isSelected && (
+                      <span className="text-[9px] mt-0.5">{bookingsByDate[dateStr].length} bookings</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Selected Date Details */}

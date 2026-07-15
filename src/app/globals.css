@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --max-w-7xl: 100rem; /* 1600px width for desktop layout */
+}
+
 /* ==================== DESIGN TOKENS ==================== */
 :root {
   /* Primary */

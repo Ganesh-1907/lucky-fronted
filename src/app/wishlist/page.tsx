@@ -1,26 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/lib/api";
 import { Heart, Trash2, ChevronRight, ShoppingBag, Star, MapPin } from "lucide-react";
 import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
-const wishlistItems = [
-  { id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration", basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128, category: { name: "Balloon Decorations" }, vendor: { businessName: "Dream Decorators" } },
-  { id: 2, title: "Romantic Candlelight Dinner Setup", slug: "romantic-candlelight-dinner-setup", basePrice: 5999, discountPrice: 4499, images: [], avgRating: 4.8, reviewCount: 89, category: { name: "Candlelight Dinner" }, vendor: { businessName: "Dream Decorators" } },
-  { id: 3, title: "Royal Wedding Stage Decoration", slug: "royal-wedding-stage-decoration", basePrice: 49999, discountPrice: 39999, images: [], avgRating: 4.9, reviewCount: 56, category: { name: "Wedding Decorations" }, vendor: { businessName: "Dream Decorators" } },
-];
-
 export default function WishlistPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isAuthenticated, _hasHydrated } = useAuthStore();
-  const [items, setItems] = useState(wishlistItems);
 
-  const removeItem = (id: number) => {
-    setItems(items.filter(i => i.id !== id));
-  };
+  const { data, isLoading } = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: () => api.get<any>("/wishlist"),
+    enabled: _hasHydrated && isAuthenticated,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (serviceId: number) => api.post(`/wishlist/${serviceId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+  });
+
+  const items = data?.data || [];
 
   useEffect(() => {
     if (_hasHydrated && !isAuthenticated) {
@@ -28,7 +35,7 @@ export default function WishlistPage() {
     }
   }, [_hasHydrated, isAuthenticated, router]);
 
-  if (!_hasHydrated || !isAuthenticated) {
+  if (!_hasHydrated || !isAuthenticated || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
@@ -52,7 +59,7 @@ export default function WishlistPage() {
 
         {items.length > 0 ? (
           <div className="space-y-4">
-            {items.map(item => {
+            {items.map((item: any) => {
               const discount = calculateDiscount(item.basePrice, item.discountPrice);
               return (
                 <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col sm:flex-row gap-4 hover:shadow-md transition-shadow">
@@ -60,12 +67,12 @@ export default function WishlistPage() {
                     <span className="text-4xl">🎈</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-violet-600 font-medium uppercase mb-1">{item.category.name}</p>
+                    <p className="text-xs text-violet-600 font-medium uppercase mb-1">{item.category?.name}</p>
                     <Link href={`/service/${item.slug}`} className="font-semibold text-gray-900 hover:text-violet-600 transition-colors text-lg">
                       {item.title}
                     </Link>
                     <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                      <MapPin size={12} /> {item.vendor.businessName}
+                      <MapPin size={12} /> {item.vendor?.businessName}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Star size={13} className="text-amber-500 fill-amber-500" />
@@ -86,7 +93,7 @@ export default function WishlistPage() {
                     <Link href={`/service/${item.slug}`} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl gradient-primary text-white text-sm font-medium hover:opacity-90">
                       <ShoppingBag size={14} /> Book Now
                     </Link>
-                    <button onClick={() => removeItem(item.id)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">
+                    <button onClick={() => removeMutation.mutate(item.id)} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50">
                       <Trash2 size={14} /> Remove
                     </button>
                   </div>

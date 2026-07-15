@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Save, Loader, UploadCloud, X, Building2, Landmark, FileText, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminVendors } from "@/hooks/useApi";
+import api from "@/lib/api";
 
 export default function EditVendorPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -84,13 +85,18 @@ export default function EditVendorPage({ params }: { params: Promise<{ id: strin
       return;
     }
 
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await api.put(`/admin/vendors/${vendorId}/status`, { status: "ACTIVE" });
+      await api.put(`/admin/vendors/${vendorId}/commission`, { commissionRate: (formData as any).commissionRate || 15 });
       setLoading(false);
       toast.success("Vendor updated successfully");
       router.push("/admin/vendors");
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      toast.error("Failed to save changes");
+    }
   };
 
   if (isLoading) {

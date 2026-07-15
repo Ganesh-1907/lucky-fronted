@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Clock, Save, ToggleLeft, ToggleRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Trash2, Clock, Save, ToggleLeft, ToggleRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -10,18 +12,46 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 interface TimeSlot { start: string; end: string; }
 interface DaySchedule { day: string; isOpen: boolean; slots: TimeSlot[]; }
 
-const initialSchedule: DaySchedule[] = DAYS.map(day => ({
+const defaultSchedule: DaySchedule[] = DAYS.map(day => ({
   day,
   isOpen: day !== "Sunday",
   slots: day === "Sunday" ? [] : [{ start: "09:00", end: "18:00" }],
 }));
 
-const blockedDates = ["2024-03-25", "2024-03-26", "2024-04-01"];
-
 export default function VendorAvailabilityPage() {
-  const [schedule, setSchedule] = useState(initialSchedule);
-  const [blocked, setBlocked] = useState(blockedDates);
+  const { data, isLoading } = useQuery({
+    queryKey: ["vendor", "availability", "slots"],
+    queryFn: () => api.get<any>("/vendors/availability/slots"),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (body: { schedule: DaySchedule[]; blockedDates: string[] }) =>
+      api.post("/vendors/availability/slots", body),
+    onSuccess: () => {
+      toast.success("Availability saved!");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to save availability");
+    },
+  });
+
+  const [schedule, setSchedule] = useState<DaySchedule[]>(defaultSchedule);
+  const [blocked, setBlocked] = useState<string[]>([]);
   const [newBlockDate, setNewBlockDate] = useState("");
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (data && !initialized) {
+      const d = data as any;
+      if (d.schedule && Array.isArray(d.schedule)) {
+        setSchedule(d.schedule);
+      }
+      if (d.blockedDates && Array.isArray(d.blockedDates)) {
+        setBlocked(d.blockedDates);
+      }
+      setInitialized(true);
+    }
+  }, [data, initialized]);
 
   const toggleDay = (idx: number) => {
     const updated = [...schedule];
@@ -56,6 +86,18 @@ export default function VendorAvailabilityPage() {
       setNewBlockDate("");
     }
   };
+
+  const handleSave = () => {
+    saveMutation.mutate({ schedule, blockedDates: blocked });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-emerald-600" size={36} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -132,8 +174,9 @@ export default function VendorAvailabilityPage() {
         </div>
       </div>
 
-      <button onClick={() => toast.success("Availability saved!")} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium text-sm">
-        <Save size={16} /> Save Availability
+      <button onClick={handleSave} disabled={saveMutation.isPending} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium text-sm hover:opacity-90 disabled:opacity-50">
+        {saveMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+        Save Availability
       </button>
     </div>
   );

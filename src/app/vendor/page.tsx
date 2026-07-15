@@ -3,28 +3,11 @@
 import Link from "next/link";
 import {
   TrendingUp, ShoppingBag, DollarSign, Star, ArrowUpRight,
-  Layers, Clock, Eye, ChevronRight, Calendar
+  Layers, Clock, Eye, ChevronRight, Calendar, Loader2
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-
-const stats = [
-  { label: "Total Earnings", value: "₹12,45,000", change: "+18.2%", up: true, icon: <DollarSign size={20} />, color: "from-emerald-500 to-teal-500" },
-  { label: "Total Bookings", value: "890", change: "+12.5%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
-  { label: "Active Services", value: "15", change: "+2", up: true, icon: <Layers size={20} />, color: "from-violet-500 to-purple-500" },
-  { label: "Avg Rating", value: "4.7", change: "+0.2", up: true, icon: <Star size={20} />, color: "from-amber-500 to-orange-500" },
-];
-
-const recentBookings = [
-  { id: "LM7X8K2A", customer: "Priya Sharma", service: "Premium Birthday Balloon Decoration", amount: 4498, status: "CONFIRMED", bookingDate: "2024-03-20", timeSlot: "10:00 AM" },
-  { id: "LM7X8K3B", customer: "Rahul Verma", service: "Romantic Candlelight Dinner", amount: 5698, status: "PENDING", bookingDate: "2024-03-22", timeSlot: "7:00 PM" },
-  { id: "LM7X8K5D", customer: "Vikram Singh", service: "Kids Theme Party Setup", amount: 6498, status: "IN_PROGRESS", bookingDate: "2024-03-16", timeSlot: "3:00 PM" },
-  { id: "LM7X8K7F", customer: "Sneha Kapoor", service: "Simple Anniversary Setup", amount: 2499, status: "PENDING", bookingDate: "2024-03-25", timeSlot: "6:00 PM" },
-];
-
-const todaySchedule = [
-  { time: "10:00 AM", customer: "Priya Sharma", service: "Birthday Balloon Decoration", status: "CONFIRMED", city: "Mumbai" },
-  { time: "3:00 PM", customer: "Vikram Singh", service: "Kids Theme Party", status: "IN_PROGRESS", city: "Pune" },
-];
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -35,6 +18,45 @@ const statusColors: Record<string, string> = {
 };
 
 export default function VendorDashboard() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["vendor", "dashboard", "stats"],
+    queryFn: () => api.get<any>("/vendors/dashboard/stats"),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-emerald-600" size={36} />
+      </div>
+    );
+  }
+
+  const d = data || {};
+  const totalEarnings = d.totalEarnings || 0;
+  const totalBookings = d.totalBookings || 0;
+  const activeServices = d.activeServices || 0;
+  const avgRating = d.avgRating || 0;
+  const recentBookings: any[] = d.recentBookings || [];
+
+  const stats = [
+    { label: "Total Earnings", value: formatPrice(totalEarnings), change: "+18.2%", up: true, icon: <DollarSign size={20} />, color: "from-emerald-500 to-teal-500" },
+    { label: "Total Bookings", value: String(totalBookings), change: "+12.5%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Active Services", value: String(activeServices), change: "+2", up: true, icon: <Layers size={20} />, color: "from-violet-500 to-purple-500" },
+    { label: "Avg Rating", value: avgRating.toFixed(1), change: "+0.2", up: true, icon: <Star size={20} />, color: "from-amber-500 to-orange-500" },
+  ];
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todaySchedule = recentBookings
+    .filter((b: any) => (b.bookingDate || b.date) === todayStr)
+    .slice(0, 5)
+    .map((b: any) => ({
+      time: b.timeSlot || b.time || "—",
+      customer: b.customer || b.client || "—",
+      service: b.service || "—",
+      status: b.status || "PENDING",
+      city: b.city || "",
+    }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -115,18 +137,18 @@ export default function VendorDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentBookings.map(booking => (
+                {recentBookings.map((booking: any) => (
                   <tr key={booking.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4">
                       <p className="text-sm font-mono font-bold text-emerald-600">{booking.id}</p>
-                      <p className="text-xs text-gray-500">{booking.customer}</p>
+                      <p className="text-xs text-gray-500">{booking.customer || booking.client}</p>
                     </td>
                     <td className="p-4 hidden md:table-cell">
                       <p className="text-sm text-gray-700 truncate max-w-[180px]">{booking.service}</p>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm text-gray-900">{booking.bookingDate}</p>
-                      <p className="text-xs text-gray-500">{booking.timeSlot}</p>
+                      <p className="text-sm text-gray-900">{booking.bookingDate || booking.date}</p>
+                      <p className="text-xs text-gray-500">{booking.timeSlot || booking.time}</p>
                     </td>
                     <td className="p-4">
                       <span className="text-sm font-bold text-gray-900">{formatPrice(booking.amount)}</span>

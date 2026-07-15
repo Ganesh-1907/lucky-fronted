@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Save, Globe, Mail, CreditCard, Shield, Image, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 const settingGroups = [
   { id: "general", label: "General", icon: <Globe size={16} /> },
@@ -13,37 +15,59 @@ const settingGroups = [
   { id: "seo", label: "SEO", icon: <Shield size={16} /> },
 ];
 
+const defaultSettings = {
+  siteName: "",
+  siteUrl: "",
+  supportEmail: "",
+  supportPhone: "",
+  commissionRate: "",
+  minAdvancePercent: "",
+  razorpayKeyId: "",
+  razorpayKeySecret: "",
+  smtpHost: "",
+  smtpPort: "",
+  smtpUser: "",
+  smtpPass: "",
+  seoTitle: "",
+  seoDescription: "",
+  googleAnalyticsId: "",
+  maintenanceMode: false,
+  autoApproveVendors: false,
+  autoApproveReviews: false,
+  emailNotifications: true,
+  smsNotifications: false,
+};
+
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
-  const [settings, setSettings] = useState({
-    siteName: "Lucky Marketplace",
-    siteUrl: "https://luckymarketplace.com",
-    supportEmail: "support@luckymarketplace.com",
-    supportPhone: "+91 98765 43210",
-    commissionRate: "15",
-    minAdvancePercent: "50",
-    razorpayKeyId: "",
-    razorpayKeySecret: "",
-    smtpHost: "smtp.gmail.com",
-    smtpPort: "587",
-    smtpUser: "",
-    smtpPass: "",
-    seoTitle: "Lucky Marketplace | Book Premium Event Services",
-    seoDescription: "Book birthday decorations, wedding setups, candlelight dinners and more from verified vendors.",
-    googleAnalyticsId: "",
-    maintenanceMode: false,
-    autoApproveVendors: false,
-    autoApproveReviews: false,
-    emailNotifications: true,
-    smsNotifications: false,
+  const [settings, setSettings] = useState(defaultSettings);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-settings"],
+    queryFn: () => api.get<any>("/admin/settings"),
   });
 
-  const handleSave = () => toast.success("Settings saved successfully!");
+  const saveMutation = useMutation({
+    mutationFn: (settings: any) => api.put("/admin/settings", settings),
+    onSuccess: () => toast.success("Settings saved successfully!"),
+    onError: () => toast.error("Failed to save settings"),
+  });
+
+  useEffect(() => {
+    if (data) {
+      const apiSettings = data?.data || data;
+      setSettings(prev => ({ ...prev, ...apiSettings }));
+    }
+  }, [data]);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const handleSave = () => saveMutation.mutate(settings);
 
   const renderInput = (label: string, key: string, type = "text", placeholder = "") => (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
-      <input type={type} value={(settings as any)[key]} placeholder={placeholder}
+      <input type={type} value={(settings as any)[key] || ""} placeholder={placeholder}
         onChange={e => setSettings({ ...settings, [key]: e.target.value })}
         className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
     </div>
@@ -140,7 +164,7 @@ export default function AdminSettingsPage() {
                 {renderInput("Default Page Title", "seoTitle")}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Default Meta Description</label>
-                  <textarea value={settings.seoDescription} onChange={e => setSettings({ ...settings, seoDescription: e.target.value })} rows={3}
+                  <textarea value={settings.seoDescription || ""} onChange={e => setSettings({ ...settings, seoDescription: e.target.value })} rows={3}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none" />
                 </div>
                 {renderInput("Google Analytics ID", "googleAnalyticsId", "text", "G-XXXXXXXXXX")}
@@ -148,8 +172,8 @@ export default function AdminSettingsPage() {
             </div>
           )}
 
-          <button onClick={handleSave} className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm">
-            <Save size={16} /> Save Settings
+          <button onClick={handleSave} disabled={saveMutation.isPending} className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm">
+            <Save size={16} /> {saveMutation.isPending ? "Saving..." : "Save Settings"}
           </button>
         </div>
       </div>

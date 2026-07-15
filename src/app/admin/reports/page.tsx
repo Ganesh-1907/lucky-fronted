@@ -1,62 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BarChart3, TrendingUp, Users, ShoppingBag, DollarSign, Download, Calendar, ArrowUpRight } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-
-const stats = [
-  { label: "Total Revenue", value: "₹24,56,000", change: "+22.5%", icon: <DollarSign size={18} />, color: "from-violet-500 to-purple-500" },
-  { label: "Total Orders", value: "2,345", change: "+18.2%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
-  { label: "New Users", value: "456", change: "+12.8%", icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
-  { label: "Conversion Rate", value: "34%", change: "+5.2%", icon: <TrendingUp size={18} />, color: "from-amber-500 to-orange-500" },
-];
-
-const monthlyRevenue = [
-  { month: "Jan", revenue: 185000, orders: 45 },
-  { month: "Feb", revenue: 205000, orders: 52 },
-  { month: "Mar", revenue: 245000, orders: 65 },
-  { month: "Apr", revenue: 198000, orders: 50 },
-  { month: "May", revenue: 278000, orders: 72 },
-  { month: "Jun", revenue: 312000, orders: 85 },
-  { month: "Jul", revenue: 295000, orders: 78 },
-  { month: "Aug", revenue: 345000, orders: 92 },
-  { month: "Sep", revenue: 320000, orders: 88 },
-  { month: "Oct", revenue: 398000, orders: 105 },
-  { month: "Nov", revenue: 425000, orders: 115 },
-  { month: "Dec", revenue: 350000, orders: 98 },
-];
-const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue));
-
-const topCategories = [
-  { name: "Birthday Decorations", orders: 890, revenue: 3556000, percentage: 38 },
-  { name: "Wedding Decorations", orders: 234, revenue: 9360000, percentage: 25 },
-  { name: "Candlelight Dinner", orders: 456, revenue: 2052000, percentage: 18 },
-  { name: "Anniversary", orders: 345, revenue: 862500, percentage: 12 },
-  { name: "Others", orders: 420, revenue: 1625700, percentage: 7 },
-];
-
-const topVendors = [
-  { name: "Dream Decorators", city: "Mumbai", orders: 890, revenue: 4450000, rating: 4.7 },
-  { name: "Party Kings", city: "Delhi", orders: 456, revenue: 2280000, rating: 4.5 },
-  { name: "Glow Events", city: "Bangalore", orders: 345, revenue: 1725000, rating: 4.8 },
-  { name: "Love Setup Co", city: "Pune", orders: 234, revenue: 1170000, rating: 4.3 },
-  { name: "Sweet Bliss", city: "Hyderabad", orders: 189, revenue: 945000, rating: 4.6 },
-];
-
-const topCities = [
-  { city: "Mumbai", orders: 890, percentage: 25 },
-  { city: "Delhi", orders: 678, percentage: 19 },
-  { city: "Bangalore", orders: 567, percentage: 16 },
-  { city: "Hyderabad", orders: 456, percentage: 13 },
-  { city: "Chennai", orders: 345, percentage: 10 },
-  { city: "Pune", orders: 234, percentage: 7 },
-  { city: "Others", orders: 375, percentage: 10 },
-];
+import api from "@/lib/api";
 
 const catColors = ["bg-violet-500", "bg-emerald-500", "bg-blue-500", "bg-amber-500", "bg-gray-400"];
 
 export default function AdminReportsPage() {
   const [period, setPeriod] = useState("yearly");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-reports"],
+    queryFn: () => api.get<any>("/admin/reports"),
+  });
+
+  const reportData = data?.data || data;
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const stats = reportData?.stats ? [
+    { label: "Total Revenue", value: formatPrice(reportData.stats.totalRevenue || 0), change: "+22.5%", icon: <DollarSign size={18} />, color: "from-violet-500 to-purple-500" },
+    { label: "Total Orders", value: (reportData.stats.totalOrders || 0).toLocaleString(), change: "+18.2%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
+    { label: "New Users", value: (reportData.stats.totalClients || 0).toLocaleString(), change: "+12.8%", icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Conversion Rate", value: "34%", change: "+5.2%", icon: <TrendingUp size={18} />, color: "from-amber-500 to-orange-500" },
+  ] : [];
+
+  const monthlyRevenue = reportData?.monthlyRevenue || [];
+  const maxRevenue = monthlyRevenue.length > 0 ? Math.max(...monthlyRevenue.map((m: any) => m.revenue)) : 1;
+
+  const topCategories = reportData?.topCategories || [];
+  const topCities = reportData?.topCities || [];
+  const topVendors = reportData?.topVendors || [];
 
   return (
     <div className="space-y-6">
@@ -97,15 +73,17 @@ export default function AdminReportsPage() {
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Monthly Revenue</h3>
         <div className="h-56 flex items-end justify-around gap-1 px-2">
-          {monthlyRevenue.map(m => (
+          {monthlyRevenue.length > 0 ? monthlyRevenue.map((m: any) => (
             <div key={m.month} className="flex flex-col items-center gap-1 flex-1">
               <span className="text-[9px] font-medium text-gray-500">{formatPrice(m.revenue)}</span>
               <div className="w-full max-w-[36px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 hover:from-violet-700 hover:to-violet-500 transition-all cursor-pointer"
                 style={{ height: `${(m.revenue / maxRevenue) * 100}%` }}
-                title={`${m.month}: ${formatPrice(m.revenue)} · ${m.orders} orders`} />
+                title={`${m.month}: ${formatPrice(m.revenue)} · ${m.orders || 0} orders`} />
               <span className="text-[10px] text-gray-400">{m.month}</span>
             </div>
-          ))}
+          )) : (
+            <div className="flex items-center justify-center w-full h-56 text-sm text-gray-400">No revenue data available</div>
+          )}
         </div>
       </div>
 
@@ -113,43 +91,54 @@ export default function AdminReportsPage() {
         {/* Category Breakdown */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Revenue by Category</h3>
-          <div className="flex h-4 rounded-full overflow-hidden mb-4">
-            {topCategories.map((c, i) => (
-              <div key={c.name} className={`${catColors[i]}`} style={{ width: `${c.percentage}%` }} title={`${c.name}: ${c.percentage}%`} />
-            ))}
-          </div>
-          <div className="space-y-2">
-            {topCategories.map((c, i) => (
-              <div key={c.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-sm ${catColors[i]}`} />
-                  <span className="text-sm text-gray-700">{c.name}</span>
-                </div>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-gray-500">{c.orders} orders</span>
-                  <span className="font-medium text-gray-900 w-20 text-right">{formatPrice(c.revenue)}</span>
-                </div>
+          {topCategories.length > 0 && (
+            <>
+              <div className="flex h-4 rounded-full overflow-hidden mb-4">
+                {topCategories.map((c: any, i: number) => (
+                  <div key={c.name} className={`${catColors[i] || "bg-gray-400"}`} style={{ width: `${c.percentage || 0}%` }} title={`${c.name}: ${c.percentage || 0}%`} />
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="space-y-2">
+                {topCategories.map((c: any, i: number) => (
+                  <div key={c.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-sm ${catColors[i] || "bg-gray-400"}`} />
+                      <span className="text-sm text-gray-700">{c.name}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-gray-500">{c.orders} orders</span>
+                      <span className="font-medium text-gray-900 w-20 text-right">{formatPrice(c.revenue)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {topCategories.length === 0 && (
+            <p className="text-sm text-gray-400">No category data available</p>
+          )}
         </div>
 
         {/* Top Cities */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Orders by City</h3>
-          <div className="space-y-3">
-            {topCities.map(c => (
-              <div key={c.city}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-700">{c.city}</span>
-                  <span className="text-gray-500">{c.orders} ({c.percentage}%)</span>
+          {topCities.length > 0 ? (
+            <div className="space-y-3">
+              {topCities.map((c: any) => (
+                <div key={c.city}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-gray-700">{c.city}</span>
+                    <span className="text-gray-500">{c.orders} ({c.percentage}%)</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full" style={{ width: `${c.percentage}%` }} />
+                  </div>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full" style={{ width: `${c.percentage}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No city data available</p>
+          )}
         </div>
       </div>
 
@@ -158,33 +147,37 @@ export default function AdminReportsPage() {
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Top Vendors</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
-                <th className="text-left p-4 font-medium">#</th>
-                <th className="text-left p-4 font-medium">Vendor</th>
-                <th className="text-left p-4 font-medium">Orders</th>
-                <th className="text-left p-4 font-medium">Revenue</th>
-                <th className="text-left p-4 font-medium">Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topVendors.map((v, i) => (
-                <tr key={v.name} className="border-b border-gray-50 hover:bg-gray-50/50">
-                  <td className="p-4"><span className="text-sm font-bold text-violet-600">#{i + 1}</span></td>
-                  <td className="p-4">
-                    <p className="text-sm font-medium text-gray-900">{v.name}</p>
-                    <p className="text-xs text-gray-500">{v.city}</p>
-                  </td>
-                  <td className="p-4 text-sm font-medium text-gray-900">{v.orders}</td>
-                  <td className="p-4 text-sm font-medium text-emerald-600">{formatPrice(v.revenue)}</td>
-                  <td className="p-4 text-sm">⭐ {v.rating}</td>
+        {topVendors.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                  <th className="text-left p-4 font-medium">#</th>
+                  <th className="text-left p-4 font-medium">Vendor</th>
+                  <th className="text-left p-4 font-medium">Orders</th>
+                  <th className="text-left p-4 font-medium">Revenue</th>
+                  <th className="text-left p-4 font-medium">Rating</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {topVendors.map((v: any, i: number) => (
+                  <tr key={v.name || i} className="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td className="p-4"><span className="text-sm font-bold text-violet-600">#{i + 1}</span></td>
+                    <td className="p-4">
+                      <p className="text-sm font-medium text-gray-900">{v.name}</p>
+                      <p className="text-xs text-gray-500">{v.city}</p>
+                    </td>
+                    <td className="p-4 text-sm font-medium text-gray-900">{v.orders}</td>
+                    <td className="p-4 text-sm font-medium text-emerald-600">{formatPrice(v.revenue)}</td>
+                    <td className="p-4 text-sm">⭐ {v.rating}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-6 text-sm text-gray-400">No vendor data available</div>
+        )}
       </div>
     </div>
   );

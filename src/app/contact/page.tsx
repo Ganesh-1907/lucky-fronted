@@ -1,21 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import api from "@/lib/api";
 import { MapPin, Phone, Mail, Clock, Send, Loader2, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success("Message sent! We'll get back to you within 24 hours.");
+  const sendMutation = useMutation({
+    mutationFn: (data: any) => api.post("/contact", data),
+    onSuccess: () => {
+      toast.success("Message sent! We'll get back to you soon.");
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-      setIsSubmitting(false);
-    }, 1500);
+    },
+    onError: () => toast.error("Failed to send message. Please try again."),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMutation.mutate(formData);
   };
 
   return (
@@ -105,10 +110,10 @@ export default function ContactPage() {
                   placeholder="Describe your inquiry in detail..." rows={5} required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none" />
               </div>
-              <button type="submit" disabled={isSubmitting}
+              <button type="submit" disabled={sendMutation.isPending}
                 className="flex items-center gap-2 px-8 py-3 rounded-xl gradient-primary text-white font-medium text-sm hover:opacity-90 disabled:opacity-60 transition-all">
-                {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {sendMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {sendMutation.isPending ? "Sending..." : "Send Message"}
               </button>
             </form>
           </div>

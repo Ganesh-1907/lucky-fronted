@@ -143,13 +143,14 @@ export default function EditServicePage({ params }: { params: Promise<{ id: stri
         }
       }
 
-      // TODO: Replace with actual update API call, e.g. api.put(`/admin/services/${serviceId}`, {...formData, images: finalUrls})
-      
-      setTimeout(() => {
-        setLoading(false);
-        toast.success("Service updated successfully");
-        router.push("/admin/services");
-      }, 1500);
+      await api.put(`/admin/services/${serviceId}/status`, {
+        ...formData,
+        images: finalUrls,
+      });
+
+      setLoading(false);
+      toast.success("Service updated successfully");
+      router.push("/admin/services");
     } catch (err) {
       console.error(err);
       setLoading(false);
