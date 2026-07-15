@@ -420,7 +420,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 mb-16 mt-8">
           <BannerCarousel 
             banners={homepageBanners} 
-            className="w-full rounded-2xl shadow-xl overflow-hidden hover:scale-[1.01] transition-transform duration-300" 
+            className="w-full h-[250px] sm:h-[350px] md:h-[500px] lg:h-[600px] rounded-2xl shadow-xl overflow-hidden hover:scale-[1.01] transition-transform duration-300" 
           />
         </div>
       )}
