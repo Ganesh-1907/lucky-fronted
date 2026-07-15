@@ -12,8 +12,8 @@ const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
   BOOKING: { icon: <ShoppingBag size={16} />, color: "bg-violet-500/15 text-violet-400" },
   PAYMENT: { icon: <CreditCard size={16} />, color: "bg-green-500/15 text-green-400" },
   FOLLOW_UP: { icon: <Phone size={16} />, color: "bg-amber-500/15 text-amber-400" },
-  ASSIGNMENT: { icon: <UserPlus size={16} />, color: "bg-cyan-500/15 text-cyan-400" },
-  SYSTEM: { icon: <Settings size={16} />, color: "bg-slate-500/15 text-slate-400" },
+  ASSIGNMENT: { icon: <UserPlus size={16} />, color: "bg-violet-50 text-violet-600" },
+  SYSTEM: { icon: <Settings size={16} />, color: "bg-gray-100 text-gray-500" },
   PROMOTION: { icon: <AlertCircle size={16} />, color: "bg-rose-500/15 text-rose-400" },
 };
 
@@ -78,20 +78,20 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
             Notifications
             {unreadCount > 0 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-cyan-500/30">
                 {unreadCount} new
               </span>
             )}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Stay updated on bookings, follow-ups, and assignments.</p>
+          <p className="text-sm text-gray-500 mt-1">Stay updated on bookings, follow-ups, and assignments.</p>
         </div>
         {unreadCount > 0 && (
           <button
             onClick={markAllRead}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700/50 text-sm text-slate-300 hover:border-cyan-500/30 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-600 hover:border-cyan-500/30 transition-colors"
           >
             <CheckCheck size={14} /> Mark all read
           </button>
@@ -102,12 +102,12 @@ export default function NotificationsPage() {
       <div className="space-y-2">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-20 bg-slate-800/50 rounded-2xl animate-pulse" />
+            <div key={i} className="h-20 bg-gray-50 rounded-2xl animate-pulse" />
           ))
         ) : notifications.length === 0 ? (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-12 text-center">
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-12 text-center">
             <Bell size={40} className="text-slate-600 mx-auto mb-3" />
-            <p className="text-sm text-slate-500">No notifications yet</p>
+            <p className="text-sm text-gray-500">No notifications yet</p>
           </div>
         ) : (
           notifications.map((n) => {
@@ -117,8 +117,8 @@ export default function NotificationsPage() {
                 key={n.id}
                 onClick={() => !n.isRead && markRead(n.id)}
                 className={cn(
-                  "w-full text-left bg-slate-800/50 border rounded-2xl p-4 transition-all hover:border-slate-600/60",
-                  n.isRead ? "border-slate-700/30 opacity-60" : "border-slate-700/50"
+                  "w-full text-left bg-gray-50 border rounded-2xl p-4 transition-all hover:border-slate-600/60",
+                  n.isRead ? "border-gray-200/30 opacity-60" : "border-gray-100"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -129,7 +129,7 @@ export default function NotificationsPage() {
                     <div className="flex items-center justify-between gap-2">
                       <p className={cn(
                         "text-sm font-medium truncate",
-                        n.isRead ? "text-slate-400" : "text-white"
+                        n.isRead ? "text-gray-500" : "text-gray-900"
                       )}>
                         {n.title}
                       </p>
@@ -142,7 +142,7 @@ export default function NotificationsPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.message}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
                   </div>
                 </div>
               </button>
@@ -154,14 +154,14 @@ export default function NotificationsPage() {
       {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-500">Page {pagination.page} of {pagination.totalPages}</p>
+          <p className="text-xs text-gray-500">Page {pagination.page} of {pagination.totalPages}</p>
           <div className="flex items-center gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 disabled:opacity-40 hover:bg-slate-700 transition-colors">
+              className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition-colors">
               Previous
             </button>
             <button onClick={() => setPage(p => p + 1)} disabled={page >= pagination.totalPages}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 disabled:opacity-40 hover:bg-slate-700 transition-colors">
+              className="px-3 py-1.5 rounded-lg bg-gray-50 text-xs text-gray-600 disabled:opacity-40 hover:bg-gray-100 transition-colors">
               Next
             </button>
           </div>

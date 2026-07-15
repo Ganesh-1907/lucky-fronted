@@ -11,7 +11,7 @@ import api from "@/lib/api";
 function fmtStatus(s: string) { return s.replace(/_/g, " "); }
 
 const PIPELINE_DOT_COLORS: Record<string, string> = {
-  NEW_LEAD: "bg-slate-400",
+  NEW_LEAD: "bg-gray-300",
   CUSTOMER_CONTACTED: "bg-blue-400",
   VENDOR_CONTACTED: "bg-indigo-400",
   CUSTOMER_DISCUSSION: "bg-cyan-400",
@@ -51,12 +51,12 @@ export default function PerformancePage() {
       <div className="space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 bg-slate-800/50 rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-gray-50 rounded-2xl animate-pulse" />
           ))}
         </div>
         <div className="grid lg:grid-cols-2 gap-6">
-          <div className="h-64 bg-slate-800/50 rounded-2xl animate-pulse" />
-          <div className="h-64 bg-slate-800/50 rounded-2xl animate-pulse" />
+          <div className="h-64 bg-gray-50 rounded-2xl animate-pulse" />
+          <div className="h-64 bg-gray-50 rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -77,7 +77,7 @@ export default function PerformancePage() {
       subtitle: "lead to booking",
       icon: <TrendingUp size={18} />,
       gradient: "from-cyan-500 to-blue-600",
-      glow: "shadow-cyan-500/20",
+      glow: "shadow-violet-500/20",
     },
     {
       label: "Follow-Ups Done",
@@ -113,21 +113,21 @@ export default function PerformancePage() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>Performance</h1>
-        <p className="text-sm text-slate-400 mt-1">Track your productivity and conversion metrics.</p>
+        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Performance</h1>
+        <p className="text-sm text-gray-500 mt-1">Track your productivity and conversion metrics.</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((kpi, i) => (
-          <div key={i} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 hover:border-slate-600/60 transition-all">
-            <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white mb-4 shadow-lg", kpi.gradient, kpi.glow)}>
+          <div key={i} className="bg-gray-50 border border-gray-100 rounded-2xl p-5 hover:border-slate-600/60 transition-all">
+            <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-gray-900 mb-4 shadow-lg", kpi.gradient, kpi.glow)}>
               {kpi.icon}
             </div>
-            <p className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+            <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
               {kpi.value}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5 font-medium">{kpi.label}</p>
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">{kpi.label}</p>
             <p className="text-[10px] text-slate-600 mt-0.5">{kpi.subtitle}</p>
           </div>
         ))}
@@ -135,26 +135,26 @@ export default function PerformancePage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Pipeline Breakdown */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-          <h2 className="font-bold text-white mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
-            <Zap size={16} className="text-cyan-400" /> Pipeline Breakdown
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+          <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+            <Zap size={16} className="text-violet-600" /> Pipeline Breakdown
           </h2>
           {pipelineData.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-8">No data yet</p>
+            <p className="text-sm text-gray-500 text-center py-8">No data yet</p>
           ) : (
             <div className="space-y-3">
               {pipelineData.map((p: any) => (
                 <div key={p.status} className="group">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className={cn("w-2 h-2 rounded-full", PIPELINE_DOT_COLORS[p.status] || "bg-slate-400")} />
-                      <span className="text-xs text-slate-300 capitalize">{fmtStatus(p.status)}</span>
+                      <span className={cn("w-2 h-2 rounded-full", PIPELINE_DOT_COLORS[p.status] || "bg-gray-300")} />
+                      <span className="text-xs text-gray-600 capitalize">{fmtStatus(p.status)}</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-400">{p.count}</span>
+                    <span className="text-xs font-bold text-gray-500">{p.count}</span>
                   </div>
-                  <div className="h-2 bg-slate-700/40 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={cn("h-full rounded-full transition-all duration-700", PIPELINE_DOT_COLORS[p.status] || "bg-slate-400")}
+                      className={cn("h-full rounded-full transition-all duration-700", PIPELINE_DOT_COLORS[p.status] || "bg-gray-300")}
                       style={{ width: `${(p.count / maxPipeline) * 100}%`, opacity: 0.7 }}
                     />
                   </div>
@@ -165,12 +165,12 @@ export default function PerformancePage() {
         </div>
 
         {/* Monthly Performance Chart */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-          <h2 className="font-bold text-white mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+          <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
             <BarChart3 size={16} className="text-violet-400" /> Monthly Follow-Ups Completed
           </h2>
           {monthlyData.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-8">No data yet — start completing follow-ups!</p>
+            <p className="text-sm text-gray-500 text-center py-8">No data yet — start completing follow-ups!</p>
           ) : (
             <div className="h-48 flex items-end justify-around gap-2 px-2">
               {monthlyData.map((m: any, i: number) => {
@@ -179,12 +179,12 @@ export default function PerformancePage() {
                 const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 return (
                   <div key={i} className="flex flex-col items-center gap-2 flex-1">
-                    <span className="text-[10px] text-slate-400 font-bold">{m.count}</span>
+                    <span className="text-[10px] text-gray-500 font-bold">{m.count}</span>
                     <div
                       className="w-full max-w-[40px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 transition-all duration-700 hover:from-violet-500 hover:to-violet-300"
                       style={{ height: `${Math.max(height, 5)}%` }}
                     />
-                    <span className="text-[9px] text-slate-500 uppercase">{monthNames[parseInt(monthLabel)] || monthLabel}</span>
+                    <span className="text-[9px] text-gray-500 uppercase">{monthNames[parseInt(monthLabel)] || monthLabel}</span>
                   </div>
                 );
               })}
@@ -194,9 +194,9 @@ export default function PerformancePage() {
       </div>
 
       {/* Conversion Funnel */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
-        <h2 className="font-bold text-white mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
-          <ArrowUpRight size={16} className="text-emerald-400" /> Conversion Funnel
+      <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+        <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
+          <ArrowUpRight size={16} className="text-violet-600" /> Conversion Funnel
         </h2>
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -207,10 +207,10 @@ export default function PerformancePage() {
           ].map((step, i) => (
             <div key={i} className="text-center">
               <div className={cn("w-full h-1.5 rounded-full bg-gradient-to-r mb-3", step.color)} />
-              <p className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
+              <p className="text-xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
                 {step.value}
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider font-medium">{step.label}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider font-medium">{step.label}</p>
             </div>
           ))}
         </div>
