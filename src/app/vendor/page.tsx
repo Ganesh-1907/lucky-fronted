@@ -39,10 +39,10 @@ export default function VendorDashboard() {
   const recentBookings: any[] = d.recentBookings || [];
 
   const stats = [
-    { label: "Total Earnings", value: formatPrice(totalEarnings), change: "+18.2%", up: true, icon: <DollarSign size={20} />, color: "from-emerald-500 to-teal-500" },
-    { label: "Total Bookings", value: String(totalBookings), change: "+12.5%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
-    { label: "Active Services", value: String(activeServices), change: "+2", up: true, icon: <Layers size={20} />, color: "from-violet-500 to-purple-500" },
-    { label: "Avg Rating", value: avgRating.toFixed(1), change: "+0.2", up: true, icon: <Star size={20} />, color: "from-amber-500 to-orange-500" },
+    { label: "Total Earnings", value: formatPrice(totalEarnings), icon: <DollarSign size={20} />, color: "from-emerald-500 to-teal-500" },
+    { label: "Total Bookings", value: String(totalBookings), icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Active Services", value: String(activeServices), icon: <Layers size={20} />, color: "from-violet-500 to-purple-500" },
+    { label: "Avg Rating", value: avgRating.toFixed(1), icon: <Star size={20} />, color: "from-amber-500 to-orange-500" },
   ];
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -50,9 +50,9 @@ export default function VendorDashboard() {
     .filter((b: any) => (b.bookingDate || b.date) === todayStr)
     .slice(0, 5)
     .map((b: any) => ({
-      time: b.timeSlot || b.time || "—",
-      customer: b.customer || b.client || "—",
-      service: b.service || "—",
+      time: b.timeSlot || "—",
+      customer: b.client?.name || "—",
+      service: b.service?.title || "—",
       status: b.status || "PENDING",
       city: b.city || "",
     }));
@@ -77,9 +77,6 @@ export default function VendorDashboard() {
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white`}>
                 {stat.icon}
               </div>
-              <span className="flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full bg-green-50 text-green-600">
-                <ArrowUpRight size={12} /> {stat.change}
-              </span>
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{stat.value}</p>
             <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
@@ -140,18 +137,18 @@ export default function VendorDashboard() {
                 {recentBookings.map((booking: any) => (
                   <tr key={booking.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4">
-                      <p className="text-sm font-mono font-bold text-emerald-600">{booking.id}</p>
-                      <p className="text-xs text-gray-500">{booking.customer || booking.client}</p>
+                      <p className="text-sm font-mono font-bold text-emerald-600">{booking.bookingNumber || booking.id}</p>
+                      <p className="text-xs text-gray-500">{booking.client?.name || "Unknown"}</p>
                     </td>
                     <td className="p-4 hidden md:table-cell">
-                      <p className="text-sm text-gray-700 truncate max-w-[180px]">{booking.service}</p>
+                      <p className="text-sm text-gray-700 truncate max-w-[180px]">{booking.service?.title || "Unknown"}</p>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm text-gray-900">{booking.bookingDate || booking.date}</p>
-                      <p className="text-xs text-gray-500">{booking.timeSlot || booking.time}</p>
+                      <p className="text-sm text-gray-900">{booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : "—"}</p>
+                      <p className="text-xs text-gray-500">{booking.timeSlot || "—"}</p>
                     </td>
                     <td className="p-4">
-                      <span className="text-sm font-bold text-gray-900">{formatPrice(booking.amount)}</span>
+                      <span className="text-sm font-bold text-gray-900">{formatPrice(booking.totalAmount || 0)}</span>
                     </td>
                     <td className="p-4">
                       <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", statusColors[booking.status])}>

@@ -21,10 +21,10 @@ export default function AdminReportsPage() {
   if (isLoading) return <div>Loading...</div>;
 
   const stats = reportData?.stats ? [
-    { label: "Total Revenue", value: formatPrice(reportData.stats.totalRevenue || 0), change: "+22.5%", icon: <DollarSign size={18} />, color: "from-violet-500 to-purple-500" },
-    { label: "Total Bookings", value: (reportData.stats.totalOrders || 0).toLocaleString(), change: "+18.2%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
-    { label: "New Customers", value: (reportData.stats.totalClients || 0).toLocaleString(), change: "+12.8%", icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
-    { label: "Conversion Rate", value: "34%", change: "+5.2%", icon: <TrendingUp size={18} />, color: "from-amber-500 to-orange-500" },
+    { label: "Total Revenue", value: formatPrice(reportData.stats.totalRevenue || 0), icon: <DollarSign size={18} />, color: "from-violet-500 to-purple-500" },
+    { label: "Total Bookings", value: (reportData.stats.totalOrders || 0).toLocaleString(), icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
+    { label: "New Customers", value: (reportData.stats.totalClients || 0).toLocaleString(), icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Active Vendors", value: (reportData.stats.activeVendors || 0).toLocaleString(), icon: <TrendingUp size={18} />, color: "from-amber-500 to-orange-500" },
   ] : [];
 
   const monthlyRevenue = reportData?.monthlyRevenue || [];
@@ -59,9 +59,6 @@ export default function AdminReportsPage() {
           <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white`}>{s.icon}</div>
-              <span className="flex items-center gap-0.5 text-xs font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-                <ArrowUpRight size={10} /> {s.change}
-              </span>
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{s.value}</p>
             <p className="text-xs text-gray-500 mt-1">{s.label}</p>
@@ -94,23 +91,31 @@ export default function AdminReportsPage() {
           {topCategories.length > 0 && (
             <>
               <div className="flex h-4 rounded-full overflow-hidden mb-4">
-                {topCategories.map((c: any, i: number) => (
-                  <div key={c.name} className={`${catColors[i] || "bg-gray-400"}`} style={{ width: `${c.percentage || 0}%` }} title={`${c.name}: ${c.percentage || 0}%`} />
-                ))}
+                {topCategories.map((c: any, i: number) => {
+                  const total = topCategories.reduce((acc: number, val: any) => acc + val.revenue, 0);
+                  const percentage = total > 0 ? (c.revenue / total) * 100 : 0;
+                  return (
+                    <div key={c.name} className={`${catColors[i] || "bg-gray-400"}`} style={{ width: `${percentage}%` }} title={`${c.name}: ${percentage.toFixed(1)}%`} />
+                  )
+                })}
               </div>
               <div className="space-y-2">
-                {topCategories.map((c: any, i: number) => (
-                  <div key={c.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-sm ${catColors[i] || "bg-gray-400"}`} />
-                      <span className="text-sm text-gray-700">{c.name}</span>
+                {topCategories.map((c: any, i: number) => {
+                  const total = topCategories.reduce((acc: number, val: any) => acc + val.revenue, 0);
+                  const percentage = total > 0 ? (c.revenue / total) * 100 : 0;
+                  return (
+                    <div key={c.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-sm ${catColors[i] || "bg-gray-400"}`} />
+                        <span className="text-sm text-gray-700">{c.name}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-gray-900">{formatPrice(c.revenue)}</span>
+                        <span className="text-xs text-gray-400 w-8 text-right">{percentage.toFixed(1)}%</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-gray-500">{c.orders} orders</span>
-                      <span className="font-medium text-gray-900 w-20 text-right">{formatPrice(c.revenue)}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
@@ -124,17 +129,21 @@ export default function AdminReportsPage() {
           <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Bookings by City</h3>
           {topCities.length > 0 ? (
             <div className="space-y-3">
-              {topCities.map((c: any) => (
-                <div key={c.city}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-gray-700">{c.city}</span>
-                    <span className="text-gray-500">{c.orders} ({c.percentage}%)</span>
+              {topCities.map((c: any) => {
+                const totalOrders = topCities.reduce((acc: number, val: any) => acc + (val.orders || 0), 0);
+                const percentage = totalOrders > 0 ? ((c.orders || 0) / totalOrders) * 100 : 0;
+                return (
+                  <div key={c.city}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-gray-700">{c.city}</span>
+                      <span className="text-gray-500">{c.orders} ({percentage.toFixed(1)}%)</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full" style={{ width: `${percentage}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full" style={{ width: `${c.percentage}%` }} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-sm text-gray-400">No city data available</p>

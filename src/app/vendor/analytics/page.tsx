@@ -21,11 +21,32 @@ export default function VendorAnalyticsPage() {
     );
   }
 
-  const d = data || {};
-  const metrics: any[] = d.metrics || [];
+  const d = data?.data || data || {};
+  const m = d.metrics || {};
+  
+  const metrics = [
+    { label: "Total Revenue", value: formatPrice(m.totalRevenue || 0), icon: <DollarSign size={18} />, color: "from-emerald-500 to-teal-500" },
+    { label: "Total Bookings", value: String(m.totalBookings || 0), icon: <ShoppingBag size={18} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Avg Rating", value: (m.avgRating || 0).toFixed(1), icon: <Star size={18} />, color: "from-amber-500 to-orange-500" },
+    { label: "Total Views", value: String(m.totalViews || 0), icon: <Eye size={18} />, color: "from-violet-500 to-purple-500" },
+  ];
+
   const topServices: any[] = d.topServices || [];
-  const weeklyViews: { day: string; views: number }[] = d.weeklyViews || [];
-  const cityBreakdown: { city: string; bookings: number; percentage: number }[] = d.cityBreakdown || [];
+  
+  // Create mock weekly views if not returned (backend currently doesn't return this)
+  const weeklyViews: { day: string; views: number }[] = d.weeklyViews || [
+    { day: "Mon", views: 0 }, { day: "Tue", views: 0 }, { day: "Wed", views: 0 },
+    { day: "Thu", views: 0 }, { day: "Fri", views: 0 }, { day: "Sat", views: 0 }, { day: "Sun", views: 0 }
+  ];
+  
+  const rawCityBreakdown: { city: string; bookings: number; revenue: number }[] = d.cityBreakdown || [];
+  const totalCityBookings = rawCityBreakdown.reduce((sum, c) => sum + c.bookings, 0);
+  const cityBreakdown = rawCityBreakdown.map(c => ({
+    city: c.city || "Unknown",
+    bookings: c.bookings,
+    percentage: totalCityBookings > 0 ? Math.round((c.bookings / totalCityBookings) * 100) : 0
+  }));
+
   const maxViews = Math.max(...weeklyViews.map((w: any) => w.views), 1);
 
   return (
@@ -43,9 +64,6 @@ export default function VendorAnalyticsPage() {
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.color || "from-gray-500 to-gray-600"} flex items-center justify-center text-white`}>
                 {m.icon || <TrendingUp size={18} />}
               </div>
-              <span className="flex items-center gap-0.5 text-xs font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-                <ArrowUpRight size={10} /> {m.change || "+0%"}
-              </span>
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{m.value}</p>
             <p className="text-xs text-gray-500 mt-1">{m.label}</p>
@@ -114,20 +132,20 @@ export default function VendorAnalyticsPage() {
             <tbody>
               {topServices.map((s: any, i: number) => (
                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
-                  <td className="p-4 text-sm font-medium text-gray-900">{s.name}</td>
-                  <td className="p-4 text-sm font-bold text-gray-900">{s.bookings}</td>
-                  <td className="p-4 hidden md:table-cell text-sm text-emerald-600 font-medium">{formatPrice(s.revenue)}</td>
+                  <td className="p-4 text-sm font-medium text-gray-900">{s.title || s.name}</td>
+                  <td className="p-4 text-sm font-bold text-gray-900">{s.bookingCount || s.bookings || 0}</td>
+                  <td className="p-4 hidden md:table-cell text-sm text-emerald-600 font-medium">{formatPrice((s.bookingCount || 0) * (s.basePrice || 0))}</td>
                   <td className="p-4 hidden md:table-cell">
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${s.conversion}%` }} />
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${s.viewCount ? Math.min(Math.round(((s.bookingCount || 0) / s.viewCount) * 100), 100) : 0}%` }} />
                       </div>
-                      <span className="text-xs text-gray-600">{s.conversion}%</span>
+                      <span className="text-xs text-gray-600">{s.viewCount ? Math.round(((s.bookingCount || 0) / s.viewCount) * 100) : 0}%</span>
                     </div>
                   </td>
                   <td className="p-4">
                     <span className="flex items-center gap-1 text-sm">
-                      <Star size={12} className="text-amber-400 fill-amber-400" /> {s.rating}
+                      <Star size={12} className="text-amber-400 fill-amber-400" /> {s.avgRating ? Number(s.avgRating).toFixed(1) : "0.0"}
                     </span>
                   </td>
                 </tr>
