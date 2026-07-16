@@ -40,12 +40,6 @@ function RegisterContent() {
       if (role === "VENDOR") {
         toast.success("Vendor registration submitted! Pending admin approval.");
         router.push("/");
-      } else if (role === "EMPLOYEE") {
-        toast.success("Registration successful!");
-        router.push("/employee");
-      } else if (role === "INVESTOR") {
-        toast.success("Registration successful!");
-        router.push("/investor");
       } else {
         toast.success("Registration successful!");
         router.push("/");

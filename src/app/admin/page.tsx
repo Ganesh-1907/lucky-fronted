@@ -79,15 +79,7 @@ export default function AdminDashboard() {
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white`}>
                 {stat.icon}
               </div>
-              {stat.change && (
-                <span className={cn(
-                  "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full",
-                  stat.up ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-                )}>
-                  {stat.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {stat.change}
-                </span>
-              )}
+
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
               {stat.value}

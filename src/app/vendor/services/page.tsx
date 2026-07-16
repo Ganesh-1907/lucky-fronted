@@ -78,7 +78,7 @@ export default function VendorServicesPage() {
 
       {/* Service Cards */}
       <div className="space-y-4">
-        {filtered.map(service => (
+        {filtered.map((service: any) => (
           <div key={service.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               {/* Image Placeholder */}
