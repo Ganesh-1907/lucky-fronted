@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   Phone, Mail, MapPin, Globe, MessageSquare, Send, Play,
 } from "lucide-react";
-import { useBanners } from "@/hooks/useApi";
+import { useBanners, useSettings } from "@/hooks/useApi";
 import BannerCarousel from "@/components/BannerCarousel";
 
 const footerLinks = {
@@ -33,6 +33,16 @@ const footerLinks = {
 export default function Footer() {
   const { data: bannerRes } = useBanners("FOOTER");
   const banners = bannerRes?.data || [];
+  const { data: settingsRes } = useSettings();
+  const settings = settingsRes?.data || {};
+  
+  const siteName = settings.siteName || "Lucky Marketplace";
+  const supportPhone = settings.supportPhone || "+91 98765 43210";
+  const supportEmail = settings.supportEmail || "support@luckymarketplace.com";
+  
+  const dynamicServices = settings.footerServices || footerLinks.services;
+  const dynamicCompany = settings.footerCompany || footerLinks.company;
+  const dynamicSupport = settings.footerSupport || footerLinks.support;
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -59,7 +69,7 @@ export default function Footer() {
                 </span>
               </div>
               <span className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-outfit)" }}>
-                Lucky
+                {siteName}
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-gray-400">
@@ -67,11 +77,11 @@ export default function Footer() {
               events, and celebration packages across 500+ cities in India.
             </p>
             <div className="space-y-2">
-              <a href="tel:+919876543210" className="flex items-center gap-2 text-sm hover:text-white transition-colors">
-                <Phone size={14} /> +91 98765 43210
+              <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="flex items-center gap-2 text-sm hover:text-white transition-colors">
+                <Phone size={14} /> {supportPhone}
               </a>
-              <a href="mailto:support@luckymarketplace.com" className="flex items-center gap-2 text-sm hover:text-white transition-colors">
-                <Mail size={14} /> support@luckymarketplace.com
+              <a href={`mailto:${supportEmail}`} className="flex items-center gap-2 text-sm hover:text-white transition-colors">
+                <Mail size={14} /> {supportEmail}
               </a>
               <span className="flex items-center gap-2 text-sm">
                 <MapPin size={14} /> Mumbai, India
@@ -85,7 +95,7 @@ export default function Footer() {
               Services
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.services.map((link) => (
+              {dynamicServices.map((link: any) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm hover:text-violet-400 transition-colors">
                     {link.label}
@@ -101,7 +111,7 @@ export default function Footer() {
               Company
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.company.map((link) => (
+              {dynamicCompany.map((link: any) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm hover:text-violet-400 transition-colors">
                     {link.label}
@@ -117,7 +127,7 @@ export default function Footer() {
               Support
             </h3>
             <ul className="space-y-2.5">
-              {footerLinks.support.map((link) => (
+              {dynamicSupport.map((link: any) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm hover:text-violet-400 transition-colors">
                     {link.label}
@@ -131,10 +141,10 @@ export default function Footer() {
               <h4 className="text-white font-semibold text-sm mb-3">Follow Us</h4>
               <div className="flex items-center gap-3">
                 {[
-                  { icon: <Globe size={18} />, href: "#", label: "Website" },
-                  { icon: <MessageSquare size={18} />, href: "#", label: "Chat" },
-                  { icon: <Send size={18} />, href: "#", label: "Telegram" },
-                  { icon: <Play size={18} />, href: "#", label: "Video" },
+                  { icon: <Globe size={18} />, href: settings.socialWebsite || "#", label: "Website" },
+                  { icon: <MessageSquare size={18} />, href: settings.socialChat || "#", label: "Chat" },
+                  { icon: <Send size={18} />, href: settings.socialTelegram || "#", label: "Telegram" },
+                  { icon: <Play size={18} />, href: settings.socialVideo || "#", label: "Video" },
                 ].map((social, i) => (
                   <a
                     key={i}
@@ -154,7 +164,7 @@ export default function Footer() {
       <div className="border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} Lucky Marketplace. All rights reserved.
+            © {new Date().getFullYear()} {siteName}. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>🔒 Secure Payments</span>

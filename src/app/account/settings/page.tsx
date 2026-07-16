@@ -22,10 +22,10 @@ export default function AccountSettingsPage() {
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
-    name: user?.name || "John Doe",
-    email: user?.email || "john@example.com",
-    phone: user?.phone || "+91 98765 43210",
-    city: user?.city || "Mumbai",
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    city: user?.city || "",
   });
   const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
   

@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { useSettings } from "@/hooks/useApi";
 import { MapPin, Phone, Mail, Clock, Send, Loader2, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
+  
+  const { data: settingsRes } = useSettings();
+  const settings = settingsRes?.data || {};
+  const supportPhone = settings.supportPhone || "+91 98765 43210";
+  const supportEmail = settings.supportEmail || "support@luckymarketplace.com";
+
 
   const sendMutation = useMutation({
     mutationFn: (data: any) => api.post("/contact", data),
@@ -44,8 +51,8 @@ export default function ContactPage() {
           {/* Contact Info Cards */}
           <div className="space-y-4">
             {[
-              { icon: <Phone size={20} />, title: "Call Us", info: "+91 98765 43210", sub: "Mon-Sat, 9AM - 8PM IST", color: "from-violet-500 to-purple-500" },
-              { icon: <Mail size={20} />, title: "Email Us", info: "support@luckymarketplace.com", sub: "We reply within 24 hours", color: "from-emerald-500 to-teal-500" },
+              { icon: <Phone size={20} />, title: "Call Us", info: supportPhone, sub: "Mon-Sat, 9AM - 8PM IST", color: "from-violet-500 to-purple-500" },
+              { icon: <Mail size={20} />, title: "Email Us", info: supportEmail, sub: "We reply within 24 hours", color: "from-emerald-500 to-teal-500" },
               { icon: <MapPin size={20} />, title: "Visit Us", info: "Mumbai, Maharashtra", sub: "India 400001", color: "from-amber-500 to-orange-500" },
               { icon: <Clock size={20} />, title: "Support Hours", info: "Mon-Sat: 9AM - 8PM", sub: "Sunday: 10AM - 5PM", color: "from-blue-500 to-indigo-500" },
             ].map((item, i) => (
@@ -87,7 +94,7 @@ export default function ContactPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
                   <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
-                    placeholder="+91 98765 43210"
+                    placeholder={supportPhone}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
                 </div>
                 <div>

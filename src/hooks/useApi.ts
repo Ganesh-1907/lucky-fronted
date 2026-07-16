@@ -533,3 +533,23 @@ export function useAdminHomepageSections() {
   });
 }
 
+// ─── SETTINGS ───────────────────────────────────────────────
+export function useSettings() {
+  return useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.get<{ data: any }>("/settings"),
+    staleTime: 5 * 60 * 1000, // 5 mins cache
+  });
+}
+
+export function useUpdateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => api.put("/settings", data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+}
+
+
