@@ -51,6 +51,13 @@ export default function EditVendorPage({ params }: { params: Promise<{ id: strin
           phone: vendor.user?.phone || "",
           address: vendor.user?.address || "",
           city: vendor.user?.city || "",
+          gstNumber: vendor.gstNumber || "",
+          panNumber: vendor.panNumber || "",
+          registrationNumber: vendor.registrationNumber || "",
+          accountHolder: vendor.bankAccountName || "",
+          accountNumber: vendor.bankAccountNo || "",
+          ifscCode: vendor.bankIfsc || "",
+          bankName: vendor.bankName || "",
         }));
       }
     }
