@@ -131,8 +131,7 @@ export default function AdminUsersPage() {
                   let status = user.isActive ? "ACTIVE" : "SUSPENDED";
                   
                   if (role === "VENDOR" && user.vendorStatus) {
-                    if (user.vendorStatus === "PENDING") status = "PENDING";
-                    else if (user.vendorStatus === "REJECTED") status = "REJECTED";
+                    status = user.vendorStatus;
                   }
                   
                   return (
@@ -161,8 +160,9 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="p-4">
                         <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                          status === "ACTIVE" ? "bg-green-100 text-green-700" : 
+                          (status === "ACTIVE" || status === "APPROVED") ? "bg-green-100 text-green-700" : 
                           status === "PENDING" ? "bg-amber-100 text-amber-700" : 
+                          status === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
                           "bg-red-100 text-red-700"
                         )}>{status}</span>
                       </td>
@@ -281,13 +281,13 @@ export default function AdminUsersPage() {
                       {(() => {
                         let badgeStatus = viewUser.isActive ? "ACTIVE" : "SUSPENDED";
                         if (viewUser.role === "VENDOR" && viewUser.vendorStatus) {
-                          if (viewUser.vendorStatus === "PENDING") badgeStatus = "PENDING";
-                          else if (viewUser.vendorStatus === "REJECTED") badgeStatus = "REJECTED";
+                          badgeStatus = viewUser.vendorStatus;
                         }
                         return (
                           <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                            badgeStatus === "ACTIVE" ? "bg-green-100 text-green-700" : 
+                            (badgeStatus === "ACTIVE" || badgeStatus === "APPROVED") ? "bg-green-100 text-green-700" : 
                             badgeStatus === "PENDING" ? "bg-amber-100 text-amber-700" : 
+                            badgeStatus === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
                             "bg-red-100 text-red-700"
                           )}>
                             {badgeStatus}
