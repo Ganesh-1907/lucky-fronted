@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, UserPlus, Copy, Check } from "lucide-react";
+import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, UserPlus, Copy, Check, Edit } from "lucide-react";
 import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
-import { useAdminUsers, useToggleUserStatus, useCreateAdminUser } from "@/hooks/useApi";
+import { useAdminUsers, useToggleUserStatus, useCreateAdminUser, useUpdateAdminUser } from "@/hooks/useApi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-const roleFilters = ["All", "CLIENT", "VENDOR", "ADMIN"];
+const roleFilters = ["All", "CLIENT", "VENDOR", "ADMIN", "EMPLOYEE", "INVESTOR"];
 const roleColors: Record<string, string> = {
   CLIENT: "bg-blue-100 text-blue-700",
   VENDOR: "bg-emerald-100 text-emerald-700",
@@ -23,11 +23,14 @@ export default function AdminUsersPage() {
   const [pageSize, setPageSize] = useState(10);
   const [viewUser, setViewUser] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   const { data, isLoading, error } = useAdminUsers(roleFilter !== "All" ? roleFilter : undefined);
   const users = Array.isArray(data) ? data : (data?.data || []);
   const toggleUser = useToggleUserStatus();
   const createUser = useCreateAdminUser();
+  const updateUser = useUpdateAdminUser();
 
   const filteredAndSorted = useMemo(() => {
     let result = users.filter((u: any) => {
@@ -174,6 +177,14 @@ export default function AdminUsersPage() {
                             <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                               <Mail size={14} className="text-gray-400" /> Email
                             </a>
+                            {(role === "EMPLOYEE" || role === "INVESTOR") && (
+                              <button 
+                                onClick={() => { setEditingUser(user); setShowEditModal(true); }} 
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Edit size={14} className="text-gray-400" /> Edit
+                              </button>
+                            )}
                             {role !== "ADMIN" && (
                               <button 
                                 onClick={() => { handleToggleStatus(user.id, status); }} 
@@ -249,6 +260,26 @@ export default function AdminUsersPage() {
               }
             }}
             isLoading={createUser.isPending}
+          />
+        )}
+      </AnimatePresence>
+
+
+      <AnimatePresence>
+        {showEditModal && editingUser && (
+          <EditUserModal
+            user={editingUser}
+            onClose={() => { setShowEditModal(false); setEditingUser(null); }}
+            onSubmit={async (data) => {
+              try {
+                await updateUser.mutateAsync({ id: editingUser.id, data });
+                toast.success("User updated successfully!");
+              } catch (err) {
+                toast.error(err.response?.data?.message || err.message || "Failed to update user");
+                throw err;
+              }
+            }}
+            isLoading={updateUser.isPending}
           />
         )}
       </AnimatePresence>
@@ -492,6 +523,97 @@ function CreateUserModal({
             </div>
           </form>
         )}
+      </motion.div>
+    </div>
+  );
+}
+
+
+// ─── Edit User Modal ────────────────────────────────────
+function EditUserModal({
+  user,
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  user: any;
+  onClose: () => void;
+  onSubmit: (data: { name: string; email: string; role: string; phone?: string; city?: string }) => Promise<void>;
+  isLoading: boolean;
+}) {
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [city, setCity] = useState(user?.city || "");
+  const [role, setRole] = useState(user?.role || "EMPLOYEE");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await onSubmit({ name, email, role, phone: phone || undefined, city: city || undefined });
+      onClose();
+    } catch {
+      // error handled by parent
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <h2 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+            <Edit size={18} className="text-violet-600" />
+            Edit User
+          </h2>
+          <button type="button" onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 text-gray-500">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Enter full name"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="user@example.com"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Role *</label>
+            <select value={role} onChange={e => setRole(e.target.value)} required
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 bg-white">
+              <option value="EMPLOYEE">Employee</option>
+              <option value="INVESTOR">Investor</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98765 43210"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
+            <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="e.g., Mumbai"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+          </div>
+
+          <div className="pt-2 flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" disabled={isLoading} className="flex-1 py-2.5 rounded-xl gradient-primary text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              {isLoading ? <Loader size={16} className="animate-spin" /> : "Save Changes"}
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );

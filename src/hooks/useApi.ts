@@ -275,6 +275,14 @@ export function useCreateAdminUser() {
   });
 }
 
+export function useUpdateAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.put(`/admin/users/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+}
+
 // Get admin reviews (list all)
 export function useAdminReviews() {
   return useQuery({
