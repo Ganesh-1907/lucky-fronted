@@ -55,9 +55,6 @@ export default function VendorEarningsPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white">
               <DollarSign size={18} />
             </div>
-            <span className="flex items-center gap-0.5 text-xs font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-              <ArrowUpRight size={10} /> +18.2%
-            </span>
           </div>
           <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(totalEarnings)}</p>
           <p className="text-xs text-gray-500 mt-1">Gross Earnings (2024)</p>
@@ -119,16 +116,17 @@ export default function VendorEarningsPage() {
             </thead>
             <tbody>
               {transactions.map((t: any) => {
-                const commission = t.commission ?? Math.round((t.amount || 0) * 0.15);
-                const net = t.net ?? (t.amount || 0) - commission;
+                const amount = t.totalAmount || t.amount || 0;
+                const commission = t.commission ?? Math.round(amount * 0.15);
+                const net = t.net ?? (amount - commission);
                 return (
                   <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4">
-                      <p className="text-sm font-mono font-bold text-emerald-600">{t.bookingId || t.id}</p>
-                      <p className="text-xs text-gray-500">{t.client || t.customer} · {t.date}</p>
+                      <p className="text-sm font-mono font-bold text-emerald-600">{t.bookingNumber || t.bookingId || t.id}</p>
+                      <p className="text-xs text-gray-500">{t.client?.name || t.customer || "Unknown"} · {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : t.date}</p>
                     </td>
-                    <td className="p-4 hidden md:table-cell text-sm text-gray-700 truncate max-w-[180px]">{t.service}</td>
-                    <td className="p-4 text-sm font-medium text-gray-900">{formatPrice(t.amount)}</td>
+                    <td className="p-4 hidden md:table-cell text-sm text-gray-700 truncate max-w-[180px]">{t.service?.title || t.service}</td>
+                    <td className="p-4 text-sm font-medium text-gray-900">{formatPrice(amount)}</td>
                     <td className="p-4 hidden md:table-cell text-sm text-red-600">-{formatPrice(commission)}</td>
                     <td className="p-4 text-sm font-bold text-emerald-600">{formatPrice(net)}</td>
                     <td className="p-4">
