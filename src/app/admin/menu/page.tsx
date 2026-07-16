@@ -218,25 +218,30 @@ export default function AdminMenuPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
               <div className="flex gap-2">
                 <input type="text" value={formData.url} onChange={e => setFormData({ ...formData, url: e.target.value })} placeholder="/category/..." className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
-                <select 
-                  value="" // Forces it to reset after selection
-                  className="w-1/3 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 bg-white text-gray-500"
+                
+                <input 
+                  list="quick-link-categories"
+                  placeholder="Type to search categories..."
+                  className="w-1/3 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 bg-white"
                   onChange={e => {
                     if (e.target.value) {
-                      const selectedCat = flatCategories.find((c: any) => c.slug === e.target.value);
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        url: `/category/${e.target.value}`,
-                        label: prev.label || selectedCat?.name || ""
-                      }));
+                      const selectedCat = flatCategories.find((c: any) => c.displayName === e.target.value);
+                      if (selectedCat) {
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          url: `/category/${selectedCat.slug}`,
+                          label: prev.label || selectedCat.name
+                        }));
+                        e.target.value = ""; // reset after selection
+                      }
                     }
                   }}
-                >
-                  <option value="">Quick Link Category...</option>
+                />
+                <datalist id="quick-link-categories">
                   {flatCategories.map((c: any) => (
-                    <option key={c.id} value={c.slug}>{c.displayName}</option>
+                    <option key={c.id} value={c.displayName} />
                   ))}
-                </select>
+                </datalist>
               </div>
               <p className="text-xs text-gray-400 mt-1.5">Manually type a URL or select an existing category from the dropdown to auto-fill it.</p>
             </div>

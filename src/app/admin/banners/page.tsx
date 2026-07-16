@@ -6,6 +6,7 @@ import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Banner {
   id: number;
@@ -38,6 +39,7 @@ const positionDimensions: Record<string, string> = {
 
 export default function AdminBannersPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -140,6 +142,10 @@ export default function AdminBannersPage() {
       } else {
         fetchBanners();
       }
+      
+      // Invalidate storefront cache
+      qc.invalidateQueries({ queryKey: ["banners"] });
+      qc.invalidateQueries({ queryKey: ["homepage"] });
     } catch (err: any) {
       showToast(err.message || "Failed to delete banner", "error");
     }
@@ -152,6 +158,10 @@ export default function AdminBannersPage() {
       showToast(`Banner ${statusChange.isActive ? 'Enabled' : 'Disabled'} Successfully`, "success");
       setStatusChange(null);
       fetchBanners();
+      
+      // Invalidate storefront cache
+      qc.invalidateQueries({ queryKey: ["banners"] });
+      qc.invalidateQueries({ queryKey: ["homepage"] });
     } catch (err: any) {
       showToast(err.message || "Failed to change status", "error");
     }
@@ -210,6 +220,10 @@ export default function AdminBannersPage() {
       setShowForm(false);
       resetForm();
       fetchBanners();
+      
+      // Invalidate storefront cache
+      qc.invalidateQueries({ queryKey: ["banners"] });
+      qc.invalidateQueries({ queryKey: ["homepage"] });
     } catch (err: any) {
       showToast(err.message || "Failed to create banner", "error");
     } finally {

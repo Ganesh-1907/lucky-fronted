@@ -5,23 +5,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Search, Filter, X, ChevronDown, ChevronRight, Star,
-  SlidersHorizontal, Grid3X3, LayoutList
+  SlidersHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ServiceCard from "@/components/cards/ServiceCard";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useServices, useCategories, useBanners } from "@/hooks/useApi";
-
-const allServices = [
-  { id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration", basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128, isTrending: true, isBestSeller: true, category: { name: "Balloon Decorations", slug: "balloon-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 2, title: "Romantic Candlelight Dinner Setup", slug: "romantic-candlelight-dinner-setup", basePrice: 5999, discountPrice: 4499, images: [], avgRating: 4.8, reviewCount: 89, isTrending: true, isNewArrival: true, category: { name: "Candlelight Dinner", slug: "candlelight-dinner" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 3, title: "Royal Wedding Stage Decoration", slug: "royal-wedding-stage-decoration", basePrice: 49999, discountPrice: 39999, images: [], avgRating: 4.9, reviewCount: 56, isBestSeller: true, isFeatured: true, category: { name: "Wedding Decorations", slug: "wedding-decorations" }, vendor: { businessName: "Dream Decorators", avgRating: 4.7 } },
-  { id: 4, title: "Kids Birthday Theme Party Setup", slug: "kids-birthday-theme-party-setup", basePrice: 7999, discountPrice: 5999, images: [], avgRating: 4.6, reviewCount: 72, isTrending: true, isNewArrival: true, category: { name: "Birthday Decorations", slug: "birthday-decorations" }, vendor: { businessName: "Party Kings", avgRating: 4.5 } },
-  { id: 5, title: "Simple Anniversary Decoration", slug: "simple-anniversary-decoration", basePrice: 2999, discountPrice: 2499, images: [], avgRating: 4.3, reviewCount: 45, isFeatured: true, category: { name: "Anniversary", slug: "anniversary-celebrations" }, vendor: { businessName: "Love Setup Co", avgRating: 4.6 } },
-  { id: 6, title: "Neon Birthday Setup", slug: "neon-birthday-setup", basePrice: 6999, discountPrice: 5499, images: [], avgRating: 4.7, reviewCount: 38, isNewArrival: true, isTrending: true, category: { name: "Birthday Decorations", slug: "birthday-decorations" }, vendor: { businessName: "Glow Events", avgRating: 4.8 } },
-  { id: 7, title: "Rose Petal Romantic Setup", slug: "rose-petal-romantic-setup", basePrice: 3999, discountPrice: null, images: [], avgRating: 4.4, reviewCount: 67, isBestSeller: true, category: { name: "Romantic Setup", slug: "romantic-setup" }, vendor: { businessName: "Love Setup Co", avgRating: 4.6 } },
-  { id: 8, title: "Corporate Conference Setup", slug: "corporate-conference-setup", basePrice: 15999, discountPrice: 12999, images: [], avgRating: 4.5, reviewCount: 23, isFeatured: true, category: { name: "Corporate Events", slug: "corporate-events" }, vendor: { businessName: "BizEvents Pro", avgRating: 4.4 } },
-];
 
 // Fetched dynamically from API
 
@@ -45,28 +34,30 @@ const sortOptions = [
 export default function ServicesPage() {
   const searchParams = useSearchParams();
   const { data: catData } = useCategories();
-  const apiCategories = catData?.data ? ["All", ...catData.data.map((c: any) => c.name)] : ["All"];
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const apiCategories = catData?.data ? [{ name: "All", slug: "All" }, ...catData.data] : [{ name: "All", slug: "All" }];
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "All");
   const [selectedPrice, setSelectedPrice] = useState(0);
-  const [selectedSort, setSelectedSort] = useState("popular");
+  const [selectedSort, setSelectedSort] = useState(searchParams.get("sort") || "popular");
   const [selectedRating, setSelectedRating] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [categories, setCategories] = useState<{ id: number; name: string; slug: string; _count?: any }[]>([]);
+  const cityQuery = searchParams.get("city") || undefined;
 
   const { data: bannerRes } = useBanners("SIDEBAR");
   const banners = bannerRes?.data || [];
 
-  const filteredServices = allServices.filter(s => {
-    if (selectedCategory !== "All" && s.category.name !== selectedCategory) return false;
-    if (searchQuery && !s.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    const range = priceRanges[selectedPrice];
-    const price = s.discountPrice || s.basePrice;
-    if (price < range.min || price > range.max) return false;
-    if (selectedRating > 0 && s.avgRating < selectedRating) return false;
-    return true;
+  const { data: servicesRes, isLoading } = useServices({
+    category: selectedCategory !== "All" ? selectedCategory : undefined,
+    search: searchQuery || undefined,
+    minPrice: selectedPrice > 0 ? priceRanges[selectedPrice].min : undefined,
+    maxPrice: selectedPrice > 0 && priceRanges[selectedPrice].max !== Infinity ? priceRanges[selectedPrice].max : undefined,
+    rating: selectedRating > 0 ? selectedRating : undefined,
+    sort: selectedSort,
+    city: cityQuery,
   });
+
+  const displayServices = servicesRes?.data || [];
+  const totalServices = servicesRes?.pagination?.total || 0;
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -79,12 +70,11 @@ export default function ServicesPage() {
         </nav>
       </div>
 
-      {/* Header */}
       <div className="max-w-7xl mx-auto px-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-outfit)" }}>
           Explore Services
         </h1>
-        <p className="text-gray-500">Discover {allServices.length}+ premium celebration services</p>
+        <p className="text-gray-500">Discover premium celebration services</p>
       </div>
 
       {/* Search & Filter Bar */}
@@ -125,21 +115,6 @@ export default function ServicesPage() {
               <SlidersHorizontal size={16} /> Filters
             </button>
 
-            {/* View Toggle */}
-            <div className="hidden md:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn("p-2 rounded-md transition-all", viewMode === "grid" ? "bg-white shadow-sm" : "")}
-              >
-                <Grid3X3 size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={cn("p-2 rounded-md transition-all", viewMode === "list" ? "bg-white shadow-sm" : "")}
-              >
-                <LayoutList size={16} />
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -163,18 +138,18 @@ export default function ServicesPage() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="font-semibold text-gray-900 mb-3 text-sm">Category</h3>
               <div className="space-y-1">
-                {apiCategories.map((cat: string) => (
+                {apiCategories.map((cat: any) => (
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    key={cat.slug}
+                    onClick={() => setSelectedCategory(cat.slug)}
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
-                      selectedCategory === cat
+                      selectedCategory === cat.slug
                         ? "bg-violet-50 text-violet-700 font-medium"
                         : "text-gray-600 hover:bg-gray-50"
                     )}
                   >
-                    {cat}
+                    {cat.name}
                   </button>
                 ))}
               </div>
@@ -256,7 +231,7 @@ export default function ServicesPage() {
                 <span className="text-sm text-gray-500">Active filters:</span>
                 {selectedCategory !== "All" && (
                   <span className="flex items-center gap-1 px-3 py-1 bg-violet-50 text-violet-700 text-xs font-medium rounded-full">
-                    {selectedCategory}
+                    {apiCategories.find((c: any) => c.slug === selectedCategory)?.name || selectedCategory}
                     <X size={12} className="cursor-pointer" onClick={() => setSelectedCategory("All")} />
                   </span>
                 )}
@@ -277,18 +252,19 @@ export default function ServicesPage() {
 
             {/* Results Count */}
             <p className="text-sm text-gray-500 mb-4">
-              Showing {filteredServices.length} services
+              Showing {totalServices} services
             </p>
 
             {/* Service Grid */}
-            {filteredServices.length > 0 ? (
-              <div className={cn(
-                "gap-4 md:gap-5",
-                viewMode === "grid"
-                  ? "grid grid-cols-2 lg:grid-cols-3"
-                  : "grid grid-cols-1"
-              )}>
-                {filteredServices.map((service) => (
+            {isLoading ? (
+              <div className="gap-4 md:gap-5 grid grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="bg-white border border-gray-100 rounded-2xl h-80 animate-pulse"></div>
+                ))}
+              </div>
+            ) : displayServices.length > 0 ? (
+              <div className="gap-4 md:gap-5 grid grid-cols-2 lg:grid-cols-3">
+                {displayServices.map((service: any) => (
                   <ServiceCard key={service.id} {...service} />
                 ))}
               </div>

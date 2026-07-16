@@ -13,37 +13,7 @@ import ServiceCard from "@/components/cards/ServiceCard";
 import BannerCarousel from "@/components/BannerCarousel";
 import { useServices, useCategories, useHomepageSections, useBanners } from "@/hooks/useApi";
 
-// Sample data for demo (replaced by API data in production)
-const sampleServices = [
-  {
-    id: 1, title: "Premium Birthday Balloon Decoration", slug: "premium-birthday-balloon-decoration",
-    basePrice: 4999, discountPrice: 3999, images: [], avgRating: 4.5, reviewCount: 128,
-    isTrending: true, isBestSeller: true, isNewArrival: false, isFeatured: true,
-    category: { name: "Balloon Decorations", slug: "balloon-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 2, title: "Romantic Candlelight Dinner Setup", slug: "romantic-candlelight-dinner-setup",
-    basePrice: 5999, discountPrice: 4499, images: [], avgRating: 4.8, reviewCount: 89,
-    isTrending: true, isBestSeller: false, isNewArrival: true, isFeatured: true,
-    category: { name: "Candlelight Dinner", slug: "candlelight-dinner" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 3, title: "Royal Wedding Stage Decoration", slug: "royal-wedding-stage-decoration",
-    basePrice: 49999, discountPrice: 39999, images: [], avgRating: 4.9, reviewCount: 56,
-    isTrending: false, isBestSeller: true, isNewArrival: false, isFeatured: true,
-    category: { name: "Wedding Decorations", slug: "wedding-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-  {
-    id: 4, title: "Kids Birthday Theme Party Setup", slug: "kids-birthday-theme-party-setup",
-    basePrice: 7999, discountPrice: 5999, images: [], avgRating: 4.6, reviewCount: 72,
-    isTrending: true, isBestSeller: false, isNewArrival: true, isFeatured: false,
-    category: { name: "Birthday Decorations", slug: "birthday-decorations" },
-    vendor: { businessName: "Dream Decorators", avgRating: 4.7 },
-  },
-];
+// No hardcoded sample services; all data comes strictly from the backend API.
 
 const categoryIcons: Record<string, React.ReactNode> = {
   "birthday-decorations": <PartyPopper size={28} />,
@@ -63,16 +33,7 @@ const categoryColors = [
   "from-red-500 to-pink-500", "from-purple-500 to-violet-500",
 ];
 
-const defaultCategories = [
-  { name: "Birthday Decorations", slug: "birthday-decorations", count: "250+" },
-  { name: "Wedding Decorations", slug: "wedding-decorations", count: "180+" },
-  { name: "Candlelight Dinner", slug: "candlelight-dinner", count: "120+" },
-  { name: "Cakes", slug: "cakes", count: "300+" },
-  { name: "Flowers", slug: "flowers", count: "200+" },
-  { name: "Corporate Events", slug: "corporate-events", count: "90+" },
-  { name: "Anniversary", slug: "anniversary-celebrations", count: "150+" },
-  { name: "Surprise Planning", slug: "surprise-planning", count: "100+" },
-];
+// No hardcoded categories; fetching dynamically.
 
 const stats = [
   { icon: <Users size={24} />, value: "50,000+", label: "Happy Customers" },
@@ -81,13 +42,6 @@ const stats = [
   { icon: <Shield size={24} />, value: "100%", label: "Secure Payments" },
 ];
 
-const defaultHomepageSections = [
-  { id: 'default-1', type: 'banner', title: 'Hero' },
-  { id: 'default-2', type: 'categories', title: 'Browse Categories', subtitle: 'Find the perfect service for your celebration' },
-  { id: 'default-3', type: 'services', name: 'trending', title: 'Trending Now', subtitle: 'Most popular services this month' },
-  { id: 'default-4', type: 'how_it_works', title: 'How It Works', subtitle: 'Book your celebration in 3 simple steps' },
-  { id: 'default-5', type: 'vendor_cta', title: 'Are You a Decoration Vendor?', subtitle: 'Join Lucky Marketplace and reach thousands of customers.' }
-];
 
 
 export default function HomePage() {
@@ -99,46 +53,27 @@ export default function HomePage() {
   const { data: homepageRes, isLoading: homepageLoading } = useHomepageSections();
   const { data: bannerRes } = useBanners("HOMEPAGE");
 
-  const trendingServices = (trendingRes as any)?.data?.length ? (trendingRes as any).data : sampleServices;
-  const bestsellerServices = (bestsellerRes as any)?.data?.length ? (bestsellerRes as any).data : sampleServices;
-  const categories = (categoriesRes as any)?.data?.length
-    ? (categoriesRes as any).data.map((c: any, i: number) => ({
-        ...c,
-        icon: categoryIcons[c.slug] || <Sparkles size={28} />,
-        color: categoryColors[i % categoryColors.length],
-        count: c._count?.services ? `${c._count.services}+` : "New",
-      }))
-    : defaultCategories.map((c, i) => ({
-        ...c,
-        icon: categoryIcons[c.slug] || <Sparkles size={28} />,
-        color: categoryColors[i % categoryColors.length],
-      }));
+  const trendingServices = (trendingRes as any)?.data || [];
+  const bestsellerServices = (bestsellerRes as any)?.data || [];
+  const categories = ((categoriesRes as any)?.data || []).map((c: any, i: number) => ({
+    ...c,
+    icon: categoryIcons[c.slug] || <Sparkles size={28} />,
+    color: categoryColors[i % categoryColors.length],
+    count: c._count?.services ? `${c._count.services}+` : "New",
+  }));
 
-  // ─── Dynamic Banners ───────────────────────────────────────
-  const defaultHeroSlides = [
-    { src: "/hero-celebration.png", alt: "Beautiful celebration decoration with balloons, flowers and fairy lights", emoji: "🎉", label: "Celebration Setups", sublabel: "1,200+ verified vendors" },
-    { src: "/hero-wedding.png", alt: "Luxurious wedding stage decoration with floral arrangements", emoji: "💒", label: "Wedding Decorations", sublabel: "Make your big day magical" },
-    { src: "/hero-birthday.png", alt: "Colorful birthday party decoration with balloons and cake", emoji: "🎂", label: "Birthday Parties", sublabel: "250+ themes available" },
-    { src: "/hero-candlelight.png", alt: "Romantic candlelight dinner setup with candles and roses", emoji: "🕯️", label: "Candlelight Dinners", sublabel: "Unforgettable romantic evenings" }
-  ];
-
-  const homepageSections = (homepageRes as any)?.data?.length > 0 
-    ? (homepageRes as any).data 
-    : (homepageLoading ? defaultHomepageSections : []);
+  const homepageSections = (homepageRes as any)?.data || [];
     
   const bannerSection = homepageSections.find((s: any) => s.type === 'banner');
   
-  // Transform API banners or fallback to default
-  const heroSlides = bannerSection?.data?.length > 0 
-    ? bannerSection.data.map((banner: any) => ({
-        src: banner.image.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
-        alt: banner.title,
-        emoji: "✨", // Default emoji for dynamic banners
-        label: banner.title,
-        sublabel: banner.description || "Special Offer",
-        link: banner.link
-      }))
-    : defaultHeroSlides;
+  const heroSlides = (bannerSection?.data || []).map((banner: any) => ({
+    src: banner.image.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
+    alt: banner.title,
+    emoji: "✨",
+    label: banner.title,
+    sublabel: banner.description || "Special Offer",
+    link: banner.link
+  }));
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
@@ -198,29 +133,37 @@ export default function HomePage() {
                     <div className="relative w-full max-w-lg rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl" style={{ transform: "rotate(2deg)", transition: "transform 0.5s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "rotate(0deg) scale(1.02)"; setCarouselPaused(true); }} onMouseLeave={(e) => { e.currentTarget.style.transform = "rotate(2deg)"; setCarouselPaused(false); }}>
                       <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-white/10 to-transparent z-20" />
                       <div className="relative" style={{ aspectRatio: "4/3" }}>
-                        {heroSlides.map((slide: any, i: number) => (
-                          <div key={i} className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer" style={{ opacity: activeSlide === i ? 1 : 0 }} onClick={() => slide.link && router.push(slide.link)}>
-                            <img src={slide.src} alt={slide.alt} className="w-full h-full object-cover" />
+                        {heroSlides.length > 0 ? (
+                          heroSlides.map((slide: any, i: number) => (
+                            <div key={i} className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer" style={{ opacity: activeSlide === i ? 1 : 0 }} onClick={() => slide.link && router.push(slide.link)}>
+                              <img src={slide.src} alt={slide.alt} className="w-full h-full object-cover" />
+                            </div>
+                          ))
+                        ) : (
+                          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-900/50">
+                            <span className="text-white font-medium">No banners available</span>
                           </div>
-                        ))}
+                        )}
                       </div>
                       <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent p-6 z-20">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
-                              {heroSlides[activeSlide]?.emoji}
+                        {heroSlides.length > 0 && (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
+                                {heroSlides[activeSlide]?.emoji}
+                              </div>
+                              <div>
+                                <p className="text-white text-sm font-semibold">{heroSlides[activeSlide]?.label}</p>
+                                <p className="text-white/70 text-xs">{heroSlides[activeSlide]?.sublabel}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-white text-sm font-semibold">{heroSlides[activeSlide]?.label}</p>
-                              <p className="text-white/70 text-xs">{heroSlides[activeSlide]?.sublabel}</p>
+                            <div className="flex items-center gap-1.5">
+                              {heroSlides.map((_: any, i: number) => (
+                                <button key={i} onClick={() => setActiveSlide(i)} className={`rounded-full transition-all duration-300 ${activeSlide === i ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40 hover:bg-white/60"}`} />
+                              ))}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            {heroSlides.map((_: any, i: number) => (
-                              <button key={i} onClick={() => setActiveSlide(i)} className={`rounded-full transition-all duration-300 ${activeSlide === i ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40 hover:bg-white/60"}`} />
-                            ))}
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -277,9 +220,8 @@ export default function HomePage() {
         );
 
       case 'services':
-        // If data is provided from API, use it (even if empty, to reflect true state).
-        // Only fallback to demo data if section.data is literally undefined.
-        const displayServices = section.data !== undefined ? section.data : (section.name === 'trending' ? trendingServices : bestsellerServices);
+        const displayServices = section.data || (section.name === 'trending' ? trendingServices : bestsellerServices);
+        if (displayServices.length === 0) return null; // Do not show if no data
         return (
           <section key={section.id} className={`${section.name === 'best_sellers' ? 'bg-gradient-to-b from-violet-50/50 to-transparent py-16 mb-16' : 'max-w-7xl mx-auto px-4 mb-16'}`}>
             <div className={`${section.name === 'best_sellers' ? 'max-w-7xl mx-auto px-4' : ''}`}>
@@ -356,10 +298,8 @@ export default function HomePage() {
         );
 
       case 'testimonials':
-        const displayReviews = section.data?.length ? section.data : [
-          { name: "Priya Sharma", avatar: "P", rating: 5, comment: "Absolutely stunning birthday decoration!", service: { title: "Premium Birthday Balloon Decoration" }, client: { name: "Priya Sharma" } },
-          { name: "Rahul Verma", avatar: "R", rating: 5, comment: "Everything was perfect — the ambiance, setup, and attention to detail.", service: { title: "Romantic Candlelight Dinner Setup" }, client: { name: "Rahul Verma" } },
-        ];
+        const displayReviews = section.data || [];
+        if (displayReviews.length === 0) return null;
         return (
           <section key={section.id} className="bg-gray-50 py-16">
             <div className="max-w-7xl mx-auto px-4">
@@ -393,7 +333,8 @@ export default function HomePage() {
         );
 
       case 'cities':
-        const displayCities = section.data?.length ? section.data.map((c:any)=>c.name) : ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Jaipur", "Ahmedabad", "Lucknow"];
+        const displayCities = section.data?.map((c:any) => c.name) || [];
+        if (displayCities.length === 0) return null;
         return (
           <section key={section.id} className="max-w-7xl mx-auto px-4 py-16">
             <div className="text-center mb-10">
