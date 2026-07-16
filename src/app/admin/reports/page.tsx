@@ -22,8 +22,8 @@ export default function AdminReportsPage() {
 
   const stats = reportData?.stats ? [
     { label: "Total Revenue", value: formatPrice(reportData.stats.totalRevenue || 0), change: "+22.5%", icon: <DollarSign size={18} />, color: "from-violet-500 to-purple-500" },
-    { label: "Total Orders", value: (reportData.stats.totalOrders || 0).toLocaleString(), change: "+18.2%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
-    { label: "New Users", value: (reportData.stats.totalClients || 0).toLocaleString(), change: "+12.8%", icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Total Bookings", value: (reportData.stats.totalOrders || 0).toLocaleString(), change: "+18.2%", icon: <ShoppingBag size={18} />, color: "from-emerald-500 to-teal-500" },
+    { label: "New Customers", value: (reportData.stats.totalClients || 0).toLocaleString(), change: "+12.8%", icon: <Users size={18} />, color: "from-blue-500 to-indigo-500" },
     { label: "Conversion Rate", value: "34%", change: "+5.2%", icon: <TrendingUp size={18} />, color: "from-amber-500 to-orange-500" },
   ] : [];
 
@@ -121,7 +121,7 @@ export default function AdminReportsPage() {
 
         {/* Top Cities */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Orders by City</h3>
+          <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Bookings by City</h3>
           {topCities.length > 0 ? (
             <div className="space-y-3">
               {topCities.map((c: any) => (
@@ -154,7 +154,7 @@ export default function AdminReportsPage() {
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
                   <th className="text-left p-4 font-medium">#</th>
                   <th className="text-left p-4 font-medium">Vendor</th>
-                  <th className="text-left p-4 font-medium">Orders</th>
+                  <th className="text-left p-4 font-medium">Bookings</th>
                   <th className="text-left p-4 font-medium">Revenue</th>
                   <th className="text-left p-4 font-medium">Rating</th>
                 </tr>

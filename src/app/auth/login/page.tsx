@@ -180,7 +180,7 @@ function LoginContent() {
             <p className="text-xs text-violet-600">Investor: investor@yopmail.com / investor123</p>
             <p className="text-xs text-violet-600">Employee: employee@yopmail.com / employee123</p>
             <p className="text-xs text-violet-600">Vendor: vendor@yopmail.com / vendor123</p>
-            <p className="text-xs text-violet-600">Client: client@yopmail.com / client123</p>
+            <p className="text-xs text-violet-600">Customer: client@yopmail.com / client123</p>
           </div>
         </div>
 

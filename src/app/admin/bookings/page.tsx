@@ -190,7 +190,7 @@ export default function AdminBookingsPage() {
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">
                 <th className="px-6 py-4">Booking Info</th>
-                <th className="px-6 py-4">Client</th>
+                <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Service & Vendor</th>
                 <th className="px-6 py-4">Schedule</th>
                 <th className="px-6 py-4">Amount</th>
@@ -341,9 +341,9 @@ export default function AdminBookingsPage() {
                 </div>
               </div>
 
-              {/* Client Info */}
+              {/* Customer Info */}
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2"><User size={14}/> Client Information</h4>
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2"><User size={14}/> Customer Information</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between border-b border-gray-200 pb-2">
                     <span className="text-gray-500">Name</span>

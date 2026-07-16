@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, MoreVertical, UserPlus, Copy, Check } from "lucide-react";
+import { Search, Shield, Ban, Eye, Mail, Loader, UserX, ChevronLeft, ChevronRight, X, Phone, Calendar, UserPlus, Copy, Check } from "lucide-react";
+import ActionMenu from "@/components/ActionMenu";
 import { cn } from "@/lib/utils";
 import { useAdminUsers, useToggleUserStatus, useCreateAdminUser } from "@/hooks/useApi";
 import { toast } from "sonner";
@@ -21,7 +22,6 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [viewUser, setViewUser] = useState<any>(null);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data, isLoading, error } = useAdminUsers(roleFilter !== "All" ? roleFilter : undefined);
@@ -128,7 +128,12 @@ export default function AdminUsersPage() {
               <tbody>
                 {paginated.length > 0 ? paginated.map((user: any) => {
                   const role = user.role || "CLIENT";
-                  const status = user.isActive ? "ACTIVE" : "SUSPENDED";
+                  let status = user.isActive ? "ACTIVE" : "SUSPENDED";
+                  
+                  if (role === "VENDOR" && user.vendorStatus) {
+                    if (user.vendorStatus === "PENDING") status = "PENDING";
+                    else if (user.vendorStatus === "REJECTED") status = "REJECTED";
+                  }
                   
                   return (
                     <tr key={user.id} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors group">
@@ -156,32 +161,29 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="p-4">
                         <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                          status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          status === "ACTIVE" ? "bg-green-100 text-green-700" : 
+                          status === "PENDING" ? "bg-amber-100 text-amber-700" : 
+                          "bg-red-100 text-red-700"
                         )}>{status}</span>
                       </td>
                       <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
-                        <button onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
-                          <MoreVertical size={16} />
-                        </button>
-                        {openDropdown === user.id && (
-                          <div className="absolute right-4 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1">
-                            <button onClick={() => { setViewUser(user); setOpenDropdown(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <ActionMenu>
+                            <button onClick={() => { setViewUser(user); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                               <Eye size={14} className="text-gray-400" /> View
                             </button>
-                            <a href={`mailto:${user.email}`} onClick={() => setOpenDropdown(null)} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                               <Mail size={14} className="text-gray-400" /> Email
                             </a>
                             {role !== "ADMIN" && (
                               <button 
-                                onClick={() => { handleToggleStatus(user.id, status); setOpenDropdown(null); }} 
+                                onClick={() => { handleToggleStatus(user.id, status); }} 
                                 className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
                                 disabled={toggleUser.isPending}
                               >
                                 <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
                               </button>
                             )}
-                          </div>
-                        )}
+                        </ActionMenu>
                       </td>
                     </tr>
                   );
@@ -276,11 +278,22 @@ export default function AdminUsersPage() {
                       <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase", roleColors[viewUser.role || "CLIENT"] || "bg-gray-100 text-gray-700")}>
                         {(viewUser.role || "CLIENT") === "CLIENT" ? "CUSTOMER" : (viewUser.role || "CLIENT")}
                       </span>
-                      <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                          viewUser.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                        {viewUser.isActive ? "ACTIVE" : "SUSPENDED"}
-                      </span>
+                      {(() => {
+                        let badgeStatus = viewUser.isActive ? "ACTIVE" : "SUSPENDED";
+                        if (viewUser.role === "VENDOR" && viewUser.vendorStatus) {
+                          if (viewUser.vendorStatus === "PENDING") badgeStatus = "PENDING";
+                          else if (viewUser.vendorStatus === "REJECTED") badgeStatus = "REJECTED";
+                        }
+                        return (
+                          <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
+                            badgeStatus === "ACTIVE" ? "bg-green-100 text-green-700" : 
+                            badgeStatus === "PENDING" ? "bg-amber-100 text-amber-700" : 
+                            "bg-red-100 text-red-700"
+                          )}>
+                            {badgeStatus}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

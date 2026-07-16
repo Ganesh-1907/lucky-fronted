@@ -81,6 +81,15 @@ const stats = [
   { icon: <Shield size={24} />, value: "100%", label: "Secure Payments" },
 ];
 
+const defaultHomepageSections = [
+  { id: 'default-1', type: 'banner', title: 'Hero' },
+  { id: 'default-2', type: 'categories', title: 'Browse Categories', subtitle: 'Find the perfect service for your celebration' },
+  { id: 'default-3', type: 'services', name: 'trending', title: 'Trending Now', subtitle: 'Most popular services this month' },
+  { id: 'default-4', type: 'how_it_works', title: 'How It Works', subtitle: 'Book your celebration in 3 simple steps' },
+  { id: 'default-5', type: 'vendor_cta', title: 'Are You a Decoration Vendor?', subtitle: 'Join Lucky Marketplace and reach thousands of customers.' }
+];
+
+
 export default function HomePage() {
   const router = useRouter();
   // Fetch from API — falls back to demo data on error
@@ -113,7 +122,10 @@ export default function HomePage() {
     { src: "/hero-candlelight.png", alt: "Romantic candlelight dinner setup with candles and roses", emoji: "🕯️", label: "Candlelight Dinners", sublabel: "Unforgettable romantic evenings" }
   ];
 
-  const homepageSections = (homepageRes as any)?.data || [];
+  const homepageSections = (homepageRes as any)?.data?.length > 0 
+    ? (homepageRes as any).data 
+    : (homepageLoading ? defaultHomepageSections : []);
+    
   const bannerSection = homepageSections.find((s: any) => s.type === 'banner');
   
   // Transform API banners or fallback to default
@@ -141,14 +153,6 @@ export default function HomePage() {
     const timer = setInterval(nextSlide, 4000);
     return () => clearInterval(timer);
   }, [carouselPaused, nextSlide]);
-  
-  if (homepageLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600"></div>
-      </div>
-    );
-  }
 
   const renderSection = (section: any, idx: number) => {
     switch (section.type) {

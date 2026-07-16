@@ -18,6 +18,24 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-700",
 };
 
+const PIPELINE_COLORS: Record<string, string> = {
+  NEW_LEAD: "bg-slate-100 text-slate-700",
+  CUSTOMER_CONTACTED: "bg-sky-100 text-sky-700",
+  VENDOR_CONTACTED: "bg-indigo-100 text-indigo-700",
+  CUSTOMER_DISCUSSION: "bg-blue-100 text-blue-700",
+  ADVANCE_PAYMENT_PENDING: "bg-amber-100 text-amber-700",
+  ADVANCE_PAYMENT_RECEIVED: "bg-emerald-100 text-emerald-700",
+  BOOKING_CONFIRMED: "bg-teal-100 text-teal-700",
+  PLANNING_STAGE: "bg-cyan-100 text-cyan-700",
+  VENDOR_CONFIRMATION_PENDING: "bg-orange-100 text-orange-700",
+  EVENT_PREPARATION: "bg-fuchsia-100 text-fuchsia-700",
+  EVENT_ONGOING: "bg-violet-100 text-violet-700",
+  EVENT_COMPLETED: "bg-green-100 text-green-700",
+  CUSTOMER_FEEDBACK_PENDING: "bg-lime-100 text-lime-700",
+  CLOSED: "bg-gray-100 text-gray-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
 export default function AdminDashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-dashboard"],
@@ -29,10 +47,10 @@ export default function AdminDashboard() {
   if (isLoading) return <div>Loading...</div>;
 
   const stats = dashboardData?.stats ? [
-    { label: "Total Revenue", value: formatPrice(dashboardData.stats.totalRevenue || 0), change: "+12.5%", up: true, icon: <DollarSign size={20} />, color: "from-violet-500 to-purple-500" },
-    { label: "Total Orders", value: (dashboardData.stats.totalOrders || 0).toLocaleString(), change: "+8.2%", up: true, icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
-    { label: "Active Vendors", value: (dashboardData.stats.totalVendors || 0).toLocaleString(), change: "+3.1%", up: true, icon: <Store size={20} />, color: "from-emerald-500 to-teal-500" },
-    { label: "Total Customers", value: (dashboardData.stats.totalClients || 0).toLocaleString(), change: "+15.7%", up: true, icon: <Users size={20} />, color: "from-amber-500 to-orange-500" },
+    { label: "Total Revenue", value: formatPrice(dashboardData.stats.totalRevenue || 0), icon: <DollarSign size={20} />, color: "from-violet-500 to-purple-500" },
+    { label: "Total Bookings", value: (dashboardData.stats.totalOrders || 0).toLocaleString(), icon: <ShoppingBag size={20} />, color: "from-blue-500 to-indigo-500" },
+    { label: "Active Vendors", value: (dashboardData.stats.totalVendors || 0).toLocaleString(), icon: <Store size={20} />, color: "from-emerald-500 to-teal-500" },
+    { label: "Total Customers", value: (dashboardData.stats.totalClients || 0).toLocaleString(), icon: <Users size={20} />, color: "from-amber-500 to-orange-500" },
   ] : [];
 
   const pendingActions = [
@@ -61,13 +79,15 @@ export default function AdminDashboard() {
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white`}>
                 {stat.icon}
               </div>
-              <span className={cn(
-                "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full",
-                stat.up ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-              )}>
-                {stat.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                {stat.change}
-              </span>
+              {stat.change && (
+                <span className={cn(
+                  "flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-full",
+                  stat.up ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                )}>
+                  {stat.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {stat.change}
+                </span>
+              )}
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
               {stat.value}
@@ -100,11 +120,11 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Orders */}
+        {/* Recent Bookings */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100">
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
             <h2 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
-              Recent Orders
+              Recent Bookings
             </h2>
             <Link href="/admin/bookings" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
               View All →
@@ -115,7 +135,7 @@ export default function AdminDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
-                  <th className="text-left p-4 font-medium">Order ID</th>
+                  <th className="text-left p-4 font-medium">Booking ID</th>
                   <th className="text-left p-4 font-medium">Customer</th>
                   <th className="text-left p-4 font-medium hidden md:table-cell">Service</th>
                   <th className="text-left p-4 font-medium">Amount</th>
@@ -129,21 +149,21 @@ export default function AdminDashboard() {
                       <span className="text-sm font-mono font-medium text-violet-600">{String(order.id)}</span>
                     </td>
                     <td className="p-4">
-                      <p className="text-sm font-medium text-gray-900">{order.customer}</p>
-                      <p className="text-xs text-gray-400">{order.date}</p>
+                      <p className="text-sm font-medium text-gray-900">{order.client?.name}</p>
+                      <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </td>
                     <td className="p-4 hidden md:table-cell">
-                      <p className="text-sm text-gray-600 truncate max-w-[200px]">{order.service}</p>
+                      <p className="text-sm text-gray-600 truncate max-w-[200px]">{order.service?.title}</p>
                     </td>
                     <td className="p-4">
-                      <span className="text-sm font-semibold text-gray-900">{formatPrice(order.amount)}</span>
+                      <span className="text-sm font-semibold text-gray-900">{formatPrice(order.totalAmount)}</span>
                     </td>
                     <td className="p-4">
                       <span className={cn(
                         "text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                        statusColors[order.status] || "bg-gray-100 text-gray-600"
+                        PIPELINE_COLORS[order.pipelineStatus] || "bg-gray-100 text-gray-600"
                       )}>
-                        {order.status?.replace("_", " ")}
+                        {order.pipelineStatus?.replace(/_/g, " ")}
                       </span>
                     </td>
                   </tr>
@@ -172,16 +192,16 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{service.title}</p>
-                  <p className="text-xs text-gray-500">{service.vendor}</p>
+                  <p className="text-xs text-gray-500">{service.vendor?.businessName}</p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <ShoppingBag size={10} /> {service.bookings}
+                      <ShoppingBag size={10} /> {service.bookingCount || 0}
                     </span>
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <Star size={10} className="fill-amber-400 text-amber-400" /> {service.rating}
+                      <Star size={10} className="fill-amber-400 text-amber-400" /> {service.avgRating || 0}
                     </span>
                     <span className="text-xs font-medium text-green-600">
-                      {formatPrice(service.revenue)}
+                      {formatPrice(service.basePrice || 0)}
                     </span>
                   </div>
                 </div>
@@ -198,9 +218,10 @@ export default function AdminDashboard() {
         </h2>
         <div className="h-64 bg-gradient-to-b from-violet-50 to-transparent rounded-xl flex items-end justify-around px-4 pb-4">
           {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month, i) => {
-            const h = dashboardData?.stats?.monthlyRevenue?.[month?.toLowerCase()] 
-              ? Math.min(Math.round((dashboardData.stats.monthlyRevenue[month.toLowerCase()] / (dashboardData.stats.totalRevenue || 1)) * 100), 95)
-              : [35, 42, 55, 48, 62, 70, 58, 75, 82, 78, 90, 85][i];
+            const monthlyVal = dashboardData?.stats?.monthlyRevenue?.[month?.toLowerCase()];
+            const h = monthlyVal 
+              ? Math.min(Math.round((monthlyVal / (dashboardData.stats.totalRevenue || 1)) * 100), 95)
+              : 0;
             return (
               <div key={month} className="flex flex-col items-center gap-2 flex-1">
                 <div

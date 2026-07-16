@@ -151,7 +151,7 @@ export default function AdminCouponsPage() {
               <input type="number" value={formData.value} onChange={e => setFormData({...formData, value: e.target.value})} placeholder={formData.type === 'PERCENTAGE' ? "20" : "500"} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Minimum Order Amount</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Minimum Booking Amount</label>
               <input type="number" value={formData.minOrder} onChange={e => setFormData({...formData, minOrder: e.target.value})} placeholder="999" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
             </div>
             <div>
