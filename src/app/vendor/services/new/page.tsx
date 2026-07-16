@@ -278,8 +278,8 @@ export default function NewServicePage() {
         </div>
         <div className="space-y-3">
           {addons.map((addon, i) => (
-            <div key={i} className="flex gap-3 items-start p-3 bg-gray-50 rounded-xl">
-              <div className="flex-1 grid grid-cols-3 gap-3">
+            <div key={i} className="flex flex-col sm:flex-row gap-3 items-start p-3 bg-gray-50 rounded-xl">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                 <input type="text" placeholder="Addon name" value={addon.name} onChange={e => updateAddon(i, "name", e.target.value)}
                   className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400" />
                 <input type="number" placeholder="Price (₹)" value={addon.price} onChange={e => updateAddon(i, "price", e.target.value)}

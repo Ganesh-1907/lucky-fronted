@@ -446,7 +446,7 @@ export default function AdminBannersPage() {
                     <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white transition-colors focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" rows={3} placeholder="Add a short subtitle or description..." />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-1.5">Position <span className="text-red-500">*</span></label>
                       <select value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className={cn("w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-colors focus:outline-none focus:ring-2", errors.position ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-gray-200 focus:border-violet-400 focus:ring-violet-100")}>
@@ -461,7 +461,7 @@ export default function AdminBannersPage() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-1.5">Display Order</label>
                       <input type="number" min="0" value={formData.sortOrder} onChange={e => setFormData({...formData, sortOrder: parseInt(e.target.value)})} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white transition-colors focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
@@ -473,7 +473,7 @@ export default function AdminBannersPage() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 mb-1.5">Start Date</label>
                       <input type="datetime-local" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white transition-colors focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />

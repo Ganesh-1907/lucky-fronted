@@ -94,7 +94,7 @@ function ConfirmationContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
                 <Calendar size={16} className="text-violet-600" />
                 <div>

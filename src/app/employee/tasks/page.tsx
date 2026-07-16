@@ -295,7 +295,7 @@ export default function TasksPage() {
                   className="w-full py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 resize-none"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] text-gray-500 uppercase tracking-wider font-medium mb-1.5 block">Due Date *</label>
                   <input

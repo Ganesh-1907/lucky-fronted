@@ -87,8 +87,7 @@ export default function EditVendorPage({ params }: { params: Promise<{ id: strin
 
     try {
       setLoading(true);
-      await api.put(`/admin/vendors/${vendorId}/status`, { status: "ACTIVE" });
-      await api.put(`/admin/vendors/${vendorId}/commission`, { commissionRate: (formData as any).commissionRate || 15 });
+      await api.put(`/admin/vendors/${vendorId}`, formData);
       setLoading(false);
       toast.success("Vendor updated successfully");
       router.push("/admin/vendors");
