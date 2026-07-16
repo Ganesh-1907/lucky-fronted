@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
@@ -34,13 +35,7 @@ function ResetPasswordContent() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Invalid or expired reset link");
+      await api.post("/auth/reset-password", { token, email, password });
       setIsSuccess(true);
       toast.success("Password reset successful!");
       setTimeout(() => router.push("/auth/login"), 2000);
