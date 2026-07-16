@@ -153,9 +153,9 @@ export default function AdminDashboard() {
                     <td className="p-4">
                       <span className={cn(
                         "text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                        PIPELINE_COLORS[order.pipelineStatus] || "bg-gray-100 text-gray-600"
+                        statusColors[order.status] || "bg-gray-100 text-gray-600"
                       )}>
-                        {order.pipelineStatus?.replace(/_/g, " ")}
+                        {order.status?.replace(/_/g, " ")}
                       </span>
                     </td>
                   </tr>
@@ -209,21 +209,27 @@ export default function AdminDashboard() {
           Revenue Overview
         </h2>
         <div className="h-64 bg-gradient-to-b from-violet-50 to-transparent rounded-xl flex items-end justify-around px-4 pb-4">
-          {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month, i) => {
-            const monthlyVal = dashboardData?.stats?.monthlyRevenue?.[month?.toLowerCase()];
-            const h = monthlyVal 
-              ? Math.min(Math.round((monthlyVal / (dashboardData.stats.totalRevenue || 1)) * 100), 95)
-              : 0;
-            return (
-              <div key={month} className="flex flex-col items-center gap-2 flex-1">
-                <div
-                  className="w-full max-w-[32px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 transition-all duration-500 hover:from-violet-700 hover:to-violet-500"
-                  style={{ height: `${h}%` }}
-                />
-                <span className="text-[10px] text-gray-400">{month}</span>
-              </div>
-            );
-          })}
+          {(() => {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthlyRevenues = months.map(m => dashboardData?.stats?.monthlyRevenue?.[m.toLowerCase()] || 0);
+            const maxRev = Math.max(...monthlyRevenues, 1);
+
+            return months.map((month, i) => {
+              const monthlyVal = monthlyRevenues[i];
+              const h = monthlyVal ? Math.min(Math.round((monthlyVal / maxRev) * 100), 95) : 0;
+              
+              return (
+                <div key={month} className="flex flex-col items-center gap-2 flex-1 group">
+                  <div
+                    title={formatPrice(monthlyVal)}
+                    className="w-full max-w-[32px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 transition-all duration-500 group-hover:from-violet-700 group-hover:to-violet-500 cursor-pointer"
+                    style={{ height: `${Math.max(h, monthlyVal > 0 ? 5 : 0)}%` }}
+                  />
+                  <span className="text-[10px] text-gray-400">{month}</span>
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
     </div>

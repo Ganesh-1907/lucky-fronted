@@ -10,6 +10,14 @@ import {
 import { cn, formatPrice, formatDate } from "@/lib/utils";
 import api from "@/lib/api";
 
+const statusColors: Record<string, string> = {
+  PENDING: "bg-amber-100 text-amber-700",
+  CONFIRMED: "bg-blue-100 text-blue-700",
+  IN_PROGRESS: "bg-violet-100 text-violet-700",
+  COMPLETED: "bg-green-100 text-green-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};
+
 const PIPELINE_COLORS: Record<string, string> = {
   NEW_LEAD: "bg-gray-100 text-gray-600 border-gray-200",
   CUSTOMER_CONTACTED: "bg-blue-50 text-blue-700 border-blue-200",
@@ -239,7 +247,7 @@ export default function EmployeeDashboard() {
                 <th className="text-left p-4 font-medium">Customer</th>
                 <th className="text-left p-4 font-medium hidden md:table-cell">Service</th>
                 <th className="text-left p-4 font-medium">Amount</th>
-                <th className="text-left p-4 font-medium">Pipeline</th>
+                <th className="text-left p-4 font-medium">Status</th>
                 <th className="text-left p-4 font-medium hidden lg:table-cell">Priority</th>
                 <th className="text-left p-4 font-medium"></th>
               </tr>
@@ -269,10 +277,10 @@ export default function EmployeeDashboard() {
                     </td>
                     <td className="p-4">
                       <span className={cn(
-                        "text-[9px] font-bold px-2 py-1 rounded-full border uppercase tracking-wide",
-                        PIPELINE_COLORS[booking.pipelineStatus] || "bg-gray-100 text-gray-600"
+                        "text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wide border",
+                        statusColors[booking.status] || "bg-gray-100 text-gray-600"
                       )}>
-                        {formatPipelineStatus(booking.pipelineStatus)}
+                        {booking.status?.replace(/_/g, " ")}
                       </span>
                     </td>
                     <td className="p-4 hidden lg:table-cell">

@@ -171,12 +171,14 @@ export default function VendorDashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
             <Eye size={16} className="text-blue-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Profile Views</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Profile & Service Views</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>2,340</p>
-          <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
+            {(d.totalViews || 0).toLocaleString()}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">All time views</p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: "72%" }} />
+            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: "100%" }} />
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
@@ -184,21 +186,25 @@ export default function VendorDashboard() {
             <TrendingUp size={16} className="text-emerald-500" />
             <h3 className="text-sm font-semibold text-gray-900">Conversion Rate</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>38%</p>
+          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
+            {d.totalViews ? Math.round((totalBookings / d.totalViews) * 100) : 0}%
+          </p>
           <p className="text-xs text-gray-500 mt-1">Views to bookings</p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style={{ width: "38%" }} />
+            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style={{ width: `${d.totalViews ? Math.min(Math.round((totalBookings / d.totalViews) * 100), 100) : 0}%` }} />
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-2 mb-3">
             <Clock size={16} className="text-amber-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Response Time</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Pending Bookings</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>2.4h</p>
-          <p className="text-xs text-gray-500 mt-1">Avg. response time</p>
+          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
+            {d.pendingBookings || 0}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Awaiting your approval</p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style={{ width: "65%" }} />
+            <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style={{ width: `${d.pendingBookings ? 100 : 0}%` }} />
           </div>
         </div>
       </div>
