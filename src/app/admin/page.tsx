@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Monthly Revenue Chart Placeholder */}
+      {/* Monthly Revenue Chart */ }
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>
           Revenue Overview
