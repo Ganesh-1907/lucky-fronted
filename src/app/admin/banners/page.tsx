@@ -27,15 +27,13 @@ interface Banner {
   updatedAt: string;
 }
 
-const positions = ["ALL", "HERO", "SIDEBAR", "FOOTER", "POPUP", "CATEGORY", "HOMEPAGE", "CUSTOM"];
+const positions = ["ALL", "HERO", "SIDEBAR", "FOOTER", "POPUP", "CATEGORY"];
 const positionDimensions: Record<string, string> = {
   HERO: "1920x600",
   SIDEBAR: "400x600",
   FOOTER: "1200x300",
   POPUP: "800x800",
   CATEGORY: "1200x400",
-  HOMEPAGE: "1600x500",
-  CUSTOM: "Any size",
 };
 
 export default function AdminBannersPage() {
@@ -274,7 +272,7 @@ export default function AdminBannersPage() {
               className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
                 posFilter === p ? "bg-violet-100 text-violet-700" : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent"
               )}>
-              {p === "ALL" ? "All Positions" : p.charAt(0) + p.slice(1).toLowerCase()}
+              {p === "ALL" ? "All Banners" : p.charAt(0) + p.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
