@@ -46,6 +46,8 @@ export default function AdminHomepagePage() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const { data, isLoading, error } = useAdminHomepageSections();
   const updateSection = useUpdateHomepageSection();
@@ -56,11 +58,33 @@ export default function AdminHomepagePage() {
   const apiCategories = catData?.data || [];
 
   useEffect(() => {
-    console.log("AdminHomepagePage - data:", data, "error:", error);
-    if (data?.data) {
+    if (data?.data && !isInitialized) {
       setSections([...data.data].sort((a, b) => a.sortOrder - b.sortOrder));
+      setIsInitialized(true);
     }
-  }, [data, error]);
+  }, [data, isInitialized]);
+
+  const handleDragStart = (e: React.DragEvent, idx: number) => {
+    setDraggedIdx(idx);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === idx) return;
+    
+    const arr = [...sections];
+    const draggedItem = arr[draggedIdx];
+    arr.splice(draggedIdx, 1);
+    arr.splice(idx, 0, draggedItem);
+    
+    setSections(arr);
+    setDraggedIdx(idx);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+  };
 
   const moveSection = (idx: number, dir: "up" | "down") => {
     const arr = [...sections];
@@ -181,8 +205,8 @@ export default function AdminHomepagePage() {
       </div>
 
       {/* Preview Info */}
-      <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 text-sm text-violet-700">
-        💡 Reorder sections using the arrows. Toggle visibility with the eye icon. Click a section to expand its settings.
+      <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 text-sm text-violet-700 flex items-center gap-2">
+        <span>💡</span> You can now <strong>drag and drop</strong> the rows using the grip handle on the left to reorder them easily!
       </div>
 
       {error && (
@@ -196,12 +220,20 @@ export default function AdminHomepagePage() {
         {sections.map((section, idx) => {
           const st = sectionTypes.find(t => t.type === section.type && (!t.name || t.name === section.name));
           return (
-            <div key={section.id} className={cn(
-              "bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all",
+            <div key={section.id} 
+              draggable
+              onDragStart={(e) => handleDragStart(e, idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDragEnd={handleDragEnd}
+              className={cn(
+              "bg-white rounded-2xl border overflow-hidden transition-all shadow-sm",
+              draggedIdx === idx ? "opacity-50 border-violet-400 border-dashed scale-[1.01]" : "border-gray-100 hover:border-violet-200",
               !section.isActive && "opacity-50"
             )}>
               <div className="flex items-center gap-3 px-5 py-4">
-                <GripVertical size={16} className="text-gray-300 cursor-grab shrink-0" />
+                <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1 shrink-0 bg-gray-50 rounded-lg transition-colors">
+                  <GripVertical size={18} />
+                </div>
 
                 {/* Order arrows */}
                 <div className="flex flex-col shrink-0">

@@ -24,7 +24,21 @@ export default function AdminMenuPage() {
   const items: MenuItem[] = data?.data || [];
 
   const { data: catData } = useCategories();
-  const categories = catData?.data || [];
+  
+  // Flatten categories so sub-categories are selectable in the dropdown
+  const flattenCategories = (cats: any[], prefix = ""): any[] => {
+    let flat: any[] = [];
+    (cats || []).forEach(c => {
+      const name = prefix ? `${prefix} > ${c.name}` : c.name;
+      flat.push({ ...c, displayName: name });
+      if (c.children && c.children.length > 0) {
+        flat = flat.concat(flattenCategories(c.children, name));
+      }
+    });
+    return flat;
+  };
+  
+  const flatCategories = flattenCategories(catData?.data || []);
 
   const createMenuItem = useCreateMenuItem();
   const updateMenuItem = useUpdateMenuItem();
@@ -205,22 +219,22 @@ export default function AdminMenuPage() {
               <div className="flex gap-2">
                 <input type="text" value={formData.url} onChange={e => setFormData({ ...formData, url: e.target.value })} placeholder="/category/..." className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400" />
                 <select 
+                  value="" // Forces it to reset after selection
                   className="w-1/3 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 bg-white text-gray-500"
                   onChange={e => {
                     if (e.target.value) {
-                      const selectedCat = categories.find((c: any) => c.slug === e.target.value);
+                      const selectedCat = flatCategories.find((c: any) => c.slug === e.target.value);
                       setFormData(prev => ({ 
                         ...prev, 
                         url: `/category/${e.target.value}`,
                         label: prev.label || selectedCat?.name || ""
                       }));
-                      e.target.value = ""; // reset dropdown
                     }
                   }}
                 >
                   <option value="">Quick Link Category...</option>
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.slug}>{c.name}</option>
+                  {flatCategories.map((c: any) => (
+                    <option key={c.id} value={c.slug}>{c.displayName}</option>
                   ))}
                 </select>
               </div>
