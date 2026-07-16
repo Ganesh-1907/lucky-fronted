@@ -17,16 +17,16 @@ interface Section {
 }
 
 const sectionTypes = [
-  { type: "banner", name: "hero_banner", label: "Hero Banner Slider", icon: "🖼️" },
-  { type: "categories", name: "categories", label: "Category Grid", icon: "📂" },
+  { type: "banner", name: "hero_banner", label: "Premium Hero Banner", icon: "🖼️" },
+  { type: "categories", name: "categories", label: "Curated Categories", icon: "📂" },
   { type: "services", name: "trending", label: "Trending Services", icon: "🔥" },
-  { type: "services", name: "best_sellers", label: "Best Sellers", icon: "⭐" },
-  { type: "services", name: "new_arrivals", label: "New Arrivals", icon: "✨" },
-  { type: "services", name: "category_specific", label: "Category Specific Services", icon: "🎯" },
-  { type: "how_it_works", name: "how_it_works", label: "How It Works", icon: "📋" },
-  { type: "testimonials", name: "testimonials", label: "Testimonials", icon: "💬" },
-  { type: "vendor_cta", name: "vendor_cta", label: "Vendor CTA Banner", icon: "📢" },
-  { type: "cities", name: "cities", label: "Cities Showcase", icon: "🏙️" },
+  { type: "services", name: "best_sellers", label: "Top Booked Services", icon: "⭐" },
+  { type: "services", name: "new_arrivals", label: "Latest Creations", icon: "✨" },
+  { type: "services", name: "category_specific", label: "Highlighted Category", icon: "🎯" },
+  { type: "how_it_works", name: "how_it_works", label: "The Booking Journey", icon: "📋" },
+  { type: "testimonials", name: "testimonials", label: "Customer Love", icon: "💬" },
+  { type: "vendor_cta", name: "vendor_cta", label: "Vendor Partnership Banner", icon: "📢" },
+  { type: "cities", name: "cities", label: "Operational Cities", icon: "🏙️" },
 ];
 
 const initialSections: Section[] = [
@@ -91,7 +91,7 @@ export default function AdminHomepagePage() {
   const addSection = async (type: string, name: string) => {
     const st = sectionTypes.find(s => s.type === type && s.name === name);
     if (!st) return;
-    
+
     try {
       await handleSave(); // Save any pending local changes first
       let initialConfig: any = {};
@@ -119,13 +119,13 @@ export default function AdminHomepagePage() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      
+
       // Update reordering
       const orderItems = sections.map((s, i) => ({ id: s.id, sortOrder: i + 1 }));
       await reorderSections.mutateAsync(orderItems);
 
       // Update contents
-      await Promise.all(sections.map(s => 
+      await Promise.all(sections.map(s =>
         updateSection.mutateAsync({
           id: s.id,
           data: {
@@ -136,7 +136,7 @@ export default function AdminHomepagePage() {
           }
         })
       ));
-      
+
       toast.success("Homepage layout saved successfully");
     } catch (err: any) {
       toast.error(err.message || "Failed to save layout");
@@ -258,8 +258,8 @@ export default function AdminHomepagePage() {
                     {section.name === 'category_specific' && (
                       <div className="col-span-full md:col-span-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
-                        <select 
-                          value={section.config?.categoryId || ""} 
+                        <select
+                          value={section.config?.categoryId || ""}
                           onChange={e => updateConfig(section.id, 'categoryId', Number(e.target.value))}
                           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 bg-white"
                         >
