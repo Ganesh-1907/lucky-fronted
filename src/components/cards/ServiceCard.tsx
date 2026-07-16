@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Heart, Star, MapPin } from "lucide-react";
 import { cn, formatPrice, calculateDiscount, getImageUrl } from "@/lib/utils";
+import { useWishlist, useToggleWishlist } from "@/hooks/useApi";
+import { useAuthStore } from "@/store/auth";
+import { toast } from "sonner";
 
 interface ServiceCardProps {
   id: number;
@@ -23,7 +26,7 @@ interface ServiceCardProps {
 }
 
 export default function ServiceCard({
-  title, slug, basePrice, discountPrice,
+  id, title, slug, basePrice, discountPrice,
   images, avgRating, reviewCount,
   isTrending, isBestSeller, isNewArrival, isFeatured,
   category, vendor, className,
@@ -32,6 +35,28 @@ export default function ServiceCard({
   const displayPrice = discountPrice ? Number(discountPrice) : Number(basePrice);
   const parsedImages = typeof images === 'string' ? JSON.parse(images) : images;
   const imageUrl = getImageUrl(parsedImages?.[0] || null);
+  
+  const { isAuthenticated } = useAuthStore();
+  const { data: wishlistData } = useWishlist();
+  const toggleWishlist = useToggleWishlist();
+  
+  const isWishlisted = isAuthenticated && wishlistData?.data?.some((s: any) => s.id === id);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast.error("Please login to wishlist services");
+      return;
+    }
+    
+    toggleWishlist.mutate(id, {
+      onSuccess: () => {
+        toast.success(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
+      }
+    });
+  };
 
   return (
     <Link
@@ -68,14 +93,11 @@ export default function ServiceCard({
 
         {/* Wishlist */}
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // TODO: Toggle wishlist
-          }}
+          onClick={handleWishlist}
+          disabled={toggleWishlist.isPending}
           className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
         >
-          <Heart size={16} className="text-gray-500 hover:text-red-500" />
+          <Heart size={16} className={cn(isWishlisted ? "text-red-500 fill-red-500" : "text-gray-500 hover:text-red-500")} />
         </button>
       </div>
 

@@ -11,6 +11,8 @@ import {
 import { cn, formatPrice, calculateDiscount } from "@/lib/utils";
 import ServiceCard from "@/components/cards/ServiceCard";
 import api from "@/lib/api";
+import { useWishlist, useToggleWishlist } from "@/hooks/useApi";
+import { useAuthStore } from "@/store/auth";
 import toast from "react-hot-toast";
 
 export default function ServiceDetailPage() {
@@ -25,6 +27,46 @@ export default function ServiceDetailPage() {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<number[]>([]);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const { isAuthenticated } = useAuthStore();
+  const { data: wishlistData } = useWishlist();
+  const toggleWishlist = useToggleWishlist();
+  
+  const isWishlisted = isAuthenticated && service && wishlistData?.data?.some((s: any) => s.id === service.id);
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to wishlist services");
+      return;
+    }
+    toggleWishlist.mutate(service.id, {
+      onSuccess: () => {
+        toast.success(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
+      }
+    });
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: service?.title,
+          text: service?.shortDesc || "Check out this service on MJR Multi Vendor",
+          url,
+        });
+      } catch (err) {
+        // User cancelled share or error occurred
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!");
+      } catch (err) {
+        toast.error("Failed to copy link");
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchService = async () => {
@@ -150,10 +192,10 @@ export default function ServiceDetailPage() {
 
               {/* Actions */}
               <div className="absolute bottom-4 right-4 flex gap-2">
-                <button className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-all">
-                  <Heart size={18} className="text-gray-600 hover:text-red-500" />
+                <button onClick={handleWishlist} disabled={toggleWishlist.isPending} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-all disabled:opacity-50">
+                  <Heart size={18} className={cn(isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600 hover:text-red-500")} />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-all">
+                <button onClick={handleShare} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-all">
                   <Share2 size={18} className="text-gray-600" />
                 </button>
               </div>

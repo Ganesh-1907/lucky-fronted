@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Mail, ArrowRight, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -14,13 +15,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Something went wrong");
+      await api.post("/auth/forgot-password", { email });
       setIsSent(true);
       toast.success("If the email exists, a reset link has been sent.");
     } catch (error: any) {

@@ -12,6 +12,7 @@ import { useCityStore } from "@/store/city";
 import CitySelector from "./CitySelector";
 import MegaMenu from "./MegaMenu";
 import { cn } from "@/lib/utils";
+import { useWishlist } from "@/hooks/useApi";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,6 +25,9 @@ export default function Header() {
 
   const { user, isAuthenticated, logout, _hasHydrated } = useAuthStore();
   const { selectedCity, openModal } = useCityStore();
+  
+  const { data: wishlistData } = useWishlist();
+  const wishlistCount = isAuthenticated && wishlistData?.data ? wishlistData.data.length : 0;
 
   // Hide header on admin/vendor dashboard pages
   const isDashboard = pathname?.startsWith("/admin") || pathname?.startsWith("/vendor");
@@ -164,6 +168,11 @@ export default function Header() {
                   className="p-2 rounded-lg hover:bg-gray-100 relative hidden sm:flex"
                 >
                   <Heart size={20} className="text-gray-600" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                      {wishlistCount}
+                    </span>
+                  )}
                 </Link>
               )}
 
@@ -222,6 +231,11 @@ export default function Header() {
                         className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700"
                       >
                         <Heart size={16} /> Wishlist
+                        {wishlistCount > 0 && (
+                          <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                            {wishlistCount}
+                          </span>
+                        )}
                       </Link>
                       <Link
                         href="/account/settings"

@@ -9,7 +9,7 @@ import {
   Gift, Clock, CheckCircle, AlertCircle
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
-import { useMyBookings } from "@/hooks/useApi";
+import { useMyBookings, useWishlist } from "@/hooks/useApi";
 import { cn, formatPrice } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
@@ -32,6 +32,7 @@ export default function AccountPage() {
   const router = useRouter();
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const { data: bookingsRes } = useMyBookings();
+  const { data: wishlistRes } = useWishlist();
 
   useEffect(() => {
     // Only redirect after Zustand has finished rehydrating from localStorage
@@ -69,6 +70,7 @@ export default function AccountPage() {
       href: "/wishlist",
       color: "from-pink-500 to-rose-500",
       bgColor: "bg-pink-50",
+      count: wishlistRes?.data?.length || 0,
     },
     {
       label: "Account Settings",

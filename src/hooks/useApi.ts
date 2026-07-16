@@ -135,7 +135,7 @@ export function useWishlist() {
 export function useToggleWishlist() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (serviceId: number) => api.post(`/wishlist/toggle`, { serviceId }),
+    mutationFn: (serviceId: number) => api.post(`/wishlist/${serviceId}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["wishlist"] }),
   });
 }
@@ -466,7 +466,7 @@ export function useDeleteCoupon() {
 export function useApplyCoupon() {
   return useMutation({
     mutationFn: (data: { code: string; orderAmount: number }) =>
-      api.post("/coupon/validate", data),
+      api.post("/coupons/validate", data),
   });
 }
 
