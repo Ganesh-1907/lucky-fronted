@@ -147,7 +147,7 @@ export function useCreateReview() {
     mutationFn: (data: { bookingId: number; rating: number; title?: string; comment: string }) =>
       api.post("/reviews", data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["bookings", "mine"] });
       qc.invalidateQueries({ queryKey: ["service"] });
     },
   });

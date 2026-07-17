@@ -138,10 +138,10 @@ export default function AccountSettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                <div className="relative">
+                <div className="relative opacity-75 cursor-not-allowed">
                   <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+                  <input type="email" value={formData.email} disabled
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm bg-gray-50 focus:outline-none cursor-not-allowed text-gray-500" />
                 </div>
               </div>
               <div>
@@ -218,23 +218,11 @@ export default function AccountSettingsPage() {
         {activeTab === "notifications" && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
             <h3 className="font-bold text-gray-900">Notification Preferences</h3>
-            {[
-              { label: "Booking Confirmations", desc: "Get notified when your bookings are confirmed", enabled: true },
-              { label: "Booking Reminders", desc: "Reminder before your scheduled service", enabled: true },
-              { label: "Promotional Offers", desc: "Discounts and deals from vendors", enabled: false },
-              { label: "Review Reminders", desc: "Reminder to review completed services", enabled: true },
-              { label: "Newsletter", desc: "Weekly newsletter with new services and trends", enabled: false },
-            ].map((pref, i) => (
-              <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{pref.label}</p>
-                  <p className="text-xs text-gray-500">{pref.desc}</p>
-                </div>
-                <button className={`w-11 h-6 rounded-full transition-colors ${pref.enabled ? "bg-violet-600" : "bg-gray-200"} relative`}>
-                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-transform ${pref.enabled ? "right-0.5" : "left-0.5"}`} />
-                </button>
-              </div>
-            ))}
+            <div className="bg-violet-50 border border-violet-100 rounded-xl p-6 text-center">
+              <Bell className="mx-auto text-violet-400 mb-3" size={32} />
+              <h4 className="font-semibold text-violet-900 mb-1">Coming Soon</h4>
+              <p className="text-sm text-violet-700">Detailed notification preferences will be available in a future update.</p>
+            </div>
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronRight, ShoppingBag, Heart, Settings, Star,
   Calendar, CreditCard, User, MapPin, ArrowRight,
-  Gift, Clock, CheckCircle, AlertCircle
+  Gift, Clock, CheckCircle, AlertCircle, Mail
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useMyBookings, useWishlist } from "@/hooks/useApi";
@@ -151,7 +151,7 @@ export default function AccountPage() {
               <Star size={20} />
             </div>
             <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
-              {completedBookings.length}
+              {bookings.filter((b: any) => b.review).length}
             </p>
             <p className="text-xs text-gray-500">Reviews Given</p>
           </div>
@@ -272,7 +272,7 @@ export default function AccountPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                <CreditCard size={16} />
+                <Mail size={16} />
               </div>
               <div>
                 <p className="text-xs text-gray-500">Email</p>
@@ -294,7 +294,7 @@ export default function AccountPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Member Since</p>
-                <p className="text-sm font-medium text-gray-900">2024</p>
+                <p className="text-sm font-medium text-gray-900">{new Date(user.createdAt || Date.now()).getFullYear()}</p>
               </div>
             </div>
           </div>

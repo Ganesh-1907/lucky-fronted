@@ -173,7 +173,12 @@ export default function VendorDashboard() {
                         </td>
                         <td className="p-4 align-top">
                           <p className="text-sm text-gray-700 font-medium line-clamp-2 max-w-[200px]">{booking.service?.title || "Unknown"}</p>
-                          <p className="text-xs font-semibold text-gray-900 mt-1">{formatPrice(booking.totalAmount)}</p>
+                          <p className="text-xs font-semibold text-gray-900 mt-1">Total: {formatPrice(booking.totalAmount)}</p>
+                          {Number(booking.advancePaid) > 0 && (
+                            <p className="text-[10px] text-emerald-600 mt-0.5 font-bold">
+                              Paid: {formatPrice(Number(booking.advancePaid))}
+                            </p>
+                          )}
                         </td>
                         <td className="p-4 align-top hidden md:table-cell">
                           <p className="text-sm text-gray-900 font-medium">

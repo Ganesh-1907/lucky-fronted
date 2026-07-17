@@ -172,8 +172,12 @@ export default function BookingsPage() {
               <div className="p-5">
                 <div className="flex flex-col sm:flex-row gap-4">
                   {/* Image */}
-                  <div className="w-full sm:w-28 h-28 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-                    <span className="text-4xl">🎈</span>
+                  <div className="w-full sm:w-28 h-28 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0 overflow-hidden">
+                    {booking.service?.images?.[0] ? (
+                      <img src={booking.service.images[0]} alt={booking.service.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">🎈</span>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">

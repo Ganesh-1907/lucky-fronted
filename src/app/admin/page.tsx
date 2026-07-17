@@ -148,7 +148,12 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-600 truncate max-w-[200px]">{order.service?.title}</p>
                     </td>
                     <td className="p-4">
-                      <span className="text-sm font-semibold text-gray-900">{formatPrice(order.totalAmount)}</span>
+                      <span className="text-sm font-semibold text-gray-900">Total: {formatPrice(order.totalAmount)}</span>
+                      {Number(order.advancePaid) > 0 && (
+                        <p className="text-[10px] text-emerald-600 mt-0.5 font-bold">
+                          Paid: {formatPrice(Number(order.advancePaid))}
+                        </p>
+                      )}
                     </td>
                     <td className="p-4">
                       <span className={cn(

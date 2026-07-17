@@ -63,8 +63,12 @@ export default function WishlistPage() {
               const discount = calculateDiscount(item.basePrice, item.discountPrice);
               return (
                 <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col sm:flex-row gap-4 hover:shadow-md transition-shadow">
-                  <div className="w-full sm:w-32 h-32 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-                    <span className="text-4xl">🎈</span>
+                  <div className="w-full sm:w-32 h-32 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0 overflow-hidden">
+                    {item.images?.[0] ? (
+                      <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">🎈</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-violet-600 font-medium uppercase mb-1">{item.category?.name}</p>

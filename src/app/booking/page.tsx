@@ -507,8 +507,12 @@ function BookingContent() {
             <div className="bg-white rounded-2xl border border-gray-100 p-5 sticky top-20">
               <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Order Summary</h3>
               <div className="flex gap-3 mb-4 pb-4 border-b border-gray-100">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0">
-                  <span className="text-2xl">🎈</span>
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center shrink-0 overflow-hidden">
+                  {service.images?.[0] ? (
+                    <img src={service.images[0]} alt={service.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl">🎈</span>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 leading-tight">{service.title}</p>
