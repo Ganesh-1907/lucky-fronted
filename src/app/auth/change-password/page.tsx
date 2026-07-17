@@ -23,6 +23,11 @@ function ChangePasswordContent() {
       // Already changed password, redirect to dashboard
       redirectToDashboard(user.role);
     }
+    
+    // Social login users cannot change their password
+    if (user?.authProvider && user.authProvider !== 'LOCAL') {
+      redirectToDashboard(user.role);
+    }
   }, [isForced, user]);
 
   const redirectToDashboard = (role: string) => {

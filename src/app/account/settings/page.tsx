@@ -20,6 +20,10 @@ const tabs = [
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
+  const displayTabs = user?.authProvider && user.authProvider !== 'LOCAL'
+    ? tabs.filter(t => t.id !== 'security')
+    : tabs;
+
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -92,7 +96,7 @@ export default function AccountSettingsPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 border-b border-gray-200 pb-px">
-          {tabs.map(tab => (
+          {displayTabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
                 activeTab === tab.id

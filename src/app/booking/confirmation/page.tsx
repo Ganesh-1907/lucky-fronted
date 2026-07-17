@@ -60,6 +60,24 @@ function ConfirmationContent() {
   const advancePaid = Number(booking.advancePaid);
   const remainingAmount = Number(booking.remainingAmount);
 
+  const handleWhatsAppShare = () => {
+    const message = `🎉 *Booking Confirmed!* 🎉\n\n` +
+      `*Service:* ${service?.title || 'Service'}\n` +
+      `*Vendor:* ${vendor?.businessName || 'Vendor'}\n` +
+      `*Date:* ${bookingDate}\n` +
+      `*Time:* ${booking.timeSlot}\n` +
+      `*Total:* ${formatPrice(totalAmount)}\n` +
+      `*Advance Paid:* ${formatPrice(advancePaid)}\n\n` +
+      `*Booking ID:* ${booking.bookingNumber}\n` +
+      `Thank you for choosing Lucky Marketplace!`;
+      
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleDownloadPDF = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50/50 flex items-center justify-center px-4 py-10">
       <div className="max-w-lg w-full">
@@ -146,7 +164,7 @@ function ConfirmationContent() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 print:hidden">
           <Link href="/bookings" className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl gradient-primary text-white font-medium text-sm hover:opacity-90 transition-opacity">
             <ShoppingBag size={16} /> View My Bookings
           </Link>
@@ -156,13 +174,13 @@ function ConfirmationContent() {
         </div>
 
         {/* WhatsApp Share */}
-        <div className="text-center mt-4">
+        <div className="text-center mt-4 print:hidden">
           <p className="text-xs text-gray-400">Share booking details via</p>
           <div className="flex justify-center gap-2 mt-2">
-            <button className="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors">
+            <button onClick={handleWhatsAppShare} className="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors">
               WhatsApp
             </button>
-            <button className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors">
+            <button onClick={handleDownloadPDF} className="px-4 py-2 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-colors">
               <Download size={12} className="inline mr-1" /> Download PDF
             </button>
           </div>

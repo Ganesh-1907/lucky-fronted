@@ -21,7 +21,12 @@ const TABS = [
 
 export default function VendorSettingsPage() {
   const qc = useQueryClient();
-  const { fetchUser } = useAuthStore();
+  const { fetchUser, user } = useAuthStore();
+  
+  const displayTabs = user?.authProvider && user.authProvider !== 'LOCAL' 
+    ? TABS.filter(t => t.id !== 'security') 
+    : TABS;
+
   const [activeTab, setActiveTab] = useState("business");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -362,7 +367,7 @@ export default function VendorSettingsPage() {
 
       {/* Horizontal Navigation */}
       <div className="flex flex-nowrap items-center overflow-x-auto gap-2 border-b border-gray-200 pb-px hide-scrollbar">
-        {TABS.map(tab => (
+        {displayTabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={cn(
               "flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap",
