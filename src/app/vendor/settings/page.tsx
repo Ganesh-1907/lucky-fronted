@@ -23,9 +23,7 @@ export default function VendorSettingsPage() {
   const qc = useQueryClient();
   const { fetchUser, user } = useAuthStore();
   
-  const displayTabs = user?.authProvider && user.authProvider !== 'LOCAL' 
-    ? TABS.filter(t => t.id !== 'security') 
-    : TABS;
+  const displayTabs = TABS;
 
   const [activeTab, setActiveTab] = useState("business");
   
@@ -101,8 +99,13 @@ export default function VendorSettingsPage() {
   const handleSave = () => saveMutation.mutate(settings);
 
   const handlePasswordSave = () => {
-    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      toast.error("Please fill in all password fields");
+    const isSocial = user?.authProvider && user.authProvider !== 'LOCAL';
+    if (!isSocial && !passwordForm.currentPassword) {
+      toast.error("Please enter your current password");
+      return;
+    }
+    if (!passwordForm.newPassword) {
+      toast.error("Please enter a new password");
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -311,16 +314,18 @@ export default function VendorSettingsPage() {
           <p className="text-sm text-gray-500 mt-1">Keep your account secure with a strong password.</p>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Current Password</label>
-          <div className="relative">
-            <input type={showCurrentPassword ? "text" : "password"} value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50/50 focus:bg-white transition-colors" />
-            <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+        {(!user?.authProvider || user.authProvider === 'LOCAL') && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Current Password</label>
+            <div className="relative">
+              <input type={showCurrentPassword ? "text" : "password"} value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50/50 focus:bg-white transition-colors" />
+              <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">New Password</label>
           <div className="relative">
@@ -337,7 +342,7 @@ export default function VendorSettingsPage() {
             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50/50 focus:bg-white transition-colors" />
         </div>
         <div className="pt-4">
-          <button onClick={handlePasswordSave} disabled={passwordMutation.isPending || !passwordForm.currentPassword || !passwordForm.newPassword}
+          <button onClick={handlePasswordSave} disabled={passwordMutation.isPending || ((!user?.authProvider || user.authProvider === 'LOCAL') && !passwordForm.currentPassword) || !passwordForm.newPassword}
             className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:bg-gray-800 transition-colors disabled:opacity-50">
             {passwordMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Shield size={18} />}
             Update Password

@@ -20,9 +20,7 @@ const tabs = [
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
-  const displayTabs = user?.authProvider && user.authProvider !== 'LOCAL'
-    ? tabs.filter(t => t.id !== 'security')
-    : tabs;
+  const displayTabs = tabs;
 
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
@@ -65,6 +63,11 @@ export default function AccountSettingsPage() {
   };
 
   const handlePasswordChange = async () => {
+    const isSocial = user?.authProvider && user.authProvider !== 'LOCAL';
+    if (!isSocial && !passwords.current) {
+      toast.error("Please enter your current password");
+      return;
+    }
     if (passwords.newPass !== passwords.confirm) {
       toast.error("Passwords don't match");
       return;
@@ -176,16 +179,20 @@ export default function AccountSettingsPage() {
         {/* Security Tab */}
         {activeTab === "security" && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-            <h3 className="font-bold text-gray-900">Change Password</h3>
+            <h3 className="font-bold text-gray-900">
+              {user?.authProvider && user.authProvider !== 'LOCAL' ? 'Set Password' : 'Change Password'}
+            </h3>
             <div className="space-y-4 max-w-md">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="password" value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} placeholder="Enter current password"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+              {(!user?.authProvider || user.authProvider === 'LOCAL') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="password" value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} placeholder="Enter current password"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
                 <div className="relative">
@@ -205,7 +212,7 @@ export default function AccountSettingsPage() {
             </div>
             <button 
               onClick={handlePasswordChange} 
-              disabled={changePassword.isPending}
+              disabled={changePassword.isPending || ((!user?.authProvider || user.authProvider === 'LOCAL') && !passwords.current) || !passwords.newPass}
               className="flex items-center gap-2 px-6 py-3 rounded-xl gradient-primary text-white font-medium text-sm disabled:opacity-50"
             >
               {changePassword.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />} 

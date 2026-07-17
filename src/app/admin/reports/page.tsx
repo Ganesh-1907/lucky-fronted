@@ -12,8 +12,8 @@ export default function AdminReportsPage() {
   const [period, setPeriod] = useState("yearly");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-reports"],
-    queryFn: () => api.get<any>("/admin/reports"),
+    queryKey: ["admin-reports", period],
+    queryFn: () => api.get<any>(`/admin/reports?period=${period}`),
   });
 
   const reportData = data?.data || data;
@@ -71,10 +71,10 @@ export default function AdminReportsPage() {
         <h3 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Monthly Revenue</h3>
         <div className="h-56 flex items-end justify-around gap-1 px-2">
           {monthlyRevenue.length > 0 ? monthlyRevenue.map((m: any) => (
-            <div key={m.month} className="flex flex-col items-center gap-1 flex-1">
+            <div key={m.month} className="flex flex-col items-center justify-end gap-1 flex-1 h-full">
               <span className="text-[9px] font-medium text-gray-500">{formatPrice(m.revenue)}</span>
               <div className="w-full max-w-[36px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 hover:from-violet-700 hover:to-violet-500 transition-all cursor-pointer"
-                style={{ height: `${(m.revenue / maxRevenue) * 100}%` }}
+                style={{ height: `${Math.max(2, (m.revenue / (maxRevenue || 1)) * 100)}%` }}
                 title={`${m.month}: ${formatPrice(m.revenue)} · ${m.orders || 0} orders`} />
               <span className="text-[10px] text-gray-400">{m.month}</span>
             </div>
@@ -173,12 +173,12 @@ export default function AdminReportsPage() {
                   <tr key={v.name || i} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4"><span className="text-sm font-bold text-violet-600">#{i + 1}</span></td>
                     <td className="p-4">
-                      <p className="text-sm font-medium text-gray-900">{v.name}</p>
-                      <p className="text-xs text-gray-500">{v.city}</p>
+                      <p className="text-sm font-medium text-gray-900">{v.name || 'Unnamed Vendor'}</p>
+                      <p className="text-xs text-gray-500">{v.city || 'Unknown City'}</p>
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-900">{v.orders}</td>
+                    <td className="p-4 text-sm font-medium text-gray-900">{v.bookings}</td>
                     <td className="p-4 text-sm font-medium text-emerald-600">{formatPrice(v.revenue)}</td>
-                    <td className="p-4 text-sm">⭐ {v.rating}</td>
+                    <td className="p-4 text-sm">⭐ {Number(v.rating).toFixed(1)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -71,7 +71,8 @@ function ConfirmationContent() {
       `*Booking ID:* ${booking.bookingNumber}\n` +
       `Thank you for choosing Lucky Marketplace!`;
       
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleDownloadPDF = () => {
@@ -82,7 +83,7 @@ function ConfirmationContent() {
     <div className="min-h-screen bg-gray-50/50 flex items-center justify-center px-4 py-10">
       <div className="max-w-lg w-full">
         {/* Success Animation */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 print:hidden">
           <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4 animate-bounce-slow">
             <CheckCircle size={40} className="text-green-600" />
           </div>
@@ -92,8 +93,16 @@ function ConfirmationContent() {
           <p className="text-gray-500">Your booking has been successfully placed</p>
         </div>
 
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            body * { visibility: hidden; }
+            #receipt, #receipt * { visibility: visible; }
+            #receipt { position: absolute; left: 0; top: 0; width: 100%; }
+          }
+        `}} />
+
         {/* Booking Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+        <div id="receipt" className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           {/* Header */}
           <div className="gradient-primary p-6 text-white text-center">
             <p className="text-sm opacity-80">Booking ID</p>
