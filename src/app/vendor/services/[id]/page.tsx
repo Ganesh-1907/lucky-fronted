@@ -1,226 +1,197 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState, use } from "react";
 import Link from "next/link";
-import {
-  ArrowLeft, Edit, LayoutTemplate, Clock, Trash2, 
-  Eye, CheckCircle, Ban, Star, ShoppingBag, 
-  MapPin, AlertCircle, Image as ImageIcon, Briefcase, 
-  CreditCard, Loader, List, MessageSquare, Plus, Activity
-} from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
-import { useServiceById, useUpdateVendorService } from "@/hooks/useApi";
-import { toast } from "sonner";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { 
+  ArrowLeft, Edit, Star, ShoppingBag, Eye, Clock, 
+  MapPin, Tag, Layers, CheckCircle2, FileText, Image as ImageIcon, CheckCircle, Info, ExternalLink, CalendarDays, Zap
+} from "lucide-react";
+import { useServiceById } from "@/hooks/useApi";
+import { formatPrice, cn } from "@/lib/utils";
+import Image from "next/image";
 
 const statusColors: Record<string, string> = {
-  APPROVED: "bg-green-100 text-green-700 border-green-200",
-  PENDING: "bg-amber-100 text-amber-700 border-amber-200",
-  REJECTED: "bg-red-100 text-red-700 border-red-200",
-  SUSPENDED: "bg-gray-100 text-gray-700 border-gray-200",
+  APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+  REJECTED: "bg-red-50 text-red-700 border-red-200",
 };
 
-export default function VendorServiceViewPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const serviceId = parseInt(resolvedParams.id, 10);
+export default function VendorServiceDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const resolvedParams = use(params);
+  const id = Number(resolvedParams.id);
 
-  const { data, isLoading, error } = useServiceById(serviceId);
-  const updateService = useUpdateVendorService();
+  const { data, isLoading, error } = useServiceById(id);
+  const service = data?.data?.service || data?.data;
 
-  const service = data?.data;
-
-  const toggleStatus = async (currentStatus: boolean) => {
-    try {
-      await updateService.mutateAsync({ id: serviceId, data: { isActive: !currentStatus } });
-      toast.success(`Service ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update service status");
-    }
-  };
+  const [activeImage, setActiveImage] = useState(0);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader size={40} className="text-emerald-600 animate-spin mb-4" />
-        <p className="text-gray-500 font-medium">Loading service details...</p>
+      <div className="flex flex-col items-center justify-center min-h-[500px]">
+        <div className="w-14 h-14 border-4 border-gray-100 border-t-gray-900 rounded-full animate-spin mb-6 shadow-sm"></div>
+        <p className="text-gray-500 font-bold tracking-wide">Loading Service Profile...</p>
       </div>
     );
   }
 
   if (error || !service) {
     return (
-      <div className="bg-red-50 border border-red-100 rounded-2xl p-12 text-center max-w-2xl mx-auto mt-12">
-        <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
-        <h3 className="text-xl font-bold text-red-800 mb-2">Service Not Found</h3>
-        <p className="text-red-600 mb-6">The service you are looking for does not exist or you don't have permission to view it.</p>
-        <Link href="/vendor/services" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors">
-          <ArrowLeft size={18} /> Back to Services
-        </Link>
+      <div className="flex flex-col items-center justify-center min-h-[500px] bg-white rounded-2xl border border-gray-100 shadow-sm max-w-3xl mx-auto mt-10">
+        <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-5 border-4 border-red-100">
+          <span className="text-3xl font-bold">!</span>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Not Found</h2>
+        <p className="text-gray-500 mb-8 text-center max-w-md">The service profile you are trying to view does not exist or has been removed from the platform.</p>
+        <button onClick={() => router.back()} className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm">
+          Return to Services
+        </button>
       </div>
     );
   }
 
+  const images = service.images || [];
+  const displayImages = images.map((img: string) => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${img}`);
+  const hasImages = displayImages.length > 0;
+
   return (
-    <div className="space-y-6 pb-20">
-      {/* Header & Quick Actions */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sticky top-[64px] bg-gray-50 z-20 py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex items-center gap-4">
-          <Link href="/vendor/services" className="p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 text-gray-500 hover:text-gray-900 transition-all shadow-sm">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 line-clamp-1" style={{ fontFamily: "var(--font-outfit)" }}>
-                {service.title}
-              </h1>
-              <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border shrink-0", statusColors[service.status] || statusColors.SUSPENDED)}>
-                {service.status}
+    <div className="space-y-6 pb-16 max-w-[1400px] mx-auto">
+      {/* Header & Breadcrumbs */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col items-start">
+          <button onClick={() => router.back()} className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-gray-900 mb-4 transition-colors">
+            <ArrowLeft size={14} /> Back to Services
+          </button>
+          
+          <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-3" style={{ fontFamily: "var(--font-outfit)" }}>{service.title}</h1>
+          
+          <div className="flex flex-wrap items-center gap-3 mt-1">
+            <span className={cn("inline-flex items-center text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide border", statusColors[service.status] || "bg-gray-50 text-gray-700 border-gray-200")}>
+              {service.status === 'APPROVED' && <CheckCircle2 size={14} className="mr-1.5" />}
+              {service.status}
+            </span>
+            {service.isActive ? (
+              <span className="inline-flex items-center text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span> ACTIVE
               </span>
-              <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border shrink-0", service.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-600 border-gray-200")}>
-                {service.isActive ? "Active" : "Inactive"}
+            ) : (
+              <span className="inline-flex items-center text-[11px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide bg-gray-50 text-gray-600 border border-gray-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span> INACTIVE
               </span>
-            </div>
-            <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-              <Briefcase size={14} /> {service.category?.name || "Uncategorized"}
-            </p>
+            )}
+            <span className="text-gray-300">|</span>
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+              <Layers size={14} className="text-gray-400" /> {service.category?.name || service.category || "Uncategorized"}
+            </span>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/service/${service.slug}`} target="_blank" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-            <LayoutTemplate size={16} /> Preview
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href={`/service/${service.slug}`} target="_blank" className="inline-flex items-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm">
+            <ExternalLink size={16} /> View Public Page
           </Link>
-          <Link href={`/vendor/settings?tab=availability`} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-            <Clock size={16} /> Availability
-          </Link>
-          <button onClick={() => toggleStatus(service.isActive)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-            {service.isActive ? <Ban size={16} className="text-red-500" /> : <CheckCircle size={16} className="text-emerald-500" />} 
-            {service.isActive ? "Deactivate" : "Activate"}
-          </button>
-          <Link href={`/vendor/services/${service.id}/edit`} className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors shadow-sm">
+          <Link href={`/vendor/services/${service.id}/edit`} className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shadow-emerald-500/20">
             <Edit size={16} /> Edit Service
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Main Content Column */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Content (Left, 2 columns wide) */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Images Gallery Section */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <ImageIcon size={18} className="text-gray-400" />
-              <h2 className="font-bold text-gray-900">Service Gallery</h2>
-            </div>
-            <div className="p-6">
-              {service.images && Array.isArray(service.images) && service.images.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {service.images.map((img: string, idx: number) => (
-                    <div key={idx} className={cn("relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50", idx === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto" : "aspect-square")}>
-                      <Image src={img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${img}`} alt={`${service.title} - ${idx}`} fill className="object-cover hover:scale-105 transition-transform duration-500" />
-                      {idx === 0 && <span className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-xs font-bold text-gray-900 shadow-sm">Cover</span>}
-                    </div>
-                  ))}
+          {/* Media Gallery (Modern Masonry/Carousel style) */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <ImageIcon size={18} className="text-gray-400" /> Service Gallery
+            </h2>
+            
+            {hasImages ? (
+              <div className="space-y-3">
+                <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                  <Image src={displayImages[activeImage]} alt={service.title} fill className="object-cover transition-all duration-500 hover:scale-105" priority />
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  <ImageIcon size={32} className="mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm font-medium text-gray-900">No images provided</p>
-                  <p className="text-xs text-gray-500 mt-1">Add images to attract more customers.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Service Details Section */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <List size={18} className="text-gray-400" />
-              <h2 className="font-bold text-gray-900">Service Details</h2>
-            </div>
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-2">Description</h3>
-                <div className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl">
-                  {service.description || "No detailed description provided."}
-                </div>
-              </div>
-              
-              {service.features && Array.isArray(service.features) && service.features.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 mb-3">Key Features</h3>
-                  <ul className="grid sm:grid-cols-2 gap-3">
-                    {service.features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                        <CheckCircle size={16} className="text-emerald-500 mt-0.5 shrink-0" />
-                        <span>{feature}</span>
-                      </li>
+                
+                {displayImages.length > 1 && (
+                  <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                    {displayImages.map((img: string, i: number) => (
+                      <button 
+                        key={i} 
+                        onClick={() => setActiveImage(i)}
+                        className={cn(
+                          "relative w-24 h-20 shrink-0 rounded-xl overflow-hidden border-2 transition-all",
+                          activeImage === i ? "border-gray-900 shadow-md scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                        )}
+                      >
+                        <Image src={img} alt={`Thumbnail ${i}`} fill className="object-cover" />
+                      </button>
                     ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pricing & Packages Section */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <CreditCard size={18} className="text-gray-400" />
-              <h2 className="font-bold text-gray-900">Pricing & Add-ons</h2>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5">
-                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Base Price</p>
-                  <p className="text-3xl font-black text-gray-900">{formatPrice(service.discountPrice || service.basePrice || service.price || 0)}</p>
-                  {service.discountPrice && service.basePrice && (
-                    <p className="text-sm text-gray-500 line-through mt-1">{formatPrice(service.basePrice)} original</p>
-                  )}
-                </div>
-                {service.advancePercentage && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Advance Required</p>
-                    <p className="text-3xl font-black text-gray-900">{service.advancePercentage}%</p>
-                    <p className="text-sm text-gray-500 mt-1">of total booking amount</p>
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="w-full aspect-[21/9] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+                <ImageIcon size={48} className="mb-3 opacity-20" />
+                <p className="font-medium text-sm">No images uploaded for this service</p>
+              </div>
+            )}
+          </div>
 
-              {service.addons && Array.isArray(service.addons) && service.addons.length > 0 && (
-                <div className="pt-4 border-t border-gray-100">
-                  <h3 className="text-sm font-bold text-gray-900 mb-3">Available Add-ons</h3>
-                  <div className="space-y-3">
-                    {service.addons.map((addon: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{addon.name || addon.title}</p>
-                          <p className="text-xs text-gray-500">{addon.description}</p>
-                        </div>
-                        <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">+{formatPrice(addon.price)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* Description Section */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+              <FileText size={18} className="text-gray-400" /> Description Overview
+            </h2>
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Short summary</h3>
+              <p className="text-lg font-medium text-gray-900 leading-relaxed">{service.shortDesc}</p>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Full Details</h3>
+              <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap p-5 bg-gray-50 rounded-xl border border-gray-100">
+                {service.description || <span className="italic">No detailed description provided.</span>}
+              </div>
             </div>
           </div>
-          
-          {/* FAQs Section */}
-          {service.faqs && Array.isArray(service.faqs) && service.faqs.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                <MessageSquare size={18} className="text-gray-400" />
-                <h2 className="font-bold text-gray-900">Frequently Asked Questions</h2>
+
+          {/* Add-ons & Packages */}
+          {service.addons && service.addons.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+                <Tag size={18} className="text-gray-400" /> Optional Add-ons
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {service.addons.map((addon: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200/60 flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div>
+                      <div className="flex justify-between items-start gap-4 mb-2">
+                        <h4 className="font-bold text-gray-900 leading-tight">{addon.name}</h4>
+                        <span className="font-bold text-emerald-600 shrink-0">{formatPrice(addon.price)}</span>
+                      </div>
+                      {addon.description && <p className="text-xs text-gray-500 leading-relaxed">{addon.description}</p>}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="p-6 divide-y divide-gray-100">
-                {service.faqs.map((faq: any, idx: number) => (
-                  <div key={idx} className="py-4 first:pt-0 last:pb-0">
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">Q: {faq.question}</h3>
-                    <p className="text-sm text-gray-600">A: {faq.answer}</p>
+            </div>
+          )}
+
+          {/* FAQs */}
+          {service.faq && service.faq.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+                <Info size={18} className="text-gray-400" /> Frequently Asked Questions
+              </h2>
+              <div className="space-y-4">
+                {service.faq.map((faq: any, idx: number) => (
+                  <div key={idx} className="p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
+                    <h4 className="font-bold text-gray-900 text-sm mb-2 flex items-start gap-2">
+                      <span className="text-emerald-500 shrink-0">Q.</span> {faq.question}
+                    </h4>
+                    <p className="text-sm text-gray-600 leading-relaxed ml-5">
+                      {faq.answer}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -229,116 +200,100 @@ export default function VendorServiceViewPage({ params }: { params: Promise<{ id
 
         </div>
 
-        {/* Sidebar Column */}
+        {/* Sidebar Info (Right Column) */}
         <div className="space-y-6">
           
-          {/* Performance Summary */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <Activity size={18} className="text-gray-400" />
-              <h2 className="font-bold text-gray-900">Performance</h2>
+          {/* Top Performance Stats */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-5">Performance Metrics</h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 text-center">
+                <ShoppingBag size={22} className="text-blue-500 mx-auto mb-2" />
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Bookings</p>
+                <p className="text-2xl font-bold text-gray-900">{service.bookingCount || service._count?.bookings || 0}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 text-center">
+                <Star size={22} className="text-amber-500 mx-auto mb-2 fill-amber-500" />
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Rating</p>
+                <p className="text-2xl font-bold text-gray-900 flex items-center justify-center gap-1.5">
+                  {service.avgRating > 0 ? service.avgRating.toFixed(1) : "0"}
+                  {service.reviewCount > 0 && <span className="text-[11px] text-gray-400 font-medium">({service.reviewCount})</span>}
+                </p>
+              </div>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                    <ShoppingBag size={20} />
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Eye size={22} className="text-violet-500" />
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Views</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">{service.viewCount || 0}</span>
+            </div>
+          </div>
+
+          {/* Pricing Config */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-5">Pricing Structure</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-end pb-4 border-b border-gray-50">
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">Base Price</p>
+                  <span className="text-2xl font-bold text-gray-900">{formatPrice(service.basePrice || service.price || 0)}</span>
+                </div>
+                {service.discountPrice && (
+                  <div className="text-right">
+                    <p className="text-[11px] font-bold text-emerald-500 uppercase mb-1">Discounted</p>
+                    <span className="text-xl font-bold text-emerald-600">{formatPrice(service.discountPrice)}</span>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Total Bookings</p>
-                    <p className="text-lg font-bold text-gray-900">{service.bookingCount || service._count?.bookings || 0}</p>
-                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm font-semibold text-gray-600 flex items-center gap-2"><Zap size={16} className="text-amber-500" /> Min Advance</span>
+                <span className="font-bold text-gray-900">{service.minAdvancePercent || 50}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Logistics */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-5">Logistics & Timing</h2>
+            <div className="space-y-5">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                  <Clock size={18} className="text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase">Durations</p>
+                  <p className="text-sm font-bold text-gray-900 mt-1">Prep: {service.preparationTime || 0}m <span className="mx-2 text-gray-300">|</span> Service: {service.serviceDuration || 0}m</p>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-                    <Star size={20} className="fill-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Average Rating</p>
-                    <p className="text-lg font-bold text-gray-900">{service.avgRating > 0 ? service.avgRating : "N/A"}</p>
-                  </div>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                  <MapPin size={18} className="text-emerald-500" />
                 </div>
-                {service.reviewCount > 0 && <span className="text-xs font-medium text-gray-400">({service.reviewCount} reviews)</span>}
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                    <Eye size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Total Views</p>
-                    <p className="text-lg font-bold text-gray-900">{service.viewCount || 0}</p>
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase">Available Locations</p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {service.cities && (typeof service.cities === 'string' ? JSON.parse(service.cities) : service.cities).map((city: string) => (
+                      <span key={city} className="text-[10px] font-bold px-2 py-1 bg-gray-100 text-gray-700 rounded-md uppercase border border-gray-200/60">
+                        {city}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
-              <Link href={`/vendor/analytics`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex justify-center items-center gap-1">
-                View Full Analytics <ArrowLeft size={14} className="rotate-180" />
-              </Link>
-            </div>
           </div>
-
-          {/* Tags & Visibility */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="font-bold text-gray-900">Visibility Badges</h2>
+          
+          {/* Timestamps */}
+          <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <CalendarDays size={16} className="text-gray-400" />
+              <p className="text-xs font-medium text-gray-500">Created on <span className="font-bold text-gray-700">{new Date(service.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
             </div>
-            <div className="p-5 flex flex-wrap gap-2">
-              {service.isFeatured ? <span className="text-xs font-medium bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-200">⭐ Featured</span> : null}
-              {service.isTrending ? <span className="text-xs font-medium bg-red-50 text-red-700 px-3 py-1.5 rounded-lg border border-red-200">🔥 Trending</span> : null}
-              {service.isBestSeller ? <span className="text-xs font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-200">🏆 Best Seller</span> : null}
-              {service.isNewArrival ? <span className="text-xs font-medium bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200">✨ New Arrival</span> : null}
-              
-              {!service.isFeatured && !service.isTrending && !service.isBestSeller && !service.isNewArrival && (
-                <p className="text-sm text-gray-500">No special visibility badges assigned.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Location Details */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <MapPin size={18} className="text-gray-400" />
-              <h2 className="font-bold text-gray-900">Service Locations</h2>
-            </div>
-            <div className="p-5">
-              {service.cities && Array.isArray(service.cities) && service.cities.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {service.cities.map((city: string, idx: number) => (
-                    <span key={idx} className="text-xs font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg">
-                      {city}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">Available at all default vendor locations.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Meta Information */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="font-bold text-gray-900">Metadata</h2>
-            </div>
-            <div className="p-5 space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Service ID</span>
-                <span className="font-mono text-gray-900">#{service.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Created At</span>
-                <span className="text-gray-900">{new Date(service.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Last Updated</span>
-                <span className="text-gray-900">{new Date(service.updatedAt).toLocaleDateString()}</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <CheckCircle size={16} className="text-gray-400" />
+              <p className="text-xs font-medium text-gray-500">Last updated <span className="font-bold text-gray-700">{new Date(service.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
             </div>
           </div>
 

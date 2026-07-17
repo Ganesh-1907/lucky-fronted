@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, Save, Plus, Trash2, Image, Upload, DollarSign,
+  ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Upload, DollarSign,
   Tag, MapPin, Clock, FileText, Info, Loader2, X
 } from "lucide-react";
 import Link from "next/link";
@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import NextImage from "next/image";
-
 import { useCategories } from "@/hooks/useApi";
 
 const cities = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Pune", "Kolkata", "Jaipur"];
@@ -92,8 +91,8 @@ export default function NewServicePage() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.categoryId || !formData.basePrice) {
-      toast.error("Please fill all required fields");
+    if (!formData.title || !formData.categoryId || !formData.basePrice || formData.cities.length === 0) {
+      toast.error("Please fill all required fields and select at least one city.");
       return;
     }
 
@@ -111,7 +110,7 @@ export default function NewServicePage() {
         if (uploadRes.success && uploadRes.data?.urls) {
           uploadedUrls = uploadRes.data.urls;
         } else {
-          toast.error("Failed to upload images");
+          toast.error("Failed to upload images. Please try again.");
           setIsSubmitting(false);
           return;
         }
@@ -145,199 +144,243 @@ export default function NewServicePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/vendor/services" className="p-2 rounded-lg hover:bg-gray-100">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Add New Service</h1>
-          <p className="text-sm text-gray-500">Fill in the details to list your service</p>
-        </div>
-      </div>
-
-      {/* Basic Info */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><FileText size={18} className="text-emerald-600" /> Basic Information</h2>
-        <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Link href="/vendor/services" className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Title *</label>
-            <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="e.g. Premium Birthday Balloon Decoration"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Short Description *</label>
-            <input type="text" name="shortDesc" value={formData.shortDesc} onChange={handleChange} placeholder="Brief one-liner about the service" maxLength={150}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-            <p className="text-xs text-gray-400 mt-1">{formData.shortDesc.length}/150 characters</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Description *</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Detailed description including what's included, setup details, etc." rows={6}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 resize-none" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category *</label>
-            <select name="categoryId" value={formData.categoryId} onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 bg-white">
-              <option value="">Select a category</option>
-              {categories.map((cat: any) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-            </select>
+            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Add New Service</h1>
+            <p className="text-sm text-gray-500 mt-1">Create a new listing to offer to your customers</p>
           </div>
         </div>
-      </div>
-
-      {/* Images */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Image size={18} className="text-emerald-600" /> Service Images</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map(i => (
-            <div key={i} className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-all">
-              {imagePreviews[i] ? (
-                <>
-                  <NextImage src={imagePreviews[i]!} alt={`Preview ${i + 1}`} fill className="object-cover" />
-                  <button onClick={() => removeImage(i)} className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 z-10 transition-colors">
-                    <X size={14} />
-                  </button>
-                </>
-              ) : (
-                <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer">
-                  <Upload size={20} className="text-gray-400" />
-                  <span className="text-xs text-gray-400">{i === 0 ? "Main Image" : `Image ${i + 1}`}</span>
-                  <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleImageChange(i, e)} />
-                </label>
-              )}
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-400 mt-2">Upload up to 4 images. Square (1:1) images work best. Max 5MB each.</p>
-      </div>
-
-      {/* Pricing */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={18} className="text-emerald-600" /> Pricing</h2>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Base Price (₹) *</label>
-            <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} placeholder="4999"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Discounted Price (₹)</label>
-            <input type="number" name="discountPrice" value={formData.discountPrice} onChange={handleChange} placeholder="3999"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Min Advance (%)</label>
-            <input type="number" name="minAdvancePercent" value={formData.minAdvancePercent} onChange={handleChange} min="10" max="100"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-        </div>
-      </div>
-
-      {/* Cities */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><MapPin size={18} className="text-emerald-600" /> Available Cities *</h2>
-        <div className="flex flex-wrap gap-2">
-          {cities.map(city => (
-            <button key={city} onClick={() => toggleCity(city)}
-              className={cn("px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all",
-                formData.cities.includes(city) ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200"
-              )}>
-              {city}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Timing */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Clock size={18} className="text-emerald-600" /> Timing</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Preparation Time (minutes)</label>
-            <input type="number" name="preparationTime" value={formData.preparationTime} onChange={handleChange} placeholder="180"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Duration (minutes)</label>
-            <input type="number" name="serviceDuration" value={formData.serviceDuration} onChange={handleChange} placeholder="720"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
-          </div>
-        </div>
-      </div>
-
-      {/* Add-ons */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-gray-900 flex items-center gap-2"><Tag size={18} className="text-emerald-600" /> Add-ons</h2>
-          <button onClick={addAddon} className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700">
-            <Plus size={14} /> Add More
-          </button>
-        </div>
-        <div className="space-y-3">
-          {addons.map((addon, i) => (
-            <div key={i} className="flex flex-col sm:flex-row gap-3 items-start p-3 bg-gray-50 rounded-xl">
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
-                <input type="text" placeholder="Addon name" value={addon.name} onChange={e => updateAddon(i, "name", e.target.value)}
-                  className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400" />
-                <input type="number" placeholder="Price (₹)" value={addon.price} onChange={e => updateAddon(i, "price", e.target.value)}
-                  className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400" />
-                <input type="text" placeholder="Description" value={addon.description} onChange={e => updateAddon(i, "description", e.target.value)}
-                  className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400" />
-              </div>
-              {addons.length > 1 && (
-                <button onClick={() => removeAddon(i)} className="p-2 rounded-lg hover:bg-red-50 text-red-500 shrink-0">
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* FAQs */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-gray-900 flex items-center gap-2"><Info size={18} className="text-emerald-600" /> FAQs</h2>
-          <button onClick={addFaq} className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700">
-            <Plus size={14} /> Add FAQ
-          </button>
-        </div>
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <div key={i} className="p-3 bg-gray-50 rounded-xl space-y-2">
-              <div className="flex gap-3">
-                <input type="text" placeholder="Question" value={faq.question} onChange={e => updateFaq(i, "question", e.target.value)}
-                  className="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400" />
-                {faqs.length > 1 && (
-                  <button onClick={() => removeFaq(i)} className="p-2 rounded-lg hover:bg-red-50 text-red-500 shrink-0">
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-              <textarea placeholder="Answer" value={faq.answer} onChange={e => updateFaq(i, "answer", e.target.value)} rows={2}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-emerald-400 resize-none" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Submit */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
-          <p className="text-sm text-amber-700">⚠️ Your service will be reviewed by our team before it goes live. This typically takes 24-48 hours.</p>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={handleSubmit} disabled={isSubmitting}
-            className="flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium text-sm hover:opacity-90 disabled:opacity-60 transition-all">
-            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {isSubmitting ? "Submitting..." : "Submit for Review"}
-          </button>
-          <Link href="/vendor/services" className="px-8 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/vendor/services" className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
             Cancel
           </Link>
+          <button onClick={handleSubmit} disabled={isSubmitting} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold hover:opacity-90 disabled:opacity-70 transition-opacity shadow-sm">
+            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {isSubmitting ? "Submitting..." : "Submit Service"}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Form */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Basic Info */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+              <FileText size={18} className="text-gray-400" /> Basic Information
+            </h2>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Service Title <span className="text-red-500">*</span></label>
+                <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="e.g. Premium Birthday Balloon Decoration"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-gray-50/50 focus:bg-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Short Description <span className="text-red-500">*</span></label>
+                <input type="text" name="shortDesc" value={formData.shortDesc} onChange={handleChange} placeholder="Brief one-liner about the service" maxLength={150}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-gray-50/50 focus:bg-white" />
+                <div className="flex justify-end mt-1">
+                  <span className="text-[10px] font-medium text-gray-400">{formData.shortDesc.length}/150</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category <span className="text-red-500">*</span></label>
+                  <select name="categoryId" value={formData.categoryId} onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white transition-colors">
+                    <option value="" disabled>Select a category</option>
+                    {categories.map((cat: any) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Detailed Description <span className="text-red-500">*</span></label>
+                <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Provide a detailed description of what this service includes..." rows={5}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors bg-gray-50/50 focus:bg-white resize-none" />
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing & Timing */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+              <DollarSign size={18} className="text-gray-400" /> Pricing & Availability
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Base Price (₹) <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
+                  <input type="number" name="basePrice" value={formData.basePrice} onChange={handleChange} placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Discount Price (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
+                  <input type="number" name="discountPrice" value={formData.discountPrice} onChange={handleChange} placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white transition-colors" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 border-t border-gray-50 pt-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Min Advance (%)</label>
+                <input type="number" name="minAdvancePercent" value={formData.minAdvancePercent} onChange={handleChange} min="10" max="100"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Prep Time (mins)</label>
+                <input type="number" name="preparationTime" value={formData.preparationTime} onChange={handleChange} placeholder="180"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Duration (mins)</label>
+                <input type="number" name="serviceDuration" value={formData.serviceDuration} onChange={handleChange} placeholder="120"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 bg-gray-50/50 focus:bg-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Add-ons */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5 border-b border-gray-50 pb-4">
+              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Tag size={18} className="text-gray-400" /> Optional Add-ons
+              </h2>
+              <button onClick={addAddon} className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">
+                <Plus size={14} /> Add Item
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {addons.map((addon, i) => (
+                <div key={i} className="flex flex-col sm:flex-row gap-3 items-start p-4 bg-gray-50 rounded-xl border border-gray-100 relative group">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                    <input type="text" placeholder="Add-on Name (e.g. Extra 50 Balloons)" value={addon.name} onChange={e => updateAddon(i, "name", e.target.value)}
+                      className="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+                    <input type="number" placeholder="Price (₹)" value={addon.price} onChange={e => updateAddon(i, "price", e.target.value)}
+                      className="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+                    <input type="text" placeholder="Short description" value={addon.description} onChange={e => updateAddon(i, "description", e.target.value)}
+                      className="sm:col-span-2 px-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400" />
+                  </div>
+                  {addons.length > 1 && (
+                    <button onClick={() => removeAddon(i)} className="absolute -top-2 -right-2 p-1.5 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FAQs */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5 border-b border-gray-50 pb-4">
+              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Info size={18} className="text-gray-400" /> Frequently Asked Questions
+              </h2>
+              <button onClick={addFaq} className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">
+                <Plus size={14} /> Add FAQ
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {faqs.map((faq, i) => (
+                <div key={i} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative group">
+                  <div className="space-y-3">
+                    <input type="text" placeholder="Question?" value={faq.question} onChange={e => updateFaq(i, "question", e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400 font-medium" />
+                    <textarea placeholder="Answer" value={faq.answer} onChange={e => updateFaq(i, "answer", e.target.value)} rows={2}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400 resize-none text-gray-600" />
+                  </div>
+                  {faqs.length > 1 && (
+                    <button onClick={() => removeFaq(i)} className="absolute -top-2 -right-2 p-1.5 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 shadow-sm opacity-0 group-hover:opacity-100 transition-all">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Info (Right) */}
+        <div className="space-y-6">
+          {/* Images Upload */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+              <ImageIcon size={18} className="text-gray-400" /> Media Gallery
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 overflow-hidden bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-all group">
+                  {imagePreviews[i] ? (
+                    <>
+                      <NextImage src={imagePreviews[i]!} alt={`Preview ${i + 1}`} fill className="object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button onClick={() => removeImage(i)} className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg transform scale-90 group-hover:scale-100">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer p-2 text-center text-gray-400 hover:text-gray-600">
+                      <Upload size={20} />
+                      <span className="text-[10px] font-medium leading-tight">{i === 0 ? "Main Cover Image" : `Upload Image ${i + 1}`}</span>
+                      <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleImageChange(i, e)} />
+                    </label>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-4 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <span className="font-semibold text-gray-600 block mb-1">Upload Guidelines:</span>
+              • First image is the main cover<br/>
+              • JPG, PNG, WEBP allowed (Max 5MB)<br/>
+              • Square images (1:1 aspect ratio) work best
+            </p>
+          </div>
+
+          {/* Cities / Locations */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 mb-5 flex items-center gap-2 border-b border-gray-50 pb-4">
+              <MapPin size={18} className="text-gray-400" /> Availability <span className="text-red-500">*</span>
+            </h2>
+            <p className="text-xs text-gray-500 mb-4">Select the cities where this service can be booked:</p>
+            <div className="flex flex-wrap gap-2">
+              {cities.map(city => {
+                const isSelected = formData.cities.includes(city);
+                return (
+                  <button key={city} onClick={() => toggleCity(city)}
+                    className={cn("px-3 py-1.5 rounded-lg text-[13px] font-semibold border transition-all",
+                      isSelected ? "border-gray-900 bg-gray-900 text-white shadow-sm" : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                    )}>
+                    {city}
+                  </button>
+                );
+              })}
+            </div>
+            {formData.cities.length === 0 && (
+              <p className="text-xs font-semibold text-red-500 mt-3">Please select at least one city.</p>
+            )}
+          </div>
+          
+          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+            <Info size={18} className="text-blue-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-blue-900">Review Process</p>
+              <p className="text-xs text-blue-700 mt-1 leading-relaxed">Your service will be reviewed by administrators to ensure quality guidelines. This usually takes 24 hours.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

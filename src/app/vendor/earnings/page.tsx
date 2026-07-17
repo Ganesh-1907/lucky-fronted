@@ -1,13 +1,11 @@
 "use client";
 
-import { DollarSign, TrendingUp, ArrowUpRight, Download, Calendar, ChevronDown, Loader2 } from "lucide-react";
+import { DollarSign, TrendingUp, Download, Loader2, Calendar } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 
 export default function VendorEarningsPage() {
-  const [period, setPeriod] = useState("yearly");
   const { data, isLoading } = useQuery({
     queryKey: ["vendor", "earnings"],
     queryFn: () => api.get<any>("/vendors/earnings"),
@@ -15,131 +13,167 @@ export default function VendorEarningsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-emerald-600" size={36} />
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <Loader2 className="animate-spin text-emerald-500 mb-4" size={40} />
+        <p className="text-gray-500 font-medium">Loading your earnings...</p>
       </div>
     );
   }
 
-  const d = data || {};
-  const monthlyEarnings: { month: string; earnings: number; bookings: number }[] = d.monthlyRevenue || d.monthlyEarnings || [];
-  const transactions: any[] = d.transactions || [];
-
-  const totalEarnings = monthlyEarnings.reduce((s: number, m: any) => s + (m.earnings || m.amount || 0), 0);
-  const totalCommission = Math.round(totalEarnings * 0.15);
-  const netEarnings = totalEarnings - totalCommission;
-  const maxEarning = Math.max(...monthlyEarnings.map((m: any) => m.earnings || m.amount || 0), 1);
-
-  const chartData = monthlyEarnings.map((m: any) => ({
-    month: m.month,
-    amount: m.earnings || m.amount || 0,
-    bookings: m.bookings || 0,
-  }));
+  const d = data?.data || {};
+  const monthlyEarnings: any[] = d.monthlyEarnings || [];
+  const transactions: any[] = d.recentTransactions || [];
+  
+  // Calculate stats directly from dynamic response if not provided in totalEarnings
+  const totalGross = monthlyEarnings.reduce((sum: number, m: any) => sum + (Number(m.revenue) || 0), 0);
+  const totalCommission = Math.round(totalGross * 0.10); // Standard 10% commission assumption
+  const netEarnings = totalGross - totalCommission;
+  
+  const maxEarning = Math.max(...monthlyEarnings.map((m: any) => Number(m.revenue) || 0), 1);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Earnings</h1>
-          <p className="text-sm text-gray-500 mt-1">Track your revenue and payouts</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50">
-          <Download size={14} /> Export Report
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white">
-              <DollarSign size={18} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(totalEarnings)}</p>
-          <p className="text-xs text-gray-500 mt-1">Gross Earnings (2024)</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white">
-              <TrendingUp size={18} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(totalCommission)}</p>
-          <p className="text-xs text-gray-500 mt-1">Platform Commission (15%)</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white">
-              <DollarSign size={18} />
-            </div>
-          </div>
-          <p className="text-2xl font-bold text-emerald-600" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(netEarnings)}</p>
-          <p className="text-xs text-gray-500 mt-1">Net Earnings</p>
+          <p className="text-sm text-gray-500 mt-1">Track your revenue, payouts, and recent transactions.</p>
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-outfit)" }}>Monthly Revenue</h2>
-        <div className="h-56 flex items-end justify-around gap-1 px-2">
-          {chartData.map((m: any) => (
-            <div key={m.month} className="flex flex-col items-center gap-1 flex-1">
-              <span className="text-[10px] font-medium text-gray-600">{formatPrice(m.amount)}</span>
-              <div
-                className="w-full max-w-[36px] rounded-t-lg bg-gradient-to-t from-emerald-600 to-emerald-400 hover:from-emerald-700 hover:to-emerald-500 transition-all cursor-pointer"
-                style={{ height: `${(m.amount / maxEarning) * 100}%` }}
-                title={`${m.month}: ${formatPrice(m.amount)} (${m.bookings} bookings)`}
-              />
-              <span className="text-[10px] text-gray-400">{m.month}</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
+              <DollarSign size={24} />
             </div>
-          ))}
+          </div>
+          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(totalGross)}</p>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Gross Earnings</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 border border-orange-100">
+              <TrendingUp size={24} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(totalCommission)}</p>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Platform Commission (10%)</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+              <DollarSign size={24} />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-emerald-600" style={{ fontFamily: "var(--font-outfit)" }}>{formatPrice(netEarnings)}</p>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Net Earnings</p>
         </div>
       </div>
 
-      {/* Transactions */}
-      <div className="bg-white rounded-2xl border border-gray-100">
-        <div className="p-5 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Recent Transactions</h2>
+      {/* Monthly Revenue Breakdown */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <h2 className="text-base font-bold text-gray-900 mb-6 border-b border-gray-50 pb-4">Monthly Revenue Breakdown</h2>
+        {monthlyEarnings.length === 0 ? (
+          <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No revenue data available yet.</div>
+        ) : (
+          <div className="space-y-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
+            {[...monthlyEarnings].reverse().map((m: any) => {
+              const percentage = Math.max((m.revenue / maxEarning) * 100, 2);
+              const formattedMonth = (() => {
+                try {
+                  return new Date(m.month + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                } catch {
+                  return m.month;
+                }
+              })();
+
+              return (
+                <div key={m.month} className="relative w-full bg-gray-50/50 rounded-xl overflow-hidden border border-gray-100/50 shrink-0">
+                  {/* Background Bar */}
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-emerald-50 transition-all duration-1000 ease-out"
+                    style={{ width: `${percentage}%` }}
+                  />
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center justify-between p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white shadow-sm border border-emerald-100 flex items-center justify-center text-emerald-600">
+                        <Calendar size={18} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">{formattedMonth}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{m.bookings} {m.bookings === 1 ? 'booking' : 'bookings'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-emerald-600">{formatPrice(m.revenue)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wider">Gross</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Recent Transactions Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-50">
+          <h2 className="text-base font-bold text-gray-900">Recent Transactions</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
-                <th className="text-left p-4 font-medium">Booking</th>
-                <th className="text-left p-4 font-medium hidden md:table-cell">Service</th>
-                <th className="text-left p-4 font-medium">Amount</th>
-                <th className="text-left p-4 font-medium hidden md:table-cell">Commission</th>
-                <th className="text-left p-4 font-medium">Net</th>
-                <th className="text-left p-4 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t: any) => {
-                const amount = t.totalAmount || t.amount || 0;
-                const commission = t.commission ?? Math.round(amount * 0.15);
-                const net = t.net ?? (amount - commission);
-                return (
-                  <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="p-4">
-                      <p className="text-sm font-mono font-bold text-emerald-600">{t.bookingNumber || t.bookingId || t.id}</p>
-                      <p className="text-xs text-gray-500">{t.client?.name || t.customer || "Unknown"} · {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : t.date}</p>
-                    </td>
-                    <td className="p-4 hidden md:table-cell text-sm text-gray-700 truncate max-w-[180px]">{t.service?.title || t.service}</td>
-                    <td className="p-4 text-sm font-medium text-gray-900">{formatPrice(amount)}</td>
-                    <td className="p-4 hidden md:table-cell text-sm text-red-600">-{formatPrice(commission)}</td>
-                    <td className="p-4 text-sm font-bold text-emerald-600">{formatPrice(net)}</td>
-                    <td className="p-4">
-                      <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full",
-                        t.status === "PAID" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                      )}>{t.status}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        
+        {transactions.length === 0 ? (
+          <div className="p-10 text-center text-gray-500 text-sm">No recent transactions found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-[11px] text-gray-500 uppercase tracking-wider border-b border-gray-50 bg-gray-50/50">
+                  <th className="text-left p-4 font-bold">Booking Info</th>
+                  <th className="text-left p-4 font-bold hidden md:table-cell">Service</th>
+                  <th className="text-left p-4 font-bold">Gross Amount</th>
+                  <th className="text-left p-4 font-bold hidden md:table-cell">Commission</th>
+                  <th className="text-left p-4 font-bold">Net Earnings</th>
+                  <th className="text-left p-4 font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((t: any) => {
+                  const amount = Number(t.totalAmount) || 0;
+                  const commission = Math.round(amount * 0.10);
+                  const net = amount - commission;
+                  return (
+                    <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4">
+                        <p className="text-sm font-bold font-mono text-gray-900">{t.bookingNumber}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t.client?.name || "Guest"} &bull; {new Date(t.createdAt).toLocaleDateString()}</p>
+                      </td>
+                      <td className="p-4 hidden md:table-cell text-sm text-gray-600 truncate max-w-[200px]">
+                        {t.service?.title || "Unknown Service"}
+                      </td>
+                      <td className="p-4 text-sm font-semibold text-gray-900">{formatPrice(amount)}</td>
+                      <td className="p-4 hidden md:table-cell text-sm font-medium text-orange-600">-{formatPrice(commission)}</td>
+                      <td className="p-4 text-sm font-bold text-emerald-600">{formatPrice(net)}</td>
+                      <td className="p-4">
+                        <span className={cn(
+                          "text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wide uppercase",
+                          t.status === "COMPLETED" ? "bg-emerald-100 text-emerald-700" : 
+                          t.status === "CONFIRMED" ? "bg-blue-100 text-blue-700" :
+                          "bg-gray-100 text-gray-600"
+                        )}>
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
