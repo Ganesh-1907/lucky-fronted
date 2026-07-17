@@ -75,7 +75,7 @@ export default function AdminPaymentsPage() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full whitespace-nowrap">
             <thead>
               <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50">
                 <th className="text-left p-4 font-medium">Payment ID</th>

@@ -124,7 +124,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full whitespace-nowrap">
               <thead>
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-50">
                   <th className="text-left p-4 font-medium">Booking ID</th>

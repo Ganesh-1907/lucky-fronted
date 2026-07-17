@@ -207,7 +207,7 @@ export default function EmployeeBookingsPage() {
       {/* Bookings Table */}
       <div className="bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full whitespace-nowrap">
             <thead>
               <tr className="text-[10px] text-gray-500 uppercase tracking-wider border-b border-gray-200/30">
                 <th className="text-left p-4 font-medium">Booking</th>

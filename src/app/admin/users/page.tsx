@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
       {!isLoading && users.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full whitespace-nowrap">
               <thead className="sticky top-0 bg-gray-50/90 backdrop-blur z-10">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
                   <th className="text-left p-4 font-medium">User</th>

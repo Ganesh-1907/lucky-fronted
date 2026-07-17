@@ -129,7 +129,7 @@ export default function VendorEarningsPage() {
           <div className="p-10 text-center text-gray-500 text-sm">No recent transactions found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full whitespace-nowrap">
               <thead>
                 <tr className="text-[11px] text-gray-500 uppercase tracking-wider border-b border-gray-50 bg-gray-50/50">
                   <th className="text-left p-4 font-bold">Booking Info</th>
