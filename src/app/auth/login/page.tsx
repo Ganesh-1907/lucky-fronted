@@ -177,10 +177,6 @@ function LoginContent() {
           <div className="mt-4 p-3 bg-violet-50 rounded-xl">
             <p className="text-xs font-medium text-violet-700 mb-1">Demo Credentials:</p>
             <p className="text-xs text-violet-600">Admin: admin@yopmail.com / admin123</p>
-            <p className="text-xs text-violet-600">Investor: investor@yopmail.com / investor123</p>
-            <p className="text-xs text-violet-600">Employee: employee@yopmail.com / employee123</p>
-            <p className="text-xs text-violet-600">Vendor: vendor@yopmail.com / vendor123</p>
-            <p className="text-xs text-violet-600">Customer: client@yopmail.com / client123</p>
           </div>
         </div>
 

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Search, CheckCircle, XCircle, Clock, ChevronDown, CheckCircle2, CalendarDays, User, MapPin } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import api from "@/lib/api";
+import { useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Booking {
   id: number;
@@ -41,16 +43,14 @@ const statusColors: Record<string, string> = {
 };
 
 export default function VendorBookingsPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status") || "ALL";
+
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   
@@ -59,6 +59,7 @@ export default function VendorBookingsPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [updating, setUpdating] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -68,13 +69,10 @@ export default function VendorBookingsPage() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  useEffect(() => {
-    fetchBookings();
-  }, [page, statusFilter, debouncedSearch]);
-
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
+  // Use React Query for caching and instant loads on navigation
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ["vendor", "bookings", page, limit, statusFilter, debouncedSearch],
+    queryFn: async () => {
       const query = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -83,17 +81,14 @@ export default function VendorBookingsPage() {
       if (debouncedSearch) query.append("search", debouncedSearch);
 
       const res = await api.get<{success: boolean, data: Booking[], pagination: any}>(`/bookings/vendor/list?${query.toString()}`);
-      if (res.success) {
-        setBookings(res.data);
-        setTotal(res.pagination.total);
-        setTotalPages(res.pagination.totalPages || Math.ceil(res.pagination.total / limit));
-      }
-    } catch (err: any) {
-      showToast(err.message || "Failed to load bookings", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res;
+    },
+    staleTime: 60000,
+  });
+
+  const bookings = data?.data || [];
+  const total = data?.pagination?.total || 0;
+  const totalPages = data?.pagination?.totalPages || Math.ceil(total / limit);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -121,7 +116,8 @@ export default function VendorBookingsPage() {
       setNewStatus("");
       setCancelReason("");
       
-      fetchBookings(); // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["vendor", "dashboard", "stats"] });
+      refetch(); // Refresh data
     } catch (err: any) {
       showToast(err.message || "Failed to update status", "error");
     } finally {

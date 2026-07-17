@@ -158,6 +158,7 @@ export function useVendorServices() {
   return useQuery({
     queryKey: ["vendor", "services"],
     queryFn: () => api.get<{ data: any[] }>("/services/vendor/my-services"),
+    staleTime: 60000,
   });
 }
 
@@ -166,6 +167,7 @@ export function useVendorBookings(status?: string) {
   return useQuery({
     queryKey: ["vendor", "bookings", status],
     queryFn: () => api.get<{ data: any[] }>(`/vendor/bookings${params}`),
+    staleTime: 60000,
   });
 }
 
@@ -173,6 +175,7 @@ export function useVendorDashboard() {
   return useQuery({
     queryKey: ["vendor", "dashboard"],
     queryFn: () => api.get<{ data: any }>("/vendor/dashboard"),
+    staleTime: 60000,
   });
 }
 
@@ -180,6 +183,7 @@ export function useVendorEarnings() {
   return useQuery({
     queryKey: ["vendor", "earnings"],
     queryFn: () => api.get<{ data: any }>("/vendor/earnings"),
+    staleTime: 60000,
   });
 }
 

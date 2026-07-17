@@ -10,6 +10,71 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+
+function VendorNotifications() {
+  const [open, setOpen] = useState(false);
+  const { data, refetch } = useQuery({
+    queryKey: ["vendor", "notifications"],
+    queryFn: () => api.get<any>("/vendors/notifications"),
+    refetchInterval: 30000,
+  });
+
+  const d = data?.data || data || {};
+  const unreadCount = d.unreadCount || 0;
+  const notifications: any[] = d.notifications || [];
+
+  const markAllAsRead = async () => {
+    try {
+      await api.put("/vendors/notifications/all/read", {});
+      refetch();
+    } catch (error) {}
+  };
+
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen(!open)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+        <Bell size={18} className="text-gray-600" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 shadow-sm border-2 border-white">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+      
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
+            <div className="flex items-center justify-between p-4 border-b border-gray-50">
+              <h3 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Notifications</h3>
+              {unreadCount > 0 && (
+                <button onClick={markAllAsRead} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">
+                  Mark all as read
+                </button>
+              )}
+            </div>
+            <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+              {notifications.length > 0 ? notifications.map((n: any) => (
+                <div key={n.id} className={cn("p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors", !n.isRead && "bg-emerald-50/30")}>
+                  <p className="text-sm font-semibold text-gray-900">{n.title}</p>
+                  <p className="text-xs text-gray-600 mt-1 line-clamp-2">{n.message}</p>
+                  <p className="text-[10px] text-gray-400 mt-2 font-medium">{new Date(n.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</p>
+                </div>
+              )) : (
+                <div className="p-8 text-center text-gray-500">
+                  <Bell size={24} className="mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm font-medium">No notifications yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 const vendorMenu = [
   { label: "Dashboard", href: "/vendor", icon: <LayoutDashboard size={18} /> },
@@ -17,7 +82,6 @@ const vendorMenu = [
   { label: "Bookings", href: "/vendor/bookings", icon: <ShoppingBag size={18} /> },
   { label: "Calendar", href: "/vendor/calendar", icon: <Calendar size={18} /> },
   { label: "Reviews", href: "/vendor/reviews", icon: <Star size={18} /> },
-  { label: "Availability", href: "/vendor/availability", icon: <Clock size={18} /> },
   { label: "Earnings", href: "/vendor/earnings", icon: <CreditCard size={18} /> },
   { label: "Analytics", href: "/vendor/analytics", icon: <BarChart3 size={18} /> },
   { label: "Settings", href: "/vendor/settings", icon: <Settings size={18} /> },
@@ -116,10 +180,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-gray-100">
-              <Bell size={18} className="text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <VendorNotifications />
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                 <span className="text-white text-xs font-bold">{user?.name?.[0] || "V"}</span>
