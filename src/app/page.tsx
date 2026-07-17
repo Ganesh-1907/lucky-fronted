@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight, Sparkles, Star, TrendingUp, Gift, Cake,
   PartyPopper, Heart, Building2, Flower2, ChevronRight,
-  Shield, Clock, CheckCircle, Users,
+  Shield, Clock, CheckCircle, Users, Loader2,
 } from "lucide-react";
 import ServiceCard from "@/components/cards/ServiceCard";
 import BannerCarousel from "@/components/BannerCarousel";
@@ -62,13 +62,27 @@ export default function HomePage() {
     count: c._count?.services ? `${c._count.services}+` : "New",
   }));
 
-  const homepageSections = (homepageRes as any)?.data || [];
+  let homepageSections = (homepageRes as any)?.data || [];
+  
+  // Fallback to default marketplace layout if database is unseeded
+  if (!homepageLoading && homepageSections.length === 0) {
+    homepageSections = [
+      { id: 'fallback-hero', type: 'banner' },
+      { id: 'fallback-cat', type: 'categories', title: 'Browse Categories', subtitle: 'Find the perfect service for your celebration' },
+      { id: 'fallback-trending', type: 'services', name: 'trending', title: 'Trending Services', subtitle: 'Most popular choices right now' },
+      { id: 'fallback-how', type: 'how_it_works', title: 'How It Works', subtitle: 'Book your celebration in 3 simple steps' },
+      { id: 'fallback-bestseller', type: 'services', name: 'best_sellers', title: 'Best Sellers', subtitle: 'Top rated by our customers' },
+      { id: 'fallback-vendor', type: 'vendor_cta', title: 'Become a Partner', subtitle: 'Join Lucky Marketplace and reach thousands of customers.' }
+    ];
+  }
     
   const bannerSection = homepageSections.find((s: any) => s.type === 'banner');
+  const homepageBanners = bannerRes?.data || [];
+  const rawBanners = bannerSection?.data || homepageBanners || [];
   
-  const heroSlides = (bannerSection?.data || []).map((banner: any) => ({
-    src: banner.image.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
-    alt: banner.title,
+  const heroSlides = rawBanners.map((banner: any) => ({
+    src: banner.image?.startsWith('http') ? banner.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${banner.image}`,
+    alt: banner.title || 'Banner',
     emoji: "✨",
     label: banner.title,
     sublabel: banner.description || "Special Offer",
@@ -77,7 +91,6 @@ export default function HomePage() {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [carouselPaused, setCarouselPaused] = useState(false);
-  const homepageBanners = bannerRes?.data || [];
 
   const nextSlide = useCallback(() => {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length);
@@ -355,6 +368,14 @@ export default function HomePage() {
         return null;
     }
   };
+
+  if (homepageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 size={40} className="animate-spin text-violet-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
