@@ -118,9 +118,9 @@ export default function VendorDashboard() {
       )}
 
       {/* Core KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {kpis.map((kpi, i) => (
-          <Link key={i} href={kpi.link} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all flex items-center gap-4 group">
+          <Link key={i} href={kpi.link} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 group">
             <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105", kpi.bg)}>
               {kpi.icon}
             </div>

@@ -99,11 +99,11 @@ export default function VendorAnalyticsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {kpis.map((kpi, i) => (
-          <div key={i} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-600/60 transition-all duration-300">
+          <div key={i} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
             <div className="flex items-start justify-between">
-              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-gray-900 shadow-lg", kpi.gradient, kpi.glow)}>
+              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-gray-900 shadow-lg transition-transform group-hover:scale-105", kpi.gradient, kpi.glow)}>
                 {kpi.icon}
               </div>
             </div>

@@ -44,7 +44,7 @@ export default function AdminUsersPage() {
 
     if (sortKey === "oldest") result.sort((a: any, b: any) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
     else result.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()); // newest
-    
+
     return result;
   }, [users, search, sortKey]);
 
@@ -79,19 +79,19 @@ export default function AdminUsersPage() {
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search by name, email, or phone..." value={search} onChange={e => {setSearch(e.target.value); setPage(1);}}
+            <input type="text" placeholder="Search by name, email, or phone..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
               className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
           </div>
           <div className="flex gap-2 flex-wrap items-center">
             {roleFilters.map(r => (
-              <button key={r} onClick={() => {setRoleFilter(r); setPage(1);}}
+              <button key={r} onClick={() => { setRoleFilter(r); setPage(1); }}
                 className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                   roleFilter === r ? "bg-violet-100 text-violet-700" : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 )}>
                 {r === "All" ? "All Roles" : r === "CLIENT" ? "Customer" : r.charAt(0) + r.slice(1).toLowerCase()}
               </button>
             ))}
-            <select value={sortKey} onChange={e => {setSortKey(e.target.value); setPage(1);}} className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 focus:outline-none">
+            <select value={sortKey} onChange={e => { setSortKey(e.target.value); setPage(1); }} className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-700 focus:outline-none">
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
             </select>
@@ -132,11 +132,11 @@ export default function AdminUsersPage() {
                 {paginated.length > 0 ? paginated.map((user: any) => {
                   const role = user.role || "CLIENT";
                   let status = user.isActive ? "ACTIVE" : "SUSPENDED";
-                  
+
                   if (role === "VENDOR" && user.vendorStatus) {
                     status = user.vendorStatus;
                   }
-                  
+
                   return (
                     <tr key={user.id} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors group">
                       <td className="p-4">
@@ -163,37 +163,37 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="p-4">
                         <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                          (status === "ACTIVE" || status === "APPROVED") ? "bg-green-100 text-green-700" : 
-                          status === "PENDING" ? "bg-amber-100 text-amber-700" : 
-                          status === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
-                          "bg-red-100 text-red-700"
+                          (status === "ACTIVE" || status === "APPROVED") ? "bg-green-100 text-green-700" :
+                            status === "PENDING" ? "bg-amber-100 text-amber-700" :
+                              status === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
+                                "bg-red-100 text-red-700"
                         )}>{status}</span>
                       </td>
                       <td className="p-4 sticky right-0 z-10 bg-white group-hover:bg-gray-50/90 shadow-[-4px_0_10px_rgba(0,0,0,0.05)] transition-colors">
                         <ActionMenu>
-                            <button onClick={() => { setViewUser(user); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <Eye size={14} className="text-gray-400" /> View
+                          <button onClick={() => { setViewUser(user); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Eye size={14} className="text-gray-400" /> View
+                          </button>
+                          <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                            <Mail size={14} className="text-gray-400" /> Email
+                          </a>
+                          {(role === "EMPLOYEE" || role === "INVESTOR") && (
+                            <button
+                              onClick={() => { setEditingUser(user); setShowEditModal(true); }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Edit size={14} className="text-gray-400" /> Edit
                             </button>
-                            <a href={`mailto:${user.email}`} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                              <Mail size={14} className="text-gray-400" /> Email
-                            </a>
-                            {(role === "EMPLOYEE" || role === "INVESTOR") && (
-                              <button 
-                                onClick={() => { setEditingUser(user); setShowEditModal(true); }} 
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Edit size={14} className="text-gray-400" /> Edit
-                              </button>
-                            )}
-                            {role !== "ADMIN" && (
-                              <button 
-                                onClick={() => { handleToggleStatus(user.id, status); }} 
-                                className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
-                                disabled={toggleUser.isPending}
-                              >
-                                <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
-                              </button>
-                            )}
+                          )}
+                          {role !== "ADMIN" && (
+                            <button
+                              onClick={() => { handleToggleStatus(user.id, status); }}
+                              className={cn("w-full text-left px-4 py-2 text-sm flex items-center gap-2", status === "ACTIVE" ? "text-red-600 hover:bg-red-50" : "text-green-600 hover:bg-green-50")}
+                              disabled={toggleUser.isPending}
+                            >
+                              <Ban size={14} /> {status === "ACTIVE" ? "Suspend" : "Activate"}
+                            </button>
+                          )}
                         </ActionMenu>
                       </td>
                     </tr>
@@ -208,13 +208,13 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination */}
           {filteredAndSorted.length > 0 && (
             <div className="flex items-center justify-between p-4 bg-gray-50/50 border-t border-gray-100">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Rows per page:</span>
-                <select value={pageSize} onChange={e => {setPageSize(Number(e.target.value)); setPage(1);}} className="text-sm border border-gray-200 rounded-md p-1 bg-white outline-none">
+                <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="text-sm border border-gray-200 rounded-md p-1 bg-white outline-none">
                   {[10, 25, 50, 100].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -296,7 +296,7 @@ export default function AdminUsersPage() {
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 {/* Header */}
                 <div className="flex items-center gap-4">
@@ -316,10 +316,10 @@ export default function AdminUsersPage() {
                         }
                         return (
                           <span className={cn("text-[10px] font-bold px-2.5 py-1 rounded-full uppercase",
-                            (badgeStatus === "ACTIVE" || badgeStatus === "APPROVED") ? "bg-green-100 text-green-700" : 
-                            badgeStatus === "PENDING" ? "bg-amber-100 text-amber-700" : 
-                            badgeStatus === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
-                            "bg-red-100 text-red-700"
+                            (badgeStatus === "ACTIVE" || badgeStatus === "APPROVED") ? "bg-green-100 text-green-700" :
+                              badgeStatus === "PENDING" ? "bg-amber-100 text-amber-700" :
+                                badgeStatus === "SUSPENDED" ? "bg-gray-100 text-gray-700" :
+                                  "bg-red-100 text-red-700"
                           )}>
                             {badgeStatus}
                           </span>
@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {viewUser.role === "ADMIN" && (
                   <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 flex items-start gap-3">
                     <Shield size={20} className="text-violet-600 mt-0.5" />

@@ -83,16 +83,8 @@ export default function InvestorDashboard() {
   const kpiCards = [
     { label: "Total Platform Revenue", value: formatPrice(kpis.totalRevenue), icon: <DollarSign size={18} />, gradient: "from-emerald-500 to-green-600", glow: "shadow-violet-500/25", growth: kpis.monthlyRevenueGrowth, sparkline: sparkData },
     { label: "Total Bookings", value: kpis.totalBookings?.toLocaleString(), icon: <ShoppingBag size={18} />, gradient: "from-blue-500 to-indigo-600", glow: "shadow-blue-500/25", growth: growth.bookingGrowth },
-    { label: "Completed Events", value: kpis.completedEvents?.toLocaleString(), icon: <CheckCircle2 size={18} />, gradient: "from-violet-500 to-purple-600", glow: "shadow-violet-500/25" },
-    { label: "Active Vendors", value: kpis.activeVendors?.toLocaleString(), icon: <Store size={18} />, gradient: "from-amber-500 to-orange-600", glow: "shadow-amber-500/25" },
-    { label: "Total Customers", value: kpis.totalCustomers?.toLocaleString(), icon: <Users size={18} />, gradient: "from-cyan-500 to-blue-600", glow: "shadow-cyan-500/25" },
-    { label: "Total Employees", value: kpis.totalEmployees?.toLocaleString(), icon: <UserCheck size={18} />, gradient: "from-teal-500 to-emerald-600", glow: "shadow-teal-500/25" },
-    { label: "Monthly Revenue Growth", value: `${kpis.monthlyRevenueGrowth >= 0 ? "+" : ""}${kpis.monthlyRevenueGrowth}%`, icon: <TrendingUp size={18} />, gradient: kpis.monthlyRevenueGrowth >= 0 ? "from-emerald-500 to-green-600" : "from-red-500 to-rose-600", glow: kpis.monthlyRevenueGrowth >= 0 ? "shadow-violet-500/25" : "shadow-red-500/25", isGrowth: true },
-    { label: "Yearly Revenue Growth", value: `${kpis.yearlyRevenueGrowth >= 0 ? "+" : ""}${kpis.yearlyRevenueGrowth}%`, icon: <BarChart3 size={18} />, gradient: kpis.yearlyRevenueGrowth >= 0 ? "from-emerald-500 to-green-600" : "from-red-500 to-rose-600", glow: kpis.yearlyRevenueGrowth >= 0 ? "shadow-violet-500/25" : "shadow-red-500/25", isGrowth: true },
-    { label: "Gross Profit", value: formatPrice(kpis.grossProfit), icon: <Target size={18} />, gradient: "from-lime-500 to-green-600", glow: "shadow-lime-500/25" },
     { label: "Net Profit", value: formatPrice(kpis.netProfit), icon: <Zap size={18} />, gradient: "from-yellow-500 to-amber-600", glow: "shadow-yellow-500/25" },
-    { label: "Avg Booking Value", value: formatPrice(kpis.avgBookingValue), icon: <PieChart size={18} />, gradient: "from-pink-500 to-rose-600", glow: "shadow-pink-500/25" },
-    { label: "Commission Revenue", value: formatPrice(kpis.commissionRevenue), icon: <DollarSign size={18} />, gradient: "from-emerald-400 to-teal-600", glow: "shadow-emerald-400/25" },
+    { label: "Monthly Revenue Growth", value: `${kpis.monthlyRevenueGrowth >= 0 ? "+" : ""}${kpis.monthlyRevenueGrowth}%`, icon: <TrendingUp size={18} />, gradient: kpis.monthlyRevenueGrowth >= 0 ? "from-emerald-500 to-green-600" : "from-red-500 to-rose-600", glow: kpis.monthlyRevenueGrowth >= 0 ? "shadow-violet-500/25" : "shadow-red-500/25", isGrowth: true },
   ];
 
   return (
@@ -100,17 +92,17 @@ export default function InvestorDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>
-          Executive Summary
+          Dashboard
         </h1>
         <p className="text-sm text-gray-500 mt-1">Platform performance overview and key metrics.</p>
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {kpiCards.map((kpi, i) => (
           <div
             key={i}
-            className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-600/60 transition-all duration-300 group"
+            className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
           >
             <div className="flex items-start justify-between">
               <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-gray-900 shadow-lg", kpi.gradient, kpi.glow)}>

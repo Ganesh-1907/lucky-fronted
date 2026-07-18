@@ -238,7 +238,7 @@ export default function VendorBookingsPage() {
                           <span className="font-medium text-emerald-600">{formatPrice(Number(booking.advancePaid))}</span>
                         </div>
                         <div className="flex justify-between text-sm pt-1">
-                          <span className="text-gray-900 font-bold">Collect from client</span>
+                          <span className="text-gray-900 font-bold">Collect from customer</span>
                           <span className="text-red-600 font-bold">{formatPrice(Number(booking.remainingAmount))}</span>
                         </div>
                       </div>

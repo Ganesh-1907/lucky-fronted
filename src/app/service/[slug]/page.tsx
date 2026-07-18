@@ -285,7 +285,7 @@ export default function ServiceDetailPage() {
                   <span className="flex items-center gap-1">
                     <Star size={12} className="text-amber-500 fill-amber-500" /> {Number(service.vendor?.avgRating || 0).toFixed(1)}
                   </span>
-                  <span>{service.vendor?.totalBookings || 0}+ orders</span>
+                  <span>{service.vendor?.totalBookings || 0}+ bookings</span>
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 
 const investorMenu = [
-  { label: "Executive Summary", href: "/investor", icon: <LayoutDashboard size={18} /> },
+  { label: "Dashboard", href: "/investor", icon: <LayoutDashboard size={18} /> },
   { label: "Revenue", href: "/investor/revenue", icon: <TrendingUp size={18} /> },
   { label: "Bookings", href: "/investor/bookings", icon: <ShoppingBag size={18} /> },
   { label: "Customers", href: "/investor/customers", icon: <Users size={18} /> },

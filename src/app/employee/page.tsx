@@ -77,14 +77,8 @@ export default function EmployeeDashboard() {
   const stats = data?.stats || {};
   const statCards = [
     { label: "Total Assigned", value: stats.totalAssigned || 0, icon: <ShoppingBag size={18} />, gradient: "from-violet-500 to-purple-600", glow: "shadow-violet-500/20" },
-    { label: "Today's Events", value: stats.todaysEvents || 0, icon: <Calendar size={18} />, gradient: "from-blue-500 to-blue-600", glow: "shadow-blue-500/20" },
-    { label: "Upcoming 7 Days", value: stats.upcomingEvents || 0, icon: <CalendarDays size={18} />, gradient: "from-indigo-500 to-indigo-600", glow: "shadow-indigo-500/20" },
     { label: "Pending Follow-Ups", value: stats.pendingFollowUps || 0, icon: <Clock size={18} />, gradient: "from-amber-500 to-orange-500", glow: "shadow-amber-500/20" },
-    { label: "Completed Follow-Ups", value: stats.completedFollowUps || 0, icon: <CheckCircle2 size={18} />, gradient: "from-emerald-500 to-green-600", glow: "shadow-emerald-500/20" },
-    { label: "New Inquiries", value: stats.newInquiries || 0, icon: <UserPlus size={18} />, gradient: "from-cyan-500 to-cyan-600", glow: "shadow-violet-500/20" },
-    { label: "Vendor Awaiting", value: stats.vendorResponsesAwaiting || 0, icon: <Store size={18} />, gradient: "from-orange-500 to-red-500", glow: "shadow-orange-500/20" },
-    { label: "Customer Awaiting", value: stats.customerResponsesAwaiting || 0, icon: <MessageSquare size={18} />, gradient: "from-rose-500 to-pink-600", glow: "shadow-rose-500/20" },
-    { label: "Closed Bookings", value: stats.closedBookings || 0, icon: <Archive size={18} />, gradient: "from-slate-500 to-slate-600", glow: "shadow-slate-500/20" },
+    { label: "Action Required", value: (stats.vendorResponsesAwaiting || 0) + (stats.customerResponsesAwaiting || 0), icon: <AlertTriangle size={18} />, gradient: "from-rose-500 to-pink-600", glow: "shadow-rose-500/20" },
     { label: "Total Revenue", value: formatPrice(stats.revenue || 0), icon: <DollarSign size={18} />, gradient: "from-green-500 to-emerald-600", glow: "shadow-green-500/20", isRevenue: true },
   ];
 
@@ -108,11 +102,11 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {statCards.map((stat, i) => (
           <div
             key={i}
-            className="bg-gray-50 border border-gray-100 rounded-2xl p-4 hover:border-slate-600/60 transition-all duration-300 group"
+            className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             style={{ animationDelay: `${i * 50}ms` }}
           >
             <div className={cn(

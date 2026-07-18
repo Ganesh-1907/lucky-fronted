@@ -75,7 +75,7 @@ export default function AdminReportsPage() {
               <span className="text-[9px] font-medium text-gray-500">{formatPrice(m.revenue)}</span>
               <div className="w-full max-w-[36px] rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 hover:from-violet-700 hover:to-violet-500 transition-all cursor-pointer"
                 style={{ height: `${Math.max(2, (m.revenue / (maxRevenue || 1)) * 100)}%` }}
-                title={`${m.month}: ${formatPrice(m.revenue)} · ${m.orders || 0} orders`} />
+                title={`${m.month}: ${formatPrice(m.revenue)} · ${m.orders || 0} bookings`} />
               <span className="text-[10px] text-gray-400">{m.month}</span>
             </div>
           )) : (

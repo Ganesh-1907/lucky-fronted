@@ -23,7 +23,7 @@ export default function VendorInfoPage() {
             Turn Your Creativity Into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-pink-300">Thriving Business</span>
           </h1>
           <p className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join the Lucky Marketplace network of elite decorators and event planners. Showcase your talent, reach more clients, and scale your business effortlessly.
+            Join the Lucky Marketplace network of elite decorators and event planners. Showcase your talent, reach more customers, and scale your business effortlessly.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="/auth/register?role=vendor" className="px-8 py-4 bg-white text-violet-900 rounded-xl font-bold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
