@@ -182,8 +182,12 @@ export default function AdminVendorsPage() {
                   <tr key={vendor.id} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors group">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                          <span className="text-white font-bold text-sm">{vendor.businessName?.[0] || vendor.user?.name?.[0] || "V"}</span>
+                        <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0 overflow-hidden">
+                          {vendor.logo ? (
+                            <img src={vendor.logo.startsWith('http') ? vendor.logo : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${vendor.logo}`} alt="Logo" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{vendor.businessName?.[0] || vendor.user?.name?.[0] || "V"}</span>
+                          )}
                         </div>
                         <div onClick={() => setViewVendor(vendor)} className="cursor-pointer hover:underline decoration-violet-500">
                           <p className="text-sm font-semibold text-gray-900">{vendor.businessName || "Unnamed Business"}</p>
@@ -314,8 +318,12 @@ export default function AdminVendorsPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shrink-0 shadow-inner">
-                    <User size={32} className="text-white opacity-80" />
+                  <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+                    {viewVendor.logo ? (
+                      <img src={viewVendor.logo.startsWith('http') ? viewVendor.logo : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${viewVendor.logo}`} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={32} className="text-white opacity-80" />
+                    )}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">{viewVendor.businessName || "Unnamed Business"}</h3>

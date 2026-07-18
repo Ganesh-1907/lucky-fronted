@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,8 +7,10 @@ import {
   Save, Bell, Shield, CreditCard, Loader2
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useCityStore } from "@/store/city";
 import { useUpdateProfile, useChangePassword } from "@/hooks/useApi";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: <User size={16} /> },
@@ -23,22 +24,39 @@ export default function AccountSettingsPage() {
   const displayTabs = tabs;
 
   const [activeTab, setActiveTab] = useState("profile");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
     city: user?.city || "",
+    avatar: user?.avatar || "",
   });
   const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
   
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
 
+  const { setCity } = useCityStore();
+
   useEffect(() => {
     if (_hasHydrated && !isAuthenticated) {
       router.push("/auth/login");
     }
   }, [_hasHydrated, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        city: user.city || "",
+        avatar: user.avatar || "",
+      });
+    }
+  }, [user]);
 
   if (!_hasHydrated || !isAuthenticated) {
     return (
@@ -54,8 +72,12 @@ export default function AccountSettingsPage() {
         name: formData.name,
         phone: formData.phone,
         city: formData.city,
+        avatar: formData.avatar,
       });
       useAuthStore.getState().setUser(res.data);
+      if (formData.city) {
+        setCity(formData.city);
+      }
       toast.success("Profile updated successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile");
@@ -81,6 +103,35 @@ export default function AccountSettingsPage() {
       setPasswords({ current: "", newPass: "", confirm: "" });
     } catch (err: any) {
       toast.error(err.message || "Failed to change password");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    setIsUploading(true);
+    const uploadData = new FormData();
+    uploadData.append("images", file);
+    uploadData.append("folder", "avatars");
+
+    try {
+      const res = await api.uploadFile("/upload/images", uploadData);
+      if (res.success && res.data?.urls?.[0]) {
+        setFormData(prev => ({ ...prev, avatar: res.data.urls[0] }));
+        toast.success("Profile picture uploaded. Don't forget to save changes!");
+      } else {
+        toast.error("Failed to upload image");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error uploading image");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -116,13 +167,21 @@ export default function AccountSettingsPage() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
             {/* Avatar */}
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">{formData.name[0]}</span>
+              <div className="relative group">
+                <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center overflow-hidden">
+                  {formData.avatar ? (
+                    <img src={formData.avatar.startsWith('http') ? formData.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${formData.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white text-2xl font-bold">{formData.name?.[0]?.toUpperCase() || "U"}</span>
+                  )}
                 </div>
-                <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50">
-                  <Camera size={12} className="text-gray-600" />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl cursor-pointer"
+                >
+                  {isUploading ? <Loader2 size={20} className="text-white animate-spin" /> : <Camera size={20} className="text-white" />}
                 </button>
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
               <div>
                 <p className="font-semibold text-gray-900">{formData.name}</p>

@@ -127,8 +127,12 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
             </div>
           </div>
           <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{user?.name?.[0] || "I"}</span>
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-xs font-bold">{user?.name?.[0]?.toUpperCase() || "I"}</span>
+              )}
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-gray-900">{user?.name || "Investor"}</p>

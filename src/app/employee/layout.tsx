@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
+import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 const employeeMenu = [
   { label: "Dashboard", href: "/employee", icon: <LayoutDashboard size={18} /> },
@@ -147,13 +148,14 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/employee/notifications" className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Bell size={18} className="text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Link>
+            <NotificationsPlaceholder />
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{user?.name?.[0] || "E"}</span>
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white text-xs font-bold">{user?.name?.[0]?.toUpperCase() || "E"}</span>
+                )}
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.name || "Employee"}</p>

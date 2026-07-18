@@ -95,10 +95,14 @@ export default function AccountPage() {
         {/* Welcome Header */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shrink-0">
-              <span className="text-white text-2xl font-bold" style={{ fontFamily: "var(--font-outfit)" }}>
-                {user.name?.[0]?.toUpperCase() || "U"}
-              </span>
+            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shrink-0 overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-2xl font-bold" style={{ fontFamily: "var(--font-outfit)" }}>
+                  {user.name?.[0]?.toUpperCase() || "U"}
+                </span>
+              )}
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>

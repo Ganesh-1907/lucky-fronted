@@ -12,6 +12,7 @@ import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
+import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 function VendorNotifications() {
   const [open, setOpen] = useState(false);
@@ -180,10 +181,14 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <VendorNotifications />
+            <NotificationsPlaceholder />
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{user?.name?.[0] || "V"}</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white text-xs font-bold">{user?.name?.[0]?.toUpperCase() || "V"}</span>
+                )}
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.vendor?.businessName || user?.name || "Vendor"}</p>

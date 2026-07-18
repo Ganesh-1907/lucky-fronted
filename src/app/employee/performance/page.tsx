@@ -100,7 +100,7 @@ export default function PerformancePage() {
   // Pipeline funnel
   const pipelineData = (data?.pipelineBreakdown || []).map((p: any) => ({
     status: p.pipelineStatus,
-    count: p._count,
+    count: Number(p.count),
   })).sort((a: any, b: any) => b.count - a.count);
 
   const maxPipeline = Math.max(...pipelineData.map((p: any) => p.count), 1);

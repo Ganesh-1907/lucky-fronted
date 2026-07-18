@@ -13,6 +13,7 @@ import CitySelector from "./CitySelector";
 import MegaMenu from "./MegaMenu";
 import { cn } from "@/lib/utils";
 import { useWishlist } from "@/hooks/useApi";
+import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -177,15 +178,7 @@ export default function Header() {
               )}
 
               {/* Notifications */}
-              {isAuthenticated && (
-                <Link
-                  href="/notifications"
-                  className="p-2 rounded-lg hover:bg-gray-100 relative hidden sm:flex"
-                >
-                  <Bell size={20} className="text-gray-600" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </Link>
-              )}
+              {isAuthenticated && <NotificationsPlaceholder />}
 
               {/* User Menu */}
               {!_hasHydrated ? (
@@ -200,10 +193,14 @@ export default function Header() {
                     <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[80px] truncate">
                       {user?.name?.split(" ")[0]}
                     </span>
-                    <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">
-                        {user?.name?.[0]?.toUpperCase()}
-                      </span>
+                    <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
+                      {user?.avatar ? (
+                        <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-white text-xs font-bold">
+                          {user?.name?.[0]?.toUpperCase() || "U"}
+                        </span>
+                      )}
                     </div>
                   </button>
 
@@ -323,8 +320,12 @@ export default function Header() {
 
             {isAuthenticated && (
               <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <span className="text-white font-bold">{user?.name?.[0]}</span>
+                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center overflow-hidden">
+                  {user?.avatar ? (
+                    <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white font-bold">{user?.name?.[0]?.toUpperCase() || "U"}</span>
+                  )}
                 </div>
                 <div>
                   <p className="font-medium text-sm">{user?.name}</p>

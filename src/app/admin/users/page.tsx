@@ -142,7 +142,7 @@ export default function AdminUsersPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-sm">
-                            <span className="text-white text-sm font-bold">{user.name?.[0]?.toUpperCase() || "U"}</span>
+                            {user.avatar ? <img src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${user.avatar}`} alt="Avatar" className="w-full h-full object-cover rounded-xl" /> : <span className="text-white text-sm font-bold">{user.name?.[0]?.toUpperCase() || "U"}</span>}
                           </div>
                           <div onClick={() => setViewUser(user)} className="cursor-pointer hover:underline decoration-violet-500">
                             <p className="text-sm font-semibold text-gray-900">{user.name || "Unknown User"}</p>
@@ -301,7 +301,7 @@ export default function AdminUsersPage() {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shrink-0 shadow-inner">
-                    <span className="text-white text-3xl font-bold">{viewUser.name?.[0]?.toUpperCase() || "U"}</span>
+                    {viewUser.avatar ? <img src={viewUser.avatar.startsWith('http') ? viewUser.avatar : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${viewUser.avatar}`} alt="Avatar" className="w-full h-full object-cover rounded-2xl" /> : <span className="text-white text-3xl font-bold">{viewUser.name?.[0]?.toUpperCase() || "U"}</span>}
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">{viewUser.name || "Unknown User"}</h3>

@@ -5,6 +5,7 @@ import LayoutShell from "@/components/layout/LayoutShell";
 import QueryProvider from "@/providers/QueryProvider";
 import PopupBanner from "@/components/PopupBanner";
 import { Toaster } from "react-hot-toast";
+import { Toaster as SonnerToaster } from "sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const inter = Inter({
@@ -53,6 +54,7 @@ export default function RootLayout({
             },
           }}
         />
+        <SonnerToaster position="top-right" richColors />
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <QueryProvider>
             <LayoutShell>{children}</LayoutShell>
