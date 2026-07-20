@@ -281,8 +281,8 @@ export default function AccountSettingsPage() {
           </div>
         )}
 
-        {/* Notifications Tab */}
-        {activeTab === "notifications" && (
+        {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+        {/* activeTab === "notifications" && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
             <h3 className="font-bold text-gray-900">Notification Preferences</h3>
             <div className="bg-violet-50 border border-violet-100 rounded-xl p-6 text-center">
@@ -291,7 +291,7 @@ export default function AccountSettingsPage() {
               <p className="text-sm text-violet-700">Detailed notification preferences will be available in a future update.</p>
             </div>
           </div>
-        )}
+        ) */}
       </div>
     </div>
   );
