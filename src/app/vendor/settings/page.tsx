@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { 
   Save, Building, DollarSign, Settings, Shield, Loader2,
-  Camera, Eye, EyeOff, Bell, MapPin
+  Camera, Eye, EyeOff, MapPin
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
@@ -278,7 +278,8 @@ export default function VendorSettingsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm">
+      {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+      {/* <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm">
         <h3 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
           <Bell size={18} className="text-emerald-500" /> Notification Preferences
         </h3>
@@ -299,7 +300,7 @@ export default function VendorSettingsPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 

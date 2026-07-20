@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Users, Store, ShoppingBag, Star, Tag,
-  Menu, Settings, BarChart3, Image, Gift, Bell, LogOut,
+  Menu, Settings, BarChart3, Image, Gift, LogOut,
   ChevronLeft, FileText, MessageSquare, Layers, Globe,
   CreditCard, X
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
-import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
+// ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+// import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 const adminMenu = [
   { label: "Dashboard", href: "/admin", icon: <LayoutDashboard size={18} /> },
@@ -154,7 +155,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-3">
-            <NotificationsPlaceholder />
+            {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+            {/* <NotificationsPlaceholder /> */}
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
                 {user?.avatar ? (

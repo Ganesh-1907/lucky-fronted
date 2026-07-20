@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, PhoneCall, ClipboardList,
-  Calendar, BarChart3, Bell, LogOut, ChevronLeft, Globe,
+  Calendar, BarChart3, LogOut, ChevronLeft, Globe,
   Menu, X, Clock
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
-import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
+// ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+// import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 const employeeMenu = [
   { label: "Dashboard", href: "/employee", icon: <LayoutDashboard size={18} /> },
@@ -19,7 +20,8 @@ const employeeMenu = [
   { label: "Tasks", href: "/employee/tasks", icon: <ClipboardList size={18} /> },
   { label: "Calendar", href: "/employee/calendar", icon: <Calendar size={18} /> },
   { label: "Performance", href: "/employee/performance", icon: <BarChart3 size={18} /> },
-  { label: "Notifications", href: "/employee/notifications", icon: <Bell size={18} /> },
+  // ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+  // { label: "Notifications", href: "/employee/notifications", icon: <Bell size={18} /> },
 ];
 
 export default function EmployeeLayout({ children }: { children: React.ReactNode }) {
@@ -148,7 +150,8 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-3">
-            <NotificationsPlaceholder />
+            {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+            {/* <NotificationsPlaceholder /> */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
                 {user?.avatar ? (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Save, Globe, Mail, CreditCard, Shield, Image, Bell } from "lucide-react";
+import { Save, Globe, Mail, CreditCard, Shield, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
@@ -11,7 +11,8 @@ const settingGroups = [
   { id: "general", label: "General", icon: <Globe size={16} /> },
   { id: "payment", label: "Payment", icon: <CreditCard size={16} /> },
   { id: "email", label: "Email", icon: <Mail size={16} /> },
-  { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
+  // ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+  // { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
   { id: "seo", label: "SEO", icon: <Shield size={16} /> },
 ];
 
@@ -172,7 +173,8 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        {activeTab === "notifications" && (
+        {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+        {/* activeTab === "notifications" && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-base font-bold text-gray-900 mb-2 border-b border-gray-100 pb-4">Notification Settings</h3>
             <div className="space-y-2">
@@ -180,7 +182,7 @@ export default function AdminSettingsPage() {
               {renderToggle("SMS Notifications", "Send SMS notifications for bookings", "smsNotifications")}
             </div>
           </div>
-        )}
+        ) */}
 
         {activeTab === "seo" && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm space-y-6">

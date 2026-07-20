@@ -6,13 +6,20 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Layers, ShoppingBag, Star, Clock,
   Settings, BarChart3, LogOut, Menu, X, ChevronLeft,
-  Bell, Globe, CreditCard, Calendar
+  Globe, CreditCard, Calendar
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
+// ═══════════════════════════════════════════════════════════════
+// Notifications Module — HIDDEN for future implementation
+// Uncomment when ready to enable notification UI.
+// ═══════════════════════════════════════════════════════════════
+
+/* -- FUTURE VENDOR NOTIFICATIONS --
 import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
+import { Bell as BellIcon } from "lucide-react";
 
 function VendorNotifications() {
   const [open, setOpen] = useState(false);
@@ -36,14 +43,14 @@ function VendorNotifications() {
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-        <Bell size={18} className="text-gray-600" />
+        <BellIcon size={18} className="text-gray-600" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 shadow-sm border-2 border-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
@@ -65,7 +72,7 @@ function VendorNotifications() {
                 </div>
               )) : (
                 <div className="p-8 text-center text-gray-500">
-                  <Bell size={24} className="mx-auto mb-3 text-gray-300" />
+                  <BellIcon size={24} className="mx-auto mb-3 text-gray-300" />
                   <p className="text-sm font-medium">No notifications yet</p>
                 </div>
               )}
@@ -76,6 +83,7 @@ function VendorNotifications() {
     </div>
   );
 }
+*/
 
 const vendorMenu = [
   { label: "Dashboard", href: "/vendor", icon: <LayoutDashboard size={18} /> },
@@ -181,7 +189,8 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationsPlaceholder />
+            {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+            {/* <NotificationsPlaceholder /> */}
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center overflow-hidden">
                 {user?.avatar ? (

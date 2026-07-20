@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight, User, Mail, Phone, MapPin, Lock, Camera,
-  Save, Bell, Shield, CreditCard, Loader2
+  Save, Shield, CreditCard, Loader2
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useCityStore } from "@/store/city";
@@ -15,7 +15,8 @@ import api from "@/lib/api";
 const tabs = [
   { id: "profile", label: "Profile", icon: <User size={16} /> },
   { id: "security", label: "Security", icon: <Shield size={16} /> },
-  { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
+  // ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+  // { id: "notifications", label: "Notifications", icon: <Bell size={16} /> },
 ];
 
 export default function AccountSettingsPage() {

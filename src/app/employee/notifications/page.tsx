@@ -1,5 +1,16 @@
 "use client";
 
+// ═══════════════════════════════════════════════════════════════
+// Notifications Module — HIDDEN for future implementation
+// ═══════════════════════════════════════════════════════════════
+// Uncomment the code below when ready to enable notification UI.
+// ═══════════════════════════════════════════════════════════════
+
+export default function NotificationsPage() {
+  return null;
+}
+
+/* -- FUTURE NOTIFICATIONS PAGE --
 import { useState, useEffect, useCallback } from "react";
 import {
   Bell, CheckCheck, ShoppingBag, CreditCard, Phone,
@@ -75,7 +86,6 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2" style={{ fontFamily: "var(--font-outfit)" }}>
@@ -98,7 +108,6 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {/* Notifications List */}
       <div className="space-y-2">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
@@ -151,7 +160,6 @@ export default function NotificationsPage() {
         )}
       </div>
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-500">Page {pagination.page} of {pagination.totalPages}</p>
@@ -170,3 +178,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+*/

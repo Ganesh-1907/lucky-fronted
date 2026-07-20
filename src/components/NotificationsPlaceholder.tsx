@@ -1,5 +1,16 @@
 "use client";
 
+// ═══════════════════════════════════════════════════════════════
+// Notifications Module — HIDDEN for future implementation
+// ═══════════════════════════════════════════════════════════════
+// Uncomment the code below when ready to enable notification UI.
+// ═══════════════════════════════════════════════════════════════
+
+export default function NotificationsPlaceholder() {
+  return null;
+}
+
+/* -- FUTURE NOTIFICATION UI --
 import { useState } from "react";
 import { Bell } from "lucide-react";
 
@@ -8,23 +19,22 @@ export default function NotificationsPlaceholder() {
 
   return (
     <div className="relative">
-      <button 
-        onClick={() => setOpen(!open)} 
+      <button
+        onClick={() => setOpen(!open)}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors hidden sm:flex items-center justify-center"
       >
         <Bell size={20} className="text-gray-600" />
         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
       </button>
 
-      {/* Mobile visible version if needed, some layouts have specific mobile nav */}
-      <button 
-        onClick={() => setOpen(!open)} 
+      <button
+        onClick={() => setOpen(!open)}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors sm:hidden flex items-center justify-center"
       >
         <Bell size={18} className="text-gray-600" />
         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
@@ -43,3 +53,4 @@ export default function NotificationsPlaceholder() {
     </div>
   );
 }
+*/

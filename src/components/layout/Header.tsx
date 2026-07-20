@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Search, MapPin, User, Heart, ShoppingBag, Menu, X, ChevronDown,
-  LogOut, Settings, Bell, LayoutDashboard
+  LogOut, Settings, LayoutDashboard
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useCityStore } from "@/store/city";
@@ -13,7 +13,8 @@ import CitySelector from "./CitySelector";
 import MegaMenu from "./MegaMenu";
 import { cn } from "@/lib/utils";
 import { useWishlist } from "@/hooks/useApi";
-import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
+// ═══ NOTIFICATIONS — HIDDEN for future implementation ═══
+// import NotificationsPlaceholder from "@/components/NotificationsPlaceholder";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -177,8 +178,8 @@ export default function Header() {
                 </Link>
               )}
 
-              {/* Notifications */}
-              {isAuthenticated && <NotificationsPlaceholder />}
+              {/* ═══ NOTIFICATIONS — HIDDEN for future implementation ═══ */}
+              {/* {isAuthenticated && <NotificationsPlaceholder />} */}
 
               {/* User Menu */}
               {!_hasHydrated ? (
